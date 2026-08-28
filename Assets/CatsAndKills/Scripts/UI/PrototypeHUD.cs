@@ -42,6 +42,12 @@ namespace CatsAndKills.UI
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         public void SetGlitch(float amount)
         {
             _glitch = Mathf.Clamp01(amount);
