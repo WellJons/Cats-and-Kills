@@ -20,6 +20,7 @@ namespace CatsAndKills.Audio
         private static AudioClip _ambient;
         private static AudioClip _alert;
         private static AudioClip _combat;
+        private static AudioClip _club;
 
         public static AudioClip RifleShot =>
             _rifle ??= CreateGunshot("CK Rifle", 0.34f, 108f, 1.05f, 31);
@@ -71,6 +72,9 @@ namespace CatsAndKills.Audio
 
         public static AudioClip CombatMusic =>
             _combat ??= CreateMusic("Combat Layer", 2);
+
+        public static AudioClip ClubMusic =>
+            _club ??= CreateClubMusic();
 
         public static AudioClip GetWeaponClip(string weaponName)
         {
@@ -296,6 +300,153 @@ namespace CatsAndKills.Audio
             }
 
             return MakeClip(name, data, channels);
+        }
+
+        private static AudioClip CreateClubMusic()
+        {
+            const float duration = 12f;
+            const int channels = 2;
+
+            int frames =
+                Mathf.RoundToInt(
+                    duration *
+                    SampleRate);
+
+            float[] data =
+                new float[
+                    frames *
+                    channels];
+
+            const float bpm = 116f;
+            float beat =
+                60f / bpm;
+
+            for (int i = 0;
+                 i < frames;
+                 i++)
+            {
+                float t =
+                    i /
+                    (float)SampleRate;
+
+                float beatPhase =
+                    Mathf.Repeat(
+                        t,
+                        beat);
+
+                float kickEnvelope =
+                    Mathf.Exp(
+                        -beatPhase *
+                        22f);
+
+                float kick =
+                    Mathf.Sin(
+                        2f *
+                        Mathf.PI *
+                        Mathf.Lerp(
+                            94f,
+                            46f,
+                            Mathf.Clamp01(
+                                beatPhase *
+                                7f)) *
+                        beatPhase) *
+                    kickEnvelope *
+                    0.28f;
+
+                float bassGate =
+                    Mathf.Pow(
+                        Mathf.Max(
+                            0f,
+                            Mathf.Sin(
+                                2f *
+                                Mathf.PI *
+                                (bpm / 60f) *
+                                t)),
+                        3f);
+
+                float bass =
+                    Mathf.Sin(
+                        2f *
+                        Mathf.PI *
+                        55f *
+                        t) *
+                    bassGate *
+                    0.16f;
+
+                float synthL =
+                    Mathf.Sin(
+                        2f *
+                        Mathf.PI *
+                        220f *
+                        t +
+                        Mathf.Sin(
+                            t * 0.7f) *
+                        0.5f) *
+                    0.045f;
+
+                float synthR =
+                    Mathf.Sin(
+                        2f *
+                        Mathf.PI *
+                        220.8f *
+                        t +
+                        0.6f +
+                        Mathf.Sin(
+                            t * 0.73f) *
+                        0.5f) *
+                    0.045f;
+
+                float hatPhase =
+                    Mathf.Repeat(
+                        t +
+                        beat * 0.5f,
+                        beat);
+
+                float hat =
+                    Mathf.Sin(
+                        2f *
+                        Mathf.PI *
+                        6200f *
+                        t) *
+                    Mathf.Exp(
+                        -hatPhase *
+                        60f) *
+                    0.018f;
+
+                float left =
+                    kick +
+                    bass +
+                    synthL +
+                    hat;
+
+                float right =
+                    kick +
+                    bass +
+                    synthR -
+                    hat * 0.55f;
+
+                data[
+                    i *
+                    channels] =
+                    (float)Math.Tanh(
+                        left *
+                        1.35f) *
+                    0.70f;
+
+                data[
+                    i *
+                    channels +
+                    1] =
+                    (float)Math.Tanh(
+                        right *
+                        1.35f) *
+                    0.70f;
+            }
+
+            return MakeClip(
+                "Club Interior Loop",
+                data,
+                channels);
         }
 
         private static AudioClip MakeClip(
