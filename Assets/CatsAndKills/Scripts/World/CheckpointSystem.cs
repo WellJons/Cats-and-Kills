@@ -43,24 +43,24 @@ namespace CatsAndKills.World
 
             GameObject restorer = new GameObject("Checkpoint Restorer");
             Object.DontDestroyOnLoad(restorer);
-            restorer.AddComponent<CheckpointRestorer>();
+            restorer.AddComponent<CheckpointRestorer2D>();
         }
+    }
 
-        private sealed class CheckpointRestorer : MonoBehaviour
+    public sealed class CheckpointRestorer2D : MonoBehaviour
+    {
+        private int _frames;
+
+        private void Update()
         {
-            private int _frames;
+            _frames++;
+            if (_frames < 2) return;
 
-            private void Update()
-            {
-                _frames++;
-                if (_frames < 2) return;
+            PlayerMotor2D player = FindFirstObjectByType<PlayerMotor2D>();
+            if (player != null)
+                player.transform.position = CheckpointSystem.Position;
 
-                PlayerMotor2D player = FindFirstObjectByType<PlayerMotor2D>();
-                if (player != null)
-                    player.transform.position = Position;
-
-                Destroy(gameObject);
-            }
+            Destroy(gameObject);
         }
     }
 
