@@ -36,6 +36,9 @@ namespace CatsAndKills.AI
 
         private void OnDied()
         {
+            _renderers = GetComponentsInChildren<SpriteRenderer>(true);
+            _colliders = GetComponentsInChildren<Collider2D>(true);
+
             EnemyWeapon2D weapon = GetComponent<EnemyWeapon2D>();
             if (weapon != null) weapon.enabled = false;
 
