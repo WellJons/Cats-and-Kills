@@ -16,6 +16,7 @@ namespace CatsAndKills.EditorTools
             "ui_square",
             "ui_circle",
             "soft_shadow",
+            "soft_glow",
             "hazard",
             "floor_panel",
             "cat_head",
@@ -116,6 +117,7 @@ namespace CatsAndKills.EditorTools
             {
                 "ui_circle" => UiCircle(),
                 "soft_shadow" => SoftShadow(),
+                "soft_glow" => SoftGlow(),
                 "hazard" => Hazard(),
                 "floor_panel" => FloorPanel(),
                 "cat_head" => CatHead(false),
@@ -220,6 +222,33 @@ namespace CatsAndKills.EditorTools
                         Mathf.Pow(1f - d, 1.7f) * 130f);
 
                     c.Set(x, y, new Color32(3, 5, 10, a));
+                }
+            }
+
+            return c;
+        }
+
+        private static PixelCanvas SoftGlow()
+        {
+            PixelCanvas c = new PixelCanvas(96, 96);
+
+            for (int y = 0; y < c.Height; y++)
+            {
+                for (int x = 0; x < c.Width; x++)
+                {
+                    float nx = (x - 47.5f) / 47.5f;
+                    float ny = (y - 47.5f) / 47.5f;
+                    float d = Mathf.Sqrt(nx * nx + ny * ny);
+
+                    if (d > 1f) continue;
+
+                    byte a = (byte)Mathf.RoundToInt(
+                        Mathf.Pow(1f - d, 2.25f) * 150f);
+
+                    c.Set(
+                        x,
+                        y,
+                        new Color32(255, 255, 255, a));
                 }
             }
 
