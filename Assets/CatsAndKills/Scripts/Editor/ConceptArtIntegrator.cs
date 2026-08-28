@@ -944,7 +944,7 @@ namespace CatsAndKills.EditorTools
                 return result;
 
             int cacheKey =
-                source.GetInstanceID();
+                source.GetEntityId();
 
             if (alphaThreshold == 18 &&
                 AlphaComponentCache.TryGetValue(
