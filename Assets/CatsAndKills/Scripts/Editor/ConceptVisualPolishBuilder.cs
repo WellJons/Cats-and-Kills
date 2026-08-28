@@ -58,6 +58,7 @@ namespace CatsAndKills.EditorTools
                 new GameObject(RootName);
 
             RemoveLegacyPresentationObjects();
+            RemoveLegacyPrototypeGameplayGeometry();
             DisableLegacyWallVisuals();
             DisableLegacyInternalWallColliders();
 
@@ -100,7 +101,7 @@ namespace CatsAndKills.EditorTools
         private static void RemoveLegacyPresentationObjects()
         {
             var toDestroy =
-                new System.Collections.Generic.List<GameObject>();
+                new System.Collections.Generic.HashSet<GameObject>();
 
             foreach (SpriteRenderer sr in
                      Object.FindObjectsByType<SpriteRenderer>(
@@ -120,30 +121,75 @@ namespace CatsAndKills.EditorTools
                         ? go.transform.parent.name
                         : string.Empty;
 
-                if (n == "Floor" ||
+                bool legacyVisual =
+                    n == "Floor" ||
                     n.StartsWith("Crate ") ||
                     n.StartsWith("Fuel Drum ") ||
+                    n.StartsWith("3-4 Decor //") ||
+                    parent.StartsWith("3-4 Decor //") ||
                     n.Contains("Floor Zone") ||
                     parent.Contains("Floor Zone") ||
                     n.Contains("Hazard //") ||
                     parent.Contains("Hazard //") ||
                     n.Contains("Light Pool //") ||
-                    parent.Contains("Light Pool //"))
-                {
-                    GameObject target =
-                        go.transform.parent != null &&
-                        (parent.Contains("Floor Zone") ||
-                         parent.Contains("Hazard //") ||
-                         parent.Contains("Light Pool //"))
-                            ? go.transform.parent.gameObject
-                            : go;
+                    parent.Contains("Light Pool //");
 
-                    if (!toDestroy.Contains(target))
-                        toDestroy.Add(target);
+                if (!legacyVisual)
+                    continue;
+
+                GameObject target = go;
+
+                if (go.transform.parent != null &&
+                    (parent.StartsWith("3-4 Decor //") ||
+                     parent.Contains("Floor Zone") ||
+                     parent.Contains("Hazard //") ||
+                     parent.Contains("Light Pool //")))
+                {
+                    target =
+                        go.transform.parent.gameObject;
                 }
+
+                toDestroy.Add(target);
             }
 
             foreach (GameObject go in toDestroy)
+            {
+                if (go != null)
+                    Object.DestroyImmediate(go);
+            }
+        }
+
+        private static void RemoveLegacyPrototypeGameplayGeometry()
+        {
+            var roots =
+                new System.Collections.Generic.List<GameObject>();
+
+            foreach (BoxCollider2D collider in
+                     Object.FindObjectsByType<BoxCollider2D>(
+                         FindObjectsSortMode.None))
+            {
+                if (collider == null)
+                    continue;
+
+                GameObject go =
+                    collider.gameObject;
+
+                string n =
+                    go.name;
+
+                bool prototypeObject =
+                    n.StartsWith("Crate ") ||
+                    n.StartsWith("Fuel Drum ") ||
+                    n.StartsWith("Prototype ");
+
+                if (prototypeObject &&
+                    !roots.Contains(go))
+                {
+                    roots.Add(go);
+                }
+            }
+
+            foreach (GameObject go in roots)
             {
                 if (go != null)
                     Object.DestroyImmediate(go);
@@ -225,98 +271,199 @@ namespace CatsAndKills.EditorTools
             Transform parent,
             ProductionArtPack pack)
         {
-            if (pack.floorIndustrial == null)
+            Sprite square =
+                GeneratedArtFactory.Get(
+                    "ui_square");
+
+            if (square == null)
                 return;
 
-            GameObject floor =
-                new GameObject("Concept Floor");
+            CreateGroundRect(
+                parent,
+                "District Base",
+                Vector2.zero,
+                new Vector2(96f, 64f),
+                new Color(
+                    0.075f,
+                    0.085f,
+                    0.115f,
+                    1f),
+                -1500);
 
-            floor.transform.SetParent(
+            // Roads are intentionally simple and continuous. No giant sampled
+            // texture is stretched across the entire map anymore.
+            CreateGroundRect(
+                parent,
+                "West Main Road",
+                new Vector2(-28f, -20f),
+                new Vector2(38f, 13f),
+                new Color(
+                    0.095f,
+                    0.105f,
+                    0.135f,
+                    1f),
+                -1495);
+
+            CreateGroundRect(
+                parent,
+                "Central Boulevard",
+                new Vector2(0f, -7f),
+                new Vector2(58f, 12f),
+                new Color(
+                    0.088f,
+                    0.098f,
+                    0.128f,
+                    1f),
+                -1495);
+
+            CreateGroundRect(
+                parent,
+                "East Service Road",
+                new Vector2(31f, -8f),
+                new Vector2(14f, 42f),
+                new Color(
+                    0.090f,
+                    0.100f,
+                    0.132f,
+                    1f),
+                -1495);
+
+            CreateGroundRect(
+                parent,
+                "North Service Road",
+                new Vector2(0f, 23f),
+                new Vector2(42f, 9f),
+                new Color(
+                    0.086f,
+                    0.100f,
+                    0.135f,
+                    1f),
+                -1495);
+
+            // The square is visually distinct from the roads and reads as a
+            // real location rather than an empty piece of floor texture.
+            CreateGroundRect(
+                parent,
+                "Central Plaza",
+                new Vector2(0f, 2f),
+                new Vector2(25f, 20f),
+                new Color(
+                    0.145f,
+                    0.145f,
+                    0.185f,
+                    1f),
+                -1490);
+
+            CreateGroundRect(
+                parent,
+                "Plaza Inner Stone",
+                new Vector2(0f, 2f),
+                new Vector2(17f, 12f),
+                new Color(
+                    0.175f,
+                    0.170f,
+                    0.205f,
+                    1f),
+                -1489);
+
+            CreateGroundRect(
+                parent,
+                "Warehouse Apron",
+                new Vector2(-25f, 1f),
+                new Vector2(27f, 9f),
+                new Color(
+                    0.105f,
+                    0.125f,
+                    0.145f,
+                    1f),
+                -1490);
+
+            CreateGroundRect(
+                parent,
+                "Administration Courtyard",
+                new Vector2(24f, 1f),
+                new Vector2(21f, 10f),
+                new Color(
+                    0.125f,
+                    0.115f,
+                    0.145f,
+                    1f),
+                -1490);
+
+            // Sidewalk bands make building footprints readable.
+            CreateGroundRect(
+                parent,
+                "West Sidewalk",
+                new Vector2(-32f, -12f),
+                new Vector2(28f, 3.2f),
+                new Color(
+                    0.18f,
+                    0.19f,
+                    0.22f,
+                    1f),
+                -1488);
+
+            CreateGroundRect(
+                parent,
+                "East Sidewalk",
+                new Vector2(25f, -1f),
+                new Vector2(25f, 3.0f),
+                new Color(
+                    0.17f,
+                    0.18f,
+                    0.22f,
+                    1f),
+                -1488);
+
+            CreateGroundRect(
+                parent,
+                "North Sidewalk",
+                new Vector2(-5f, 16f),
+                new Vector2(48f, 3.0f),
+                new Color(
+                    0.16f,
+                    0.18f,
+                    0.22f,
+                    1f),
+                -1488);
+        }
+
+        private static void CreateGroundRect(
+            Transform parent,
+            string name,
+            Vector2 position,
+            Vector2 size,
+            Color color,
+            int order)
+        {
+            Sprite square =
+                GeneratedArtFactory.Get(
+                    "ui_square");
+
+            if (square == null)
+                return;
+
+            GameObject go =
+                new GameObject(
+                    "Ground // " + name);
+
+            go.transform.SetParent(
                 parent,
                 false);
 
-            floor.transform.position =
-                Vector3.zero;
+            go.transform.position =
+                position;
 
             SpriteRenderer sr =
-                floor.AddComponent<SpriteRenderer>();
+                go.AddComponent<SpriteRenderer>();
 
-            sr.sprite =
-                pack.floorIndustrial;
-
+            sr.sprite = square;
             sr.drawMode =
-                SpriteDrawMode.Simple;
+                SpriteDrawMode.Tiled;
 
-            sr.color =
-                new Color(
-                    0.78f,
-                    0.82f,
-                    0.94f,
-                    1f);
-
-            sr.sortingOrder =
-                -1500;
-
-            Vector2 spriteSize =
-                sr.sprite.bounds.size;
-
-            float scaleX =
-                spriteSize.x > 0.001f
-                    ? 96.5f / spriteSize.x
-                    : 1f;
-
-            float scaleY =
-                spriteSize.y > 0.001f
-                    ? 64.5f / spriteSize.y
-                    : 1f;
-
-            floor.transform.localScale =
-                new Vector3(
-                    scaleX,
-                    scaleY,
-                    1f);
-
-            CreateFloorTintZone(
-                parent,
-                "West Approach Tint",
-                new Vector2(-34f, -10f),
-                new Vector2(25f, 42f),
-                new Color(0.03f, 0.12f, 0.24f, 0.13f));
-
-            CreateFloorTintZone(
-                parent,
-                "Central Plaza Tint",
-                new Vector2(0f, -2f),
-                new Vector2(31f, 26f),
-                new Color(0.16f, 0.05f, 0.20f, 0.07f));
-
-            CreateFloorTintZone(
-                parent,
-                "Warehouse Exterior Tint",
-                new Vector2(-24f, 12f),
-                new Vector2(30f, 24f),
-                new Color(0.02f, 0.19f, 0.23f, 0.09f));
-
-            CreateFloorTintZone(
-                parent,
-                "North Service Tint",
-                new Vector2(0f, 24f),
-                new Vector2(33f, 13f),
-                new Color(0.04f, 0.10f, 0.23f, 0.11f));
-
-            CreateFloorTintZone(
-                parent,
-                "Administration Exterior Tint",
-                new Vector2(25f, 11f),
-                new Vector2(29f, 25f),
-                new Color(0.21f, 0.03f, 0.16f, 0.08f));
-
-            CreateFloorTintZone(
-                parent,
-                "Southern District Tint",
-                new Vector2(5f, -20f),
-                new Vector2(67f, 21f),
-                new Color(0.09f, 0.07f, 0.17f, 0.08f));
+            sr.size = size;
+            sr.color = color;
+            sr.sortingOrder = order;
         }
 
         private static void CreateFloorTintZone(
@@ -359,122 +506,153 @@ namespace CatsAndKills.EditorTools
             ProductionArtPack pack,
             Material lit)
         {
-            // The district is now built from semantic buildings. Each building
-            // owns its floor, physical wall segments, actual door gaps and a
-            // roof that hides the interior from outside and fades on entry.
+            // WEST ENTRY: visible immediately when the level starts.
             CreateBuilding(
                 parent,
-                "Warehouse 04",
-                new Vector2(-24f, 12f),
-                new Vector2(26f, 18f),
-                pack.floorIndustrial,
-                pack.wallStraight,
-                lit,
-                -4.5f,
-                float.NaN,
-                1.5f,
-                float.NaN,
-                new Color(0.18f, 0.23f, 0.31f, 0.97f));
-
-            CreateBuilding(
-                parent,
-                "Administration",
-                new Vector2(25f, 11f),
-                new Vector2(22f, 20f),
-                pack.floorOffice != null
-                    ? pack.floorOffice
-                    : pack.floorIndustrial,
-                pack.wallStraight,
+                "Security Gatehouse",
+                new Vector2(-38f, -21f),
+                new Vector2(8f, 8f),
+                null,
+                null,
                 lit,
                 0f,
                 float.NaN,
-                -2.5f,
-                float.NaN,
-                new Color(0.20f, 0.18f, 0.28f, 0.97f));
-
-            CreateBuilding(
-                parent,
-                "Barracks",
-                new Vector2(25f, -18f),
-                new Vector2(20f, 14f),
-                pack.floorOffice != null
-                    ? pack.floorOffice
-                    : pack.floorIndustrial,
-                pack.wallStraight,
-                lit,
-                float.NaN,
-                -3f,
-                1f,
-                float.NaN,
-                new Color(0.17f, 0.20f, 0.27f, 0.97f));
+                -1.2f,
+                0f,
+                new Color(0.11f, 0.15f, 0.21f, 0.98f));
 
             CreateBuilding(
                 parent,
                 "Workshop",
-                new Vector2(-22f, -18f),
-                new Vector2(18f, 14f),
-                pack.floorIndustrial,
-                pack.wallStraight,
+                new Vector2(-27f, -17f),
+                new Vector2(17f, 13f),
+                null,
+                null,
                 lit,
                 float.NaN,
-                3f,
+                2.5f,
                 float.NaN,
                 0f,
-                new Color(0.15f, 0.20f, 0.27f, 0.97f));
+                new Color(0.10f, 0.14f, 0.19f, 0.98f));
+
+            // SOUTH-WEST shop creates a second route into the square.
+            CreateBuilding(
+                parent,
+                "Corner Store",
+                new Vector2(-9f, -17f),
+                new Vector2(11f, 9f),
+                null,
+                null,
+                lit,
+                1.5f,
+                float.NaN,
+                float.NaN,
+                0f,
+                new Color(0.13f, 0.14f, 0.20f, 0.98f));
+
+            // NORTH-WEST warehouse is a large enterable combat space.
+            CreateBuilding(
+                parent,
+                "Warehouse 04",
+                new Vector2(-25f, 11f),
+                new Vector2(24f, 17f),
+                null,
+                null,
+                lit,
+                -4f,
+                float.NaN,
+                1.5f,
+                float.NaN,
+                new Color(0.10f, 0.15f, 0.20f, 0.98f));
+
+            // NORTH-EAST clinic provides an alternate path around the plaza.
+            CreateBuilding(
+                parent,
+                "Clinic",
+                new Vector2(8f, 14f),
+                new Vector2(12f, 10f),
+                null,
+                null,
+                lit,
+                0f,
+                float.NaN,
+                -1f,
+                float.NaN,
+                new Color(0.13f, 0.15f, 0.22f, 0.98f));
+
+            CreateBuilding(
+                parent,
+                "Administration",
+                new Vector2(26f, 12f),
+                new Vector2(21f, 18f),
+                null,
+                null,
+                lit,
+                -2f,
+                float.NaN,
+                -2f,
+                float.NaN,
+                new Color(0.16f, 0.12f, 0.20f, 0.98f));
+
+            CreateBuilding(
+                parent,
+                "Barracks",
+                new Vector2(27f, -18f),
+                new Vector2(18f, 14f),
+                null,
+                null,
+                lit,
+                float.NaN,
+                -2f,
+                1.5f,
+                float.NaN,
+                new Color(0.11f, 0.14f, 0.20f, 0.98f));
 
             CreateBuilding(
                 parent,
                 "North Checkpoint",
-                new Vector2(0f, 20f),
-                new Vector2(14f, 10f),
-                pack.floorOffice != null
-                    ? pack.floorOffice
-                    : pack.floorIndustrial,
-                pack.wallStraight,
+                new Vector2(-5f, 24f),
+                new Vector2(14f, 9f),
+                null,
+                null,
                 lit,
                 0f,
                 float.NaN,
                 float.NaN,
-                1.5f,
-                new Color(0.16f, 0.19f, 0.29f, 0.96f));
+                1f,
+                new Color(0.11f, 0.14f, 0.21f, 0.98f));
 
-            // West security gate: this is a wall/gate, not a decorative prop.
+            // Plaza barriers are real collision, not decorative hazard strips.
             CreateBuildingWallSegment(
                 parent,
-                "West Gate North Wall",
-                new Vector2(-39.5f, -16.5f),
-                new Vector2(0.65f, 11f),
-                pack.wallStraight,
+                "Plaza West Security",
+                new Vector2(-13f, 2f),
+                new Vector2(0.65f, 8f),
+                null,
                 lit);
 
             CreateBuildingWallSegment(
                 parent,
-                "West Gate South Wall",
-                new Vector2(-39.5f, -27.0f),
-                new Vector2(0.65f, 5.0f),
-                pack.wallStraight,
-                lit);
-
-            // Low plaza security lines shape the square while leaving four
-            // separate approaches open.
-            CreateBuildingWallSegment(
-                parent,
-                "Plaza North Barrier",
-                new Vector2(0f, 8.5f),
-                new Vector2(9f, 0.55f),
-                pack.wallDamaged != null
-                    ? pack.wallDamaged
-                    : pack.wallStraight,
+                "Plaza East Security",
+                new Vector2(13f, 2f),
+                new Vector2(0.65f, 8f),
+                null,
                 lit);
 
             CreateBuildingWallSegment(
                 parent,
-                "Plaza South Barrier",
-                new Vector2(0f, -12.0f),
-                new Vector2(8f, 0.55f),
-                pack.wallDamaged != null
-                    ? pack.wallDamaged
-                    : pack.wallStraight,
+                "Plaza North Security",
+                new Vector2(0f, 12f),
+                new Vector2(8f, 0.65f),
+                null,
+                lit);
+
+            CreateBuildingWallSegment(
+                parent,
+                "Plaza South Security",
+                new Vector2(0f, -8f),
+                new Vector2(7f, 0.65f),
+                null,
                 lit);
         }
 
@@ -505,11 +683,15 @@ namespace CatsAndKills.EditorTools
 
             CreateBuildingInteriorFloor(
                 root.transform,
-                interiorSprite,
-                size);
+                size,
+                new Color(
+                    Mathf.Clamp01(roofColor.r + 0.08f),
+                    Mathf.Clamp01(roofColor.g + 0.08f),
+                    Mathf.Clamp01(roofColor.b + 0.09f),
+                    1f));
 
-            const float thickness = 0.62f;
-            const float doorWidth = 2.6f;
+            const float thickness = 0.72f;
+            const float doorWidth = 2.7f;
 
             CreateHorizontalBuildingSide(
                 root.transform,
@@ -519,7 +701,7 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 southDoorX,
                 doorWidth,
-                wallSprite,
+                null,
                 material);
 
             CreateHorizontalBuildingSide(
@@ -530,7 +712,7 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 northDoorX,
                 doorWidth,
-                wallSprite,
+                null,
                 material);
 
             CreateVerticalBuildingSide(
@@ -541,7 +723,7 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 westDoorY,
                 doorWidth,
-                wallSprite,
+                null,
                 material);
 
             CreateVerticalBuildingSide(
@@ -552,8 +734,42 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 eastDoorY,
                 doorWidth,
-                wallSprite,
+                null,
                 material);
+
+            Sprite square =
+                GeneratedArtFactory.Get(
+                    "ui_square");
+
+            GameObject roofEdge =
+                new GameObject(
+                    name + " Roof Edge");
+
+            roofEdge.transform.SetParent(
+                root.transform,
+                false);
+
+            SpriteRenderer edgeRenderer =
+                roofEdge.AddComponent<SpriteRenderer>();
+
+            edgeRenderer.sprite = square;
+            edgeRenderer.drawMode =
+                SpriteDrawMode.Tiled;
+
+            edgeRenderer.size =
+                new Vector2(
+                    size.x + 0.35f,
+                    size.y + 0.35f);
+
+            edgeRenderer.color =
+                new Color(
+                    0.035f,
+                    0.045f,
+                    0.070f,
+                    1f);
+
+            edgeRenderer.sortingOrder =
+                8998;
 
             GameObject roof =
                 new GameObject(
@@ -566,28 +782,37 @@ namespace CatsAndKills.EditorTools
             SpriteRenderer roofRenderer =
                 roof.AddComponent<SpriteRenderer>();
 
-            roofRenderer.sprite =
-                interiorSprite != null
-                    ? interiorSprite
-                    : GeneratedArtFactory.Get(
-                        "ui_square");
-
+            roofRenderer.sprite = square;
             roofRenderer.drawMode =
                 SpriteDrawMode.Tiled;
 
             roofRenderer.size =
                 new Vector2(
-                    Mathf.Max(1f, size.x - 0.2f),
-                    Mathf.Max(1f, size.y - 0.2f));
+                    Mathf.Max(1f, size.x - 0.30f),
+                    Mathf.Max(1f, size.y - 0.30f));
 
             roofRenderer.color =
                 roofColor;
 
             roofRenderer.sortingOrder =
-                9000;
+                8999;
 
-            if (material != null)
-                roofRenderer.sharedMaterial = material;
+            // Simple roof machinery makes the outside silhouette read as a
+            // roof instead of a flat colored room.
+            CreateRoofUnit(
+                roof.transform,
+                new Vector2(
+                    -size.x * 0.20f,
+                    size.y * 0.12f));
+
+            if (size.x > 13f)
+            {
+                CreateRoofUnit(
+                    roof.transform,
+                    new Vector2(
+                        size.x * 0.20f,
+                        -size.y * 0.12f));
+            }
 
             GameObject triggerGo =
                 new GameObject(
@@ -600,31 +825,38 @@ namespace CatsAndKills.EditorTools
             BoxCollider2D trigger =
                 triggerGo.AddComponent<BoxCollider2D>();
 
-            trigger.isTrigger =
-                true;
+            trigger.isTrigger = true;
 
             trigger.size =
                 new Vector2(
-                    Mathf.Max(1f, size.x - 1.5f),
-                    Mathf.Max(1f, size.y - 1.5f));
+                    Mathf.Max(1f, size.x - 1.7f),
+                    Mathf.Max(1f, size.y - 1.7f));
 
             BuildingRoofFader2D fader =
                 triggerGo.AddComponent<
                     BuildingRoofFader2D>();
 
             fader.Configure(
-                new[] { roofRenderer },
+                new[]
+                {
+                    edgeRenderer,
+                    roofRenderer
+                },
                 trigger,
-                0.08f,
-                5.5f);
+                0.06f,
+                6.5f);
         }
 
         private static void CreateBuildingInteriorFloor(
             Transform parent,
-            Sprite sprite,
-            Vector2 size)
+            Vector2 size,
+            Color color)
         {
-            if (sprite == null)
+            Sprite square =
+                GeneratedArtFactory.Get(
+                    "ui_square");
+
+            if (square == null)
                 return;
 
             GameObject floor =
@@ -638,26 +870,61 @@ namespace CatsAndKills.EditorTools
             SpriteRenderer sr =
                 floor.AddComponent<SpriteRenderer>();
 
-            sr.sprite =
-                sprite;
-
+            sr.sprite = square;
             sr.drawMode =
                 SpriteDrawMode.Tiled;
 
             sr.size =
                 new Vector2(
-                    Mathf.Max(1f, size.x - 1.1f),
-                    Mathf.Max(1f, size.y - 1.1f));
+                    Mathf.Max(1f, size.x - 1.3f),
+                    Mathf.Max(1f, size.y - 1.3f));
+
+            sr.color = color;
+            sr.sortingOrder = -1200;
+        }
+
+        private static void CreateRoofUnit(
+            Transform roof,
+            Vector2 localPosition)
+        {
+            Sprite square =
+                GeneratedArtFactory.Get(
+                    "ui_square");
+
+            if (square == null)
+                return;
+
+            GameObject unit =
+                new GameObject(
+                    "Roof Vent");
+
+            unit.transform.SetParent(
+                roof,
+                false);
+
+            unit.transform.localPosition =
+                localPosition;
+
+            SpriteRenderer sr =
+                unit.AddComponent<SpriteRenderer>();
+
+            sr.sprite = square;
+            sr.drawMode =
+                SpriteDrawMode.Tiled;
+
+            sr.size =
+                new Vector2(
+                    1.3f,
+                    0.8f);
 
             sr.color =
                 new Color(
-                    0.86f,
-                    0.88f,
-                    0.96f,
+                    0.20f,
+                    0.23f,
+                    0.30f,
                     1f);
 
-            sr.sortingOrder =
-                -1300;
+            sr.sortingOrder = 1;
         }
 
         private static void CreateHorizontalBuildingSide(
@@ -848,6 +1115,13 @@ namespace CatsAndKills.EditorTools
             Sprite wallSprite,
             Material material)
         {
+            Sprite square =
+                GeneratedArtFactory.Get(
+                    "ui_square");
+
+            if (square == null)
+                return;
+
             GameObject wall =
                 new GameObject(
                     name + " Wall");
@@ -869,105 +1143,87 @@ namespace CatsAndKills.EditorTools
             BoxCollider2D collider =
                 wall.AddComponent<BoxCollider2D>();
 
-            collider.size =
-                size;
-
-            Sprite square =
-                GeneratedArtFactory.Get(
-                    "ui_square");
+            collider.size = size;
 
             SpriteRenderer baseRenderer =
                 wall.AddComponent<SpriteRenderer>();
 
-            baseRenderer.sprite =
-                square;
-
+            baseRenderer.sprite = square;
             baseRenderer.drawMode =
                 SpriteDrawMode.Tiled;
 
-            baseRenderer.size =
-                size;
+            baseRenderer.size = size;
 
             baseRenderer.color =
                 new Color(
-                    0.11f,
-                    0.14f,
-                    0.22f,
+                    0.070f,
+                    0.085f,
+                    0.120f,
                     1f);
-
-            if (material != null)
-                baseRenderer.sharedMaterial = material;
 
             DepthSortedSprite2D depth =
                 wall.AddComponent<
                     DepthSortedSprite2D>();
 
-            depth.Configure(
-                new[] { baseRenderer },
-                5000,
-                0f);
+            GameObject top =
+                new GameObject(
+                    "Wall Highlight");
 
-            if (wallSprite != null &&
-                size.x >= 2.2f &&
-                size.x > size.y)
-            {
-                GameObject cap =
-                    new GameObject(
-                        "Wall Cap");
+            top.transform.SetParent(
+                wall.transform,
+                false);
 
-                cap.transform.SetParent(
-                    wall.transform,
-                    false);
+            SpriteRenderer topRenderer =
+                top.AddComponent<SpriteRenderer>();
 
-                cap.transform.localPosition =
-                    new Vector3(
+            topRenderer.sprite = square;
+            topRenderer.drawMode =
+                SpriteDrawMode.Tiled;
+
+            bool horizontal =
+                size.x >= size.y;
+
+            topRenderer.size =
+                horizontal
+                    ? new Vector2(
+                        size.x,
+                        Mathf.Min(
+                            0.16f,
+                            size.y * 0.34f))
+                    : new Vector2(
+                        Mathf.Min(
+                            0.16f,
+                            size.x * 0.34f),
+                        size.y);
+
+            top.transform.localPosition =
+                horizontal
+                    ? new Vector3(
                         0f,
-                        0.12f,
+                        size.y * 0.24f,
+                        0f)
+                    : new Vector3(
+                        -size.x * 0.24f,
+                        0f,
                         0f);
 
-                SpriteRenderer capRenderer =
-                    cap.AddComponent<SpriteRenderer>();
+            topRenderer.color =
+                new Color(
+                    0.24f,
+                    0.29f,
+                    0.38f,
+                    1f);
 
-                capRenderer.sprite =
-                    wallSprite;
+            topRenderer.sortingOrder = 1;
 
-                capRenderer.color =
-                    new Color(
-                        0.88f,
-                        0.92f,
-                        1f,
-                        0.95f);
-
-                float spriteWidth =
-                    Mathf.Max(
-                        0.1f,
-                        wallSprite.bounds.size.x);
-
-                float targetWidth =
-                    Mathf.Min(
-                        size.x,
-                        3.4f);
-
-                cap.transform.localScale =
-                    Vector3.one *
-                    (targetWidth /
-                     spriteWidth);
-
-                capRenderer.sortingOrder =
-                    0;
-
-                if (material != null)
-                    capRenderer.sharedMaterial = material;
-
-                DepthSortedSprite2D capDepth =
-                    cap.AddComponent<
-                        DepthSortedSprite2D>();
-
-                capDepth.Configure(
-                    new[] { capRenderer },
-                    5000,
-                    0f);
-            }
+            depth.Configure(
+                new[]
+                {
+                    baseRenderer,
+                    topRenderer
+                },
+                5000,
+                0f);
         }
 
         private static void AddPropPass(
@@ -1718,9 +1974,9 @@ namespace CatsAndKills.EditorTools
                 AddFootprintCollider(
                     go,
                     sprite,
-                    0.78f,
-                    0.30f,
-                    0.01f);
+                    0.88f,
+                    0.46f,
+                    0.005f);
             }
         }
 
