@@ -30,9 +30,13 @@ namespace CatsAndKills.World
 
             mission.Configure(extraction, null);
 
-            CreateTerminal(
+            GameObject terminal = CreateTerminal(
                 new Vector2(18f, 7.5f),
                 mission);
+
+            mission.BindObjectiveTargets(
+                terminal.transform,
+                extraction.transform);
 
             CreateTrigger(
                 "Warehouse Trigger",
@@ -52,7 +56,7 @@ namespace CatsAndKills.World
             hud?.BindMission(mission);
         }
 
-        private static void CreateTerminal(Vector2 position, MissionDirector mission)
+        private static GameObject CreateTerminal(Vector2 position, MissionDirector mission)
         {
             GameObject go = new GameObject("Archive Terminal");
             go.transform.position = position;
@@ -68,6 +72,8 @@ namespace CatsAndKills.World
 
             MissionTerminal terminal = go.AddComponent<MissionTerminal>();
             terminal.Configure(mission);
+
+            return go;
         }
 
         private static GameObject CreateExtraction(Vector2 position, MissionDirector mission)
