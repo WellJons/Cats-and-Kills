@@ -27,6 +27,21 @@ namespace CatsAndKills.AI
 
         public void Unregister(EnemyBrain brain)
         {
+            if (brain != null)
+            {
+                Vector2 deathPosition = brain.transform.position;
+
+                foreach (var member in _members)
+                {
+                    if (member == null || member == brain) continue;
+
+                    var morale = member.GetComponent<EnemyMorale2D>();
+                    if (morale != null)
+                        morale.WitnessAllyDeath(
+                            Vector2.Distance(member.transform.position, deathPosition));
+                }
+            }
+
             _members.Remove(brain);
             AssignRoles();
         }
