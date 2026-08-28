@@ -1222,7 +1222,7 @@ namespace CatsAndKills.EditorTools
                 SpriteImportMode.Single;
 
             importer.spritePixelsPerUnit = ppu;
-            importer.filterMode = FilterMode.Point;
+            importer.filterMode = FilterMode.Bilinear;
             importer.alphaIsTransparency = true;
             importer.mipmapEnabled = false;
             importer.textureCompression =
