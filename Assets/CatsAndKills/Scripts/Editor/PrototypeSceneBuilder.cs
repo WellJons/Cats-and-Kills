@@ -137,12 +137,10 @@ namespace CatsAndKills.EditorTools
 
             var bodyRenderer = root.AddComponent<SpriteRenderer>();
             bodyRenderer.sprite = _circle;
-            bodyRenderer.color = new Color(0.92f, 0.93f, 0.97f);
-            bodyRenderer.sortingOrder = 10;
-            root.transform.localScale = Vector3.one * 0.78f;
+            bodyRenderer.enabled = false;
 
             var collider = root.AddComponent<CircleCollider2D>();
-            collider.radius = 0.46f;
+            collider.radius = 0.36f;
 
             var vitals = root.AddComponent<CharacterVitals>();
             vitals.Configure(115f, 50f, 58f);
@@ -150,7 +148,14 @@ namespace CatsAndKills.EditorTools
             var torso = root.AddComponent<BodyPartHitbox>();
             torso.Configure(vitals, BodyPart.Torso, 1f);
 
+            Transform bodyRig = CreateModularRig(
+                root,
+                vitals,
+                false,
+                new Color(0.90f, 0.92f, 0.97f));
+
             var motor = root.AddComponent<PlayerMotor2D>();
+            root.AddComponent<PlayerInteraction2D>();
             var aim = root.AddComponent<PlayerAim2D>();
             var death = root.AddComponent<PlayerDeathController>();
             death.Configure(vitals);
@@ -158,7 +163,7 @@ namespace CatsAndKills.EditorTools
 
             var aimPivot = new GameObject("Aim Pivot");
             aimPivot.transform.SetParent(root.transform, false);
-            aim.Configure(camera, aimPivot.transform, root.transform);
+            aim.Configure(camera, aimPivot.transform, bodyRig);
 
             var weaponGo = new GameObject("Weapon");
             weaponGo.transform.SetParent(aimPivot.transform, false);
@@ -211,6 +216,136 @@ namespace CatsAndKills.EditorTools
             hud.Configure(vitals, arsenal, grenadeController, collar, null);
 
             return root;
+        }
+
+        private static Transform CreateModularRig(
+            GameObject root,
+            CharacterVitals vitals,
+            bool enemy,
+            Color tint)
+        {
+            var visualRoot = new GameObject("Body Rig");
+            visualRoot.transform.SetParent(root.transform, false);
+
+            var limbBindings = new System.Collections.Generic.List<ModularCharacter2D.LimbBinding>();
+            var tintTargets = new System.Collections.Generic.List<SpriteRenderer>();
+
+            GameObject torso = CreateBodyPart(
+                visualRoot.transform,
+                "Torso",
+                _square,
+                Vector2.zero,
+                new Vector2(0.58f, 0.72f),
+                tint,
+                10);
+
+            tintTargets.Add(torso.GetComponent<SpriteRenderer>());
+
+            GameObject head = CreateBodyPart(
+                visualRoot.transform,
+                "Head",
+                _circle,
+                new Vector2(0.44f, 0f),
+                new Vector2(0.43f, 0.43f),
+                enemy ? new Color(0.72f, 0.74f, 0.78f) : Color.white,
+                13);
+
+            var headCollider = head.AddComponent<CircleCollider2D>();
+            headCollider.radius = 0.48f;
+            var headHit = head.AddComponent<BodyPartHitbox>();
+            headHit.Configure(vitals, BodyPart.Head, 1.10f);
+
+            GameObject leftArm = CreateBodyPart(
+                visualRoot.transform,
+                "Left Arm",
+                _square,
+                new Vector2(0.05f, 0.39f),
+                new Vector2(0.62f, 0.18f),
+                tint,
+                11);
+
+            GameObject rightArm = CreateBodyPart(
+                visualRoot.transform,
+                "Right Arm",
+                _square,
+                new Vector2(0.05f, -0.39f),
+                new Vector2(0.62f, 0.18f),
+                tint,
+                11);
+
+            GameObject leftLeg = CreateBodyPart(
+                visualRoot.transform,
+                "Left Leg",
+                _square,
+                new Vector2(-0.43f, 0.20f),
+                new Vector2(0.55f, 0.19f),
+                tint * 0.82f,
+                8);
+
+            GameObject rightLeg = CreateBodyPart(
+                visualRoot.transform,
+                "Right Leg",
+                _square,
+                new Vector2(-0.43f, -0.20f),
+                new Vector2(0.55f, 0.19f),
+                tint * 0.82f,
+                8);
+
+            limbBindings.Add(AddLimbHitbox(leftArm, vitals, BodyPart.LeftArm));
+            limbBindings.Add(AddLimbHitbox(rightArm, vitals, BodyPart.RightArm));
+            limbBindings.Add(AddLimbHitbox(leftLeg, vitals, BodyPart.LeftLeg));
+            limbBindings.Add(AddLimbHitbox(rightLeg, vitals, BodyPart.RightLeg));
+
+            tintTargets.Add(leftArm.GetComponent<SpriteRenderer>());
+            tintTargets.Add(rightArm.GetComponent<SpriteRenderer>());
+            tintTargets.Add(leftLeg.GetComponent<SpriteRenderer>());
+            tintTargets.Add(rightLeg.GetComponent<SpriteRenderer>());
+
+            var modular = visualRoot.AddComponent<ModularCharacter2D>();
+            modular.Configure(vitals, limbBindings, tintTargets.ToArray());
+
+            return visualRoot.transform;
+        }
+
+        private static GameObject CreateBodyPart(
+            Transform parent,
+            string name,
+            Sprite sprite,
+            Vector2 localPosition,
+            Vector2 scale,
+            Color color,
+            int sortingOrder)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPosition;
+            go.transform.localScale = new Vector3(scale.x, scale.y, 1f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.color = color;
+            sr.sortingOrder = sortingOrder;
+
+            return go;
+        }
+
+        private static ModularCharacter2D.LimbBinding AddLimbHitbox(
+            GameObject part,
+            CharacterVitals vitals,
+            BodyPart bodyPart)
+        {
+            var col = part.AddComponent<BoxCollider2D>();
+            col.size = Vector2.one;
+
+            var hit = part.AddComponent<BodyPartHitbox>();
+            hit.Configure(vitals, bodyPart, 0.90f);
+
+            return new ModularCharacter2D.LimbBinding
+            {
+                part = bodyPart,
+                visual = part.transform,
+                hitbox = col
+            };
         }
 
         private static WeaponDefinition CreateWeaponDefinition(
@@ -281,25 +416,22 @@ namespace CatsAndKills.EditorTools
             rb.freezeRotation = true;
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
-            var renderer = root.AddComponent<SpriteRenderer>();
-            renderer.sprite = _circle;
-            renderer.color = archetype switch
+            Color enemyTint = archetype switch
             {
                 EnemyArchetype.Pistolier => new Color(0.70f, 0.62f, 0.52f),
                 EnemyArchetype.MachineGunner => new Color(0.35f, 0.50f, 0.43f),
                 EnemyArchetype.Demolitionist => new Color(0.58f, 0.28f, 0.30f),
                 _ => new Color(0.46f, 0.58f, 0.52f)
             };
-            renderer.sortingOrder = 10;
-            root.transform.localScale = archetype == EnemyArchetype.MachineGunner
-                ? Vector3.one * 0.92f
-                : Vector3.one * 0.76f;
+
+            var renderer = root.AddComponent<SpriteRenderer>();
+            renderer.sprite = _circle;
+            renderer.enabled = false;
 
             var collider = root.AddComponent<CircleCollider2D>();
-            collider.radius = 0.46f;
+            collider.radius = archetype == EnemyArchetype.MachineGunner ? 0.42f : 0.36f;
 
             var vitals = root.AddComponent<CharacterVitals>();
-            root.AddComponent<EnemyDeathPresentation2D>();
             var suppression = root.AddComponent<SuppressionReceiver2D>();
             var grenadeAwareness = root.AddComponent<GrenadeAwareness2D>();
             var morale = root.AddComponent<EnemyMorale2D>();
@@ -326,6 +458,17 @@ namespace CatsAndKills.EditorTools
 
             var hit = root.AddComponent<BodyPartHitbox>();
             hit.Configure(vitals, BodyPart.Torso, 1f);
+
+            Transform enemyRig = CreateModularRig(
+                root,
+                vitals,
+                true,
+                enemyTint);
+
+            if (archetype == EnemyArchetype.MachineGunner)
+                enemyRig.localScale = Vector3.one * 1.12f;
+
+            root.AddComponent<EnemyDeathPresentation2D>();
 
             var motor = root.AddComponent<EnemyMotor2D>();
             motor.Configure(nav, archetype == EnemyArchetype.MachineGunner ? 2.45f : 3.15f);
