@@ -22,6 +22,12 @@ namespace CatsAndKills.UI
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         public void Show(Transform target, string text, float duration = 1.15f)
         {
             if (target == null) return;
