@@ -168,6 +168,8 @@ namespace CatsAndKills.EditorTools
 
             var motor = root.AddComponent<PlayerMotor2D>();
             root.AddComponent<PlayerInteraction2D>();
+            var suppressionFeedback = root.AddComponent<PlayerSuppression2D>();
+            suppressionFeedback.Configure(cameraFollow);
             var aim = root.AddComponent<PlayerAim2D>();
             var death = root.AddComponent<PlayerDeathController>();
             death.Configure(vitals);
@@ -226,6 +228,15 @@ namespace CatsAndKills.EditorTools
             var hudGo = new GameObject("Prototype HUD");
             var hud = hudGo.AddComponent<PrototypeHUD>();
             hud.Configure(vitals, arsenal, grenadeController, collar, null);
+            hud.BindSuppression(suppressionFeedback);
+
+            var crosshairGo = new GameObject("Crosshair UI");
+            var crosshair = crosshairGo.AddComponent<CrosshairUI>();
+            crosshair.Configure(aim);
+
+            var promptGo = new GameObject("Interaction Prompt UI");
+            var prompt = promptGo.AddComponent<InteractionPromptUI>();
+            prompt.Configure(root.transform);
 
             return root;
         }
