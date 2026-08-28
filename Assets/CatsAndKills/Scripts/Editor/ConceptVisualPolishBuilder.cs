@@ -56,6 +56,7 @@ namespace CatsAndKills.EditorTools
             GameObject root =
                 new GameObject(RootName);
 
+            RemoveLegacyPresentationObjects();
             DisableLegacyWallVisuals();
 
             Material lit =
@@ -92,6 +93,57 @@ namespace CatsAndKills.EditorTools
 
             ApplyMaterialToConceptSprites(
                 lit);
+        }
+
+        private static void RemoveLegacyPresentationObjects()
+        {
+            var toDestroy =
+                new System.Collections.Generic.List<GameObject>();
+
+            foreach (SpriteRenderer sr in
+                     Object.FindObjectsByType<SpriteRenderer>(
+                         FindObjectsSortMode.None))
+            {
+                if (sr == null)
+                    continue;
+
+                GameObject go =
+                    sr.gameObject;
+
+                string n =
+                    go.name;
+
+                string parent =
+                    go.transform.parent != null
+                        ? go.transform.parent.name
+                        : string.Empty;
+
+                if (n == "Floor" ||
+                    n.Contains("Floor Zone") ||
+                    parent.Contains("Floor Zone") ||
+                    n.Contains("Hazard //") ||
+                    parent.Contains("Hazard //") ||
+                    n.Contains("Light Pool //") ||
+                    parent.Contains("Light Pool //"))
+                {
+                    GameObject target =
+                        go.transform.parent != null &&
+                        (parent.Contains("Floor Zone") ||
+                         parent.Contains("Hazard //") ||
+                         parent.Contains("Light Pool //"))
+                            ? go.transform.parent.gameObject
+                            : go;
+
+                    if (!toDestroy.Contains(target))
+                        toDestroy.Add(target);
+                }
+            }
+
+            foreach (GameObject go in toDestroy)
+            {
+                if (go != null)
+                    Object.DestroyImmediate(go);
+            }
         }
 
         private static void DisableLegacyWallVisuals()
