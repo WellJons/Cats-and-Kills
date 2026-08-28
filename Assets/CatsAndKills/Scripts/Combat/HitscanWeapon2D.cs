@@ -2,6 +2,7 @@ using System.Collections;
 using CatsAndKills.Audio;
 using CatsAndKills.Core;
 using CatsAndKills.Damage;
+using CatsAndKills.Narrative;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
@@ -116,6 +117,7 @@ namespace CatsAndKills.Combat
         private void Update()
         {
             if (Time.timeScale <= 0f) return;
+            if (NarrativeDialogueSystem.IsDialogueOpen) return;
             if (definition == null || aim == null) return;
 
             RecoverRecoil();
