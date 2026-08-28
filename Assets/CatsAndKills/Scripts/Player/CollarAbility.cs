@@ -1,6 +1,7 @@
 using System.Collections;
 using CatsAndKills.Audio;
 using CatsAndKills.Core;
+using CatsAndKills.Tactical;
 using CatsAndKills.UI;
 using UnityEngine;
 
@@ -8,37 +9,124 @@ namespace CatsAndKills.Player
 {
     public sealed class CollarAbility : MonoBehaviour
     {
-        [SerializeField] private float duration = 1.55f;
-        [SerializeField] private float timeScale = 0.42f;
-        [SerializeField] private float cooldown = 7f;
+        [Header("Broken Collar // Protocol Fracture")]
+        [SerializeField] private int bonusActionPoints = 4;
+        [SerializeField] private int cooldownRounds = 2;
+        [SerializeField] private float instabilityPerUse = 28f;
+        [SerializeField] private float instabilityRecoveryPerRound = 7f;
         [SerializeField] private AudioClip activationClip;
 
-        private float _readyAt;
+        private float _instability;
+        private int _readyRound = 1;
+        private int _observedRound;
         private bool _active;
-
-        public float Cooldown01 =>
-            Mathf.Clamp01((_readyAt - Time.unscaledTime) / Mathf.Max(0.01f, cooldown));
 
         public bool IsActive => _active;
 
-        public void Configure(AudioClip clip)
+        public float Instability01 =>
+            Mathf.Clamp01(
+                _instability / 100f);
+
+        public float Instability =>
+            _instability;
+
+        public string TacticalAbilityName =>
+            "РАЗРЫВ ПРОТОКОЛА";
+
+        public float Cooldown01
+        {
+            get
+            {
+                TacticalCombatDirector tactical =
+                    TacticalCombatDirector.Instance;
+
+                if (tactical == null ||
+                    !tactical.IsTacticalCombat)
+                {
+                    return 0f;
+                }
+
+                int remaining =
+                    Mathf.Max(
+                        0,
+                        _readyRound -
+                        tactical.RoundIndex);
+
+                return cooldownRounds > 0
+                    ? Mathf.Clamp01(
+                        remaining /
+                        (float)cooldownRounds)
+                    : 0f;
+            }
+        }
+
+        public void Configure(
+            AudioClip clip)
         {
             activationClip = clip;
         }
 
         private void Update()
         {
-            if (Time.timeScale <= 0f)
-                return;
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
 
-            if (CKInput.CollarPressed && !_active && Time.unscaledTime >= _readyAt)
-                StartCoroutine(Activate());
+            if (tactical == null ||
+                !tactical.IsTacticalCombat)
+            {
+                return;
+            }
+
+            if (tactical.RoundIndex !=
+                _observedRound)
+            {
+                if (_observedRound > 0)
+                {
+                    _instability =
+                        Mathf.Max(
+                            0f,
+                            _instability -
+                            instabilityRecoveryPerRound);
+                }
+
+                _observedRound =
+                    tactical.RoundIndex;
+            }
+
+            if (!CKInput.CollarPressed ||
+                _active ||
+                !tactical.IsPlayerTurn ||
+                tactical.RoundIndex <
+                _readyRound)
+            {
+                return;
+            }
+
+            StartCoroutine(
+                ActivateTactical(
+                    tactical));
         }
 
-        private IEnumerator Activate()
+        private IEnumerator ActivateTactical(
+            TacticalCombatDirector tactical)
         {
             _active = true;
-            _readyAt = Time.unscaledTime + cooldown;
+
+            _readyRound =
+                tactical.RoundIndex +
+                Mathf.Max(
+                    1,
+                    cooldownRounds);
+
+            _instability =
+                Mathf.Clamp(
+                    _instability +
+                    instabilityPerUse,
+                    0f,
+                    100f);
+
+            tactical.GrantActionPoints(
+                bonusActionPoints);
 
             AudioClip resolvedClip =
                 activationClip != null
@@ -46,50 +134,57 @@ namespace CatsAndKills.Player
                     : ProceduralAudioFactory.Collar;
 
             if (resolvedClip != null)
-                AudioSource.PlayClipAtPoint(resolvedClip, transform.position, 0.6f);
+            {
+                AudioSource.PlayClipAtPoint(
+                    resolvedClip,
+                    transform.position,
+                    0.7f);
+            }
 
-            HapticsManager.Instance?.Pulse(0.15f, 0.45f, 0.13f);
-            PrototypeHUD.Instance?.SetGlitch(1f);
+            HapticsManager.Instance?.Pulse(
+                0.22f,
+                0.65f,
+                0.18f);
 
-            float originalFixed = Time.fixedDeltaTime;
-            Time.timeScale = timeScale;
-            Time.fixedDeltaTime = originalFixed * timeScale;
+            PrototypeHUD.Instance?.SetGlitch(
+                1f);
+
+            RadioDialogueSystem.Instance
+                ?.ShowTransient(
+                    "ОШЕЙНИК // ПРОТОКОЛ РАЗОРВАН // +4 AP",
+                    1.1f);
 
             float elapsed = 0f;
-            while (elapsed < duration)
+
+            while (elapsed < 0.72f)
             {
-                if (Time.timeScale <= 0f)
-                {
-                    yield return null;
-                    continue;
-                }
+                elapsed +=
+                    Time.unscaledDeltaTime;
 
-                Time.timeScale = timeScale;
-                Time.fixedDeltaTime = originalFixed * timeScale;
-
-                elapsed += Time.unscaledDeltaTime;
                 PrototypeHUD.Instance?.SetGlitch(
-                    0.55f +
-                    Mathf.Sin(elapsed * 35f) * 0.22f);
+                    Mathf.Lerp(
+                        1f,
+                        0f,
+                        elapsed / 0.72f) +
+                    Mathf.Sin(
+                        elapsed * 42f) *
+                    0.12f);
 
                 yield return null;
             }
 
-            if (Time.timeScale > 0f)
-                Time.timeScale = 1f;
+            PrototypeHUD.Instance?.SetGlitch(
+                0f);
 
-            Time.fixedDeltaTime = originalFixed;
-            PrototypeHUD.Instance?.SetGlitch(0f);
             _active = false;
         }
 
         private void OnDisable()
         {
-            if (_active)
-            {
-                Time.timeScale = 1f;
-                Time.fixedDeltaTime = 0.02f;
-            }
+            PrototypeHUD.Instance?.SetGlitch(
+                0f);
+
+            _active = false;
         }
     }
 }
