@@ -20,6 +20,12 @@ namespace CatsAndKills.Core
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private void Update()
         {
             if (Time.timeScale > 0f)
