@@ -30,11 +30,18 @@ namespace CatsAndKills.Visual
         public Sprite reinforcedDoor;
         public Sprite crateLight;
         public Sprite crateHeavy;
+        public Sprite crateStack;
         public Sprite fuelDrum;
+        public Sprite barrelStack;
         public Sprite terminal;
         public Sprite fence;
+        public Sprite barricade;
         public Sprite pipeCluster;
         public Sprite lamp;
+        public Sprite cableBundle;
+        public Sprite ammoBox;
+        public Sprite medkitBox;
+        public Sprite burningBarrel;
         public Sprite debris;
         public Sprite propagandaPoster;
 
