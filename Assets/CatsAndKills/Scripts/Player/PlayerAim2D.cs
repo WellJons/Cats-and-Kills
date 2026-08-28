@@ -42,7 +42,10 @@ namespace CatsAndKills.Player
             if (stick.sqrMagnitude > 0.08f)
             {
                 AimDirection = stick.normalized;
-                AimWorldPoint = (Vector2)transform.position + AimDirection * 8f;
+                AimWorldPoint =
+                    CharacterCombatGeometry2D.AimPoint(
+                        transform) +
+                    AimDirection * 8f;
             }
             else
             {
