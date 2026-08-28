@@ -10,7 +10,10 @@ namespace CatsAndKills.EditorTools
     public static class ThreeQuarterStarterArtFactory
     {
         private const string Root =
-            "Assets/CatsAndKills/Art/Production/GeneratedStarter";
+            "Assets/CatsAndKills/Generated/ThreeQuarterStarter";
+
+        public const string StarterPackPath =
+            "Assets/CatsAndKills/Generated/ThreeQuarterStarter/StarterArtPack.asset";
 
         private static readonly Color32 Transparent = new Color32(0, 0, 0, 0);
         private static readonly Color32 Outline = new Color32(11, 14, 23, 255);
@@ -158,12 +161,12 @@ namespace CatsAndKills.EditorTools
 
             ProductionArtPack pack =
                 AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
-                    ThreeQuarterArtPipeline.ArtPackPath);
+                    StarterPackPath);
 
             if (pack == null)
             {
-                Debug.LogError("ProductionArtPack.asset could not be created.");
-                return;
+                pack = ScriptableObject.CreateInstance<ProductionArtPack>();
+                AssetDatabase.CreateAsset(pack, StarterPackPath);
             }
 
             pack.player = player;
@@ -216,7 +219,7 @@ namespace CatsAndKills.EditorTools
         {
             ProductionArtPack pack =
                 AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
-                    ThreeQuarterArtPipeline.ArtPackPath);
+                    StarterPackPath);
 
             if (pack == null || !pack.HasMinimumPlayableArt)
             {
@@ -224,7 +227,7 @@ namespace CatsAndKills.EditorTools
 
                 pack =
                     AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
-                        ThreeQuarterArtPipeline.ArtPackPath);
+                        StarterPackPath);
             }
 
             return pack;
