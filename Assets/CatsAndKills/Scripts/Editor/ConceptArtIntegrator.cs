@@ -351,9 +351,10 @@ namespace CatsAndKills.EditorTools
                     dataPath);
             }
 
-            set.Configure(
+            set.ConfigureExtended(
                 rows[0],
                 rows[1],
+                rows[2],
                 rows[3],
                 rows[0],
                 rows[4],
