@@ -29,6 +29,7 @@ namespace CatsAndKills.EditorTools
             "wall",
             "crate",
             "barrel",
+            "door",
             "muzzle",
             "blood",
             "spark",
@@ -125,6 +126,7 @@ namespace CatsAndKills.EditorTools
                 "wall" => Wall(),
                 "crate" => Crate(),
                 "barrel" => Barrel(),
+                "door" => Door(),
                 "muzzle" => Muzzle(),
                 "blood" => Blood(),
                 "spark" => Spark(),
@@ -490,6 +492,22 @@ namespace CatsAndKills.EditorTools
             c.Rect(10, 16, 28, 5, new Color32(82, 25, 30, 255));
             c.Rect(10, 43, 28, 5, new Color32(82, 25, 30, 255));
             c.Triangle(24, 25, 16, 39, 32, 39, Amber);
+
+            return c;
+        }
+
+        private static PixelCanvas Door()
+        {
+            PixelCanvas c = new PixelCanvas(128, 32);
+
+            c.RoundRect(2, 2, 124, 28, 4, Outline);
+            c.RoundRect(7, 6, 114, 20, 3, new Color32(49, 58, 75, 255));
+
+            for (int x = 14; x < 110; x += 22)
+                c.Rect(x, 9, 13, 14, new Color32(67, 77, 95, 255));
+
+            c.Circle(108, 16, 4, Amber);
+            c.Rect(61, 6, 5, 20, Outline);
 
             return c;
         }
