@@ -38,6 +38,12 @@ namespace CatsAndKills.Visual
         public Sprite debris;
         public Sprite propagandaPoster;
 
+        [Header("UI")]
+        public Sprite uiPortrait;
+        public Sprite uiObjectiveIcon;
+        public Sprite uiGrenadeIcon;
+        public Sprite uiMedkitIcon;
+
         [Header("FX")]
         public Sprite muzzleFlash;
         public Sprite bloodDrop;
