@@ -18,7 +18,7 @@ namespace CatsAndKills.Visual
         [SerializeField] private EnemyWeapon2D enemyWeapon;
         [SerializeField] private Transform lookTarget;
         [SerializeField] private float moveThreshold = 0.12f;
-        [SerializeField] private float moveFrameRate = 5.25f;
+        [SerializeField] private float moveFrameRate = 7.25f;
 
         [Header("Presentation")]
         [SerializeField] private float facingSharpness = 11f;
@@ -26,13 +26,14 @@ namespace CatsAndKills.Visual
         [SerializeField] private float offsetSharpness = 18f;
         [SerializeField] private float scaleSharpness = 16f;
         [SerializeField] private float idleBreath = 0.007f;
-        [SerializeField] private float walkBob = 0.026f;
-        [SerializeField] private float walkSway = 0.009f;
+        [SerializeField] private float walkBob = 0.018f;
+        [SerializeField] private float walkSway = 0.006f;
         [SerializeField] private float recoilKick = 0.060f;
         [SerializeField] private float hurtKick = 0.045f;
-        [SerializeField] private float frameBlendTime = 0.028f;
+        [SerializeField] private float frameBlendTime = 0.018f;
 
         private SpriteRenderer _transitionRenderer;
+        private CharacterCombatAnchor2D _combatAnchor;
         private float _transitionUntil;
         private bool _subscribed;
         private float _fireUntil;
@@ -68,6 +69,7 @@ namespace CatsAndKills.Visual
             playerWeapon = weapon;
             lookTarget = target;
 
+            EnsureCombatAnchor();
             TrySubscribe();
         }
 
@@ -96,6 +98,8 @@ namespace CatsAndKills.Visual
             _visualOffset = Vector3.zero;
             _smoothedFacing = _facing;
             _phase = Random.Range(0f, Mathf.PI * 2f);
+
+            EnsureCombatAnchor();
 
             GameObject blend =
                 new GameObject("Frame Blend");
@@ -180,17 +184,80 @@ namespace CatsAndKills.Visual
             _recoil = Mathf.MoveTowards(
                 _recoil,
                 0f,
-                Time.unscaledDeltaTime * 11f);
+                Time.deltaTime * 11f);
 
             _hurtImpulse = Mathf.MoveTowards(
                 _hurtImpulse,
                 0f,
-                Time.unscaledDeltaTime * 12f);
+                Time.deltaTime * 12f);
 
             UpdateFacing();
             UpdateSprite();
             UpdateFrameBlend();
             AnimatePresentation();
+            RefreshCombatAnchor();
+        }
+
+        private void EnsureCombatAnchor()
+        {
+            GameObject root =
+                vitals != null
+                    ? vitals.gameObject
+                    : body != null
+                        ? body.gameObject
+                        : transform.root.gameObject;
+
+            _combatAnchor =
+                root.GetComponent<CharacterCombatAnchor2D>();
+
+            if (_combatAnchor == null)
+                _combatAnchor =
+                    root.AddComponent<CharacterCombatAnchor2D>();
+        }
+
+        private void RefreshCombatAnchor()
+        {
+            if (_combatAnchor == null)
+                EnsureCombatAnchor();
+
+            if (_combatAnchor == null ||
+                bodyRenderer == null ||
+                bodyRenderer.sprite == null ||
+                sprites == null)
+            {
+                _combatAnchor?.Clear();
+                return;
+            }
+
+            Bounds bounds =
+                bodyRenderer.bounds;
+
+            Vector2 muzzle01 =
+                sprites.GetMuzzleAnchor01(
+                    _direction);
+
+            Vector2 aimPoint =
+                new Vector2(
+                    bounds.center.x,
+                    Mathf.Lerp(
+                        bounds.min.y,
+                        bounds.max.y,
+                        sprites.AimHeight01));
+
+            Vector2 muzzlePoint =
+                new Vector2(
+                    Mathf.Lerp(
+                        bounds.min.x,
+                        bounds.max.x,
+                        muzzle01.x),
+                    Mathf.Lerp(
+                        bounds.min.y,
+                        bounds.max.y,
+                        muzzle01.y));
+
+            _combatAnchor.SetWorldPoints(
+                aimPoint,
+                muzzlePoint);
         }
 
         private void UpdateFacing()
@@ -235,7 +302,7 @@ namespace CatsAndKills.Visual
                     1f -
                     Mathf.Exp(
                         -facingSharpness *
-                        Time.unscaledDeltaTime);
+                        Time.deltaTime);
 
                 _smoothedFacing =
                     Vector2.Lerp(
@@ -289,11 +356,11 @@ namespace CatsAndKills.Visual
             {
                 next = sprites.GetCrawl(_direction);
             }
-            else if (Time.unscaledTime < _hurtUntil)
+            else if (Time.time < _hurtUntil)
             {
                 next = sprites.GetHurt(_direction);
             }
-            else if (Time.unscaledTime < _fireUntil)
+            else if (Time.time < _fireUntil)
             {
                 next = sprites.GetFire(_direction);
             }
@@ -307,7 +374,7 @@ namespace CatsAndKills.Visual
             {
                 bool alternate =
                     Mathf.FloorToInt(
-                        Time.unscaledTime *
+                        Time.time *
                         Mathf.Max(1f, moveFrameRate)) %
                     2 == 1;
 
@@ -342,7 +409,7 @@ namespace CatsAndKills.Visual
                     _transitionRenderer.enabled = true;
 
                     _transitionUntil =
-                        Time.unscaledTime +
+                        Time.time +
                         frameBlendTime;
                 }
 
@@ -351,7 +418,7 @@ namespace CatsAndKills.Visual
                 bodyRenderer.color =
                     vitals != null && vitals.IsDead
                         ? new Color(0.58f, 0.60f, 0.66f, 0.96f)
-                        : Time.unscaledTime < _hurtUntil
+                        : Time.time < _hurtUntil
                             ? new Color(1f, 0.60f, 0.64f, 1f)
                             : Color.white;
             }
@@ -378,7 +445,7 @@ namespace CatsAndKills.Visual
 
             float remaining =
                 _transitionUntil -
-                Time.unscaledTime;
+                Time.time;
 
             if (remaining <= 0f ||
                 frameBlendTime <= 0.001f)
@@ -395,7 +462,7 @@ namespace CatsAndKills.Visual
             Color c =
                 _transitionRenderer.color;
 
-            c.a = alpha * 0.22f;
+            c.a = alpha * 0.12f;
             _transitionRenderer.color = c;
         }
 
@@ -404,7 +471,7 @@ namespace CatsAndKills.Visual
             if (transform.parent == null)
                 return;
 
-            float t = Time.unscaledTime;
+            float t = Time.time;
             bool dead = vitals != null && vitals.IsDead;
             bool crawling =
                 !dead &&
@@ -492,13 +559,13 @@ namespace CatsAndKills.Visual
                 1f -
                 Mathf.Exp(
                     -offsetSharpness *
-                    Time.unscaledDeltaTime);
+                    Time.deltaTime);
 
             float scaleT =
                 1f -
                 Mathf.Exp(
                     -scaleSharpness *
-                    Time.unscaledDeltaTime);
+                    Time.deltaTime);
 
             _visualOffset =
                 Vector3.Lerp(
@@ -522,13 +589,13 @@ namespace CatsAndKills.Visual
 
         private void OnDamaged(DamageInfo info)
         {
-            _hurtUntil = Time.unscaledTime + 0.18f;
+            _hurtUntil = Time.time + 0.18f;
             _hurtImpulse = 1f;
         }
 
         private void OnWeaponFired()
         {
-            _fireUntil = Time.unscaledTime + 0.10f;
+            _fireUntil = Time.time + 0.10f;
             _recoil = 1f;
         }
     }

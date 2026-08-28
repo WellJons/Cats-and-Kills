@@ -17,8 +17,12 @@ namespace CatsAndKills.AI
         private List<Vector2> _path = new List<Vector2>();
         private int _pathIndex;
         private bool _hasDestination;
+        private readonly Collider2D[] _neighbours =
+            new Collider2D[16];
 
-        public bool ReachedDestination => !_hasDestination;
+        public bool LastMoveFailed { get; private set; }
+        public bool ReachedDestination => !_hasDestination && !LastMoveFailed;
+        public bool HasDestination => _hasDestination;
         public Vector2 Velocity => _rb != null ? _rb.linearVelocity : Vector2.zero;
 
         public void Configure(NavigationGrid2D nav, float speed = 3.25f)
@@ -36,12 +40,24 @@ namespace CatsAndKills.AI
             if (vitals == null) vitals = GetComponent<CharacterVitals>();
         }
 
-        public void MoveTo(Vector2 destination)
+        public bool MoveTo(Vector2 destination)
         {
-            if (navigation == null) return;
+            LastMoveFailed = false;
+
+            if (navigation == null)
+            {
+                _path.Clear();
+                _pathIndex = 0;
+                _hasDestination = false;
+                LastMoveFailed = true;
+                return false;
+            }
+
             _path = navigation.FindPath(transform.position, destination);
             _pathIndex = 0;
             _hasDestination = _path.Count > 0;
+            LastMoveFailed = !_hasDestination;
+            return _hasDestination;
         }
 
         public void Stop()
@@ -49,6 +65,7 @@ namespace CatsAndKills.AI
             _path.Clear();
             _pathIndex = 0;
             _hasDestination = false;
+            LastMoveFailed = false;
         }
 
         private void FixedUpdate()
@@ -85,11 +102,18 @@ namespace CatsAndKills.AI
             Vector2 desired = delta.normalized * moveSpeed * limbFactor;
 
             Vector2 separation = Vector2.zero;
-            Collider2D[] neighbours =
-                Physics2D.OverlapCircleAll(transform.position, 0.72f);
 
-            foreach (Collider2D neighbour in neighbours)
+            int neighbourCount =
+                Physics2D.OverlapCircleNonAlloc(
+                    transform.position,
+                    0.72f,
+                    _neighbours);
+
+            for (int i = 0; i < neighbourCount; i++)
             {
+                Collider2D neighbour =
+                    _neighbours[i];
+
                 if (neighbour == null ||
                     neighbour.transform.root == transform.root)
                     continue;
@@ -97,16 +121,24 @@ namespace CatsAndKills.AI
                 EnemyMotor2D other =
                     neighbour.GetComponentInParent<EnemyMotor2D>();
 
-                if (other == null) continue;
+                if (other == null)
+                    continue;
 
                 Vector2 away =
                     (Vector2)transform.position -
                     (Vector2)other.transform.position;
 
-                float distance = Mathf.Max(0.05f, away.magnitude);
+                float distance =
+                    Mathf.Max(
+                        0.05f,
+                        away.magnitude);
+
                 separation +=
                     away.normalized *
-                    Mathf.Clamp01(1f - distance / 0.72f);
+                    Mathf.Clamp01(
+                        1f -
+                        distance /
+                        0.72f);
             }
 
             desired += separation * 1.6f;

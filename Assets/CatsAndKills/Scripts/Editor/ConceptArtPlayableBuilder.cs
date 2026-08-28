@@ -44,12 +44,12 @@ namespace CatsAndKills.EditorTools
 
             ConceptVisualPolishBuilder.Apply(pack);
 
-            // The source-atlas renderer is the path that actually renders the
-            // generated characters correctly. Install it AFTER the lighting
-            // polish so no lit-material pass can make the cats disappear.
-            InstallDirectAtlasCharacterVisuals();
+            // Use one character presentation pipeline only.
+            // BuildWithPack already installs the stable DirectionalSpriteSet
+            // visuals. The runtime bootstrap only verifies/recreates that path.
+            // Installing the direct-atlas visual here caused a second visual
+            // implementation to be destroyed and replaced on the first Play frame.
             InstallRuntimeCharacterBootstrap();
-            ValidateConceptCharacterVisuals();
 
             ConfigureConceptDoors();
             InstallConceptHUD(pack);
@@ -193,61 +193,6 @@ namespace CatsAndKills.EditorTools
             }
         }
 
-        private static void InstallDirectAtlasCharacterVisuals()
-        {
-            PlayerMotor2D player =
-                Object.FindAnyObjectByType<PlayerMotor2D>();
-
-            if (player == null)
-                return;
-
-            Texture2D playerAtlas =
-                LoadConceptAtlas("player.png");
-
-            ReplaceWithDirectVisual(
-                player.gameObject,
-                playerAtlas,
-                player.transform,
-                true,
-                1.28f);
-
-            EnemyBrain[] enemies =
-                Object.FindObjectsByType<EnemyBrain>(
-                    FindObjectsSortMode.None);
-
-            foreach (EnemyBrain enemy in enemies)
-            {
-                string file =
-                    enemy.Archetype switch
-                    {
-                        EnemyArchetype.Pistolier =>
-                            "pistolier.png",
-
-                        EnemyArchetype.MachineGunner =>
-                            "machinegunner.png",
-
-                        EnemyArchetype.Demolitionist =>
-                            "demolitionist.png",
-
-                        _ =>
-                            "rifleman.png"
-                    };
-
-                float scale =
-                    enemy.Archetype ==
-                    EnemyArchetype.MachineGunner
-                        ? 1.40f
-                        : 1.22f;
-
-                ReplaceWithDirectVisual(
-                    enemy.gameObject,
-                    LoadConceptAtlas(file),
-                    player.transform,
-                    false,
-                    scale);
-            }
-        }
-
         private static void InstallRuntimeCharacterBootstrap()
         {
             RuntimeCharacterVisualBootstrap bootstrap =
@@ -284,167 +229,6 @@ namespace CatsAndKills.EditorTools
                 pack.demolitionist);
 
             EditorUtility.SetDirty(bootstrap);
-        }
-
-        private static void ValidateConceptCharacterVisuals()
-        {
-            int expected =
-                1 +
-                Object.FindObjectsByType<EnemyBrain>(
-                    FindObjectsSortMode.None).Length;
-
-            ConceptAtlasCharacterVisual2D[] visuals =
-                Object.FindObjectsByType<ConceptAtlasCharacterVisual2D>(
-                    FindObjectsSortMode.None);
-
-            int enabledRenderers = 0;
-
-            foreach (ConceptAtlasCharacterVisual2D visual in visuals)
-            {
-                if (visual == null)
-                    continue;
-
-                SpriteRenderer sr =
-                    visual.GetComponent<SpriteRenderer>();
-
-                if (sr != null && sr.enabled)
-                    enabledRenderers++;
-            }
-
-            if (visuals.Length != expected ||
-                enabledRenderers != expected)
-            {
-                Debug.LogError(
-                    "Concept character visual validation failed. " +
-                    $"Expected {expected}, found {visuals.Length}, " +
-                    $"enabled renderers {enabledRenderers}.");
-            }
-            else
-            {
-                Debug.Log(
-                    "Concept character visuals installed: " +
-                    expected);
-            }
-        }
-
-        private static Texture2D LoadConceptAtlas(
-            string file)
-        {
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(
-                ConceptArtIntegrator.AtlasRoot +
-                "/" +
-                file);
-        }
-
-        private static void ReplaceWithDirectVisual(
-            GameObject root,
-            Texture2D atlas,
-            Transform lookTarget,
-            bool isPlayer,
-            float scale)
-        {
-            if (atlas == null || root == null)
-                return;
-
-            Transform oldVisual =
-                root.transform.Find(
-                    isPlayer
-                        ? "Player 3-4 Visual"
-                        : "Enemy 3-4 Visual");
-
-            if (oldVisual != null)
-                Object.DestroyImmediate(
-                    oldVisual.gameObject);
-
-            Transform existing =
-                root.transform.Find(
-                    "Concept Atlas Visual");
-
-            if (existing != null)
-                Object.DestroyImmediate(
-                    existing.gameObject);
-
-            GameObject go =
-                new GameObject(
-                    "Concept Atlas Visual");
-
-            go.transform.SetParent(
-                root.transform,
-                false);
-
-            go.transform.localPosition =
-                Vector3.zero;
-
-            go.transform.localScale =
-                Vector3.one * scale;
-
-            SpriteRenderer sr =
-                go.AddComponent<SpriteRenderer>();
-
-            sr.color = Color.white;
-            sr.enabled = true;
-            sr.sortingOrder = 10;
-
-            Shader spriteShader =
-                Shader.Find("Sprites/Default");
-
-            if (spriteShader != null)
-            {
-                sr.sharedMaterial =
-                    new Material(spriteShader)
-                    {
-                        hideFlags =
-                            HideFlags.HideAndDontSave
-                    };
-            }
-
-            CharacterVitals vitals =
-                root.GetComponent<CharacterVitals>();
-
-            Rigidbody2D body =
-                root.GetComponent<Rigidbody2D>();
-
-            PlayerAim2D aim =
-                isPlayer
-                    ? root.GetComponent<PlayerAim2D>()
-                    : null;
-
-            HitscanWeapon2D playerGun =
-                isPlayer
-                    ? root.GetComponentInChildren<
-                        HitscanWeapon2D>()
-                    : null;
-
-            EnemyWeapon2D enemyGun =
-                !isPlayer
-                    ? root.GetComponent<EnemyWeapon2D>()
-                    : null;
-
-            ConceptAtlasCharacterVisual2D visual =
-                go.AddComponent<
-                    ConceptAtlasCharacterVisual2D>();
-
-            visual.Configure(
-                atlas,
-                sr,
-                vitals,
-                body,
-                aim,
-                playerGun,
-                enemyGun,
-                isPlayer ? null : lookTarget,
-                128f);
-
-            DepthSortedSprite2D depth =
-                go.AddComponent<DepthSortedSprite2D>();
-
-            depth.Configure(
-                new[] { sr },
-                5000,
-                0f);
-
-            if (isPlayer && aim != null)
-                aim.SetBodyRotationEnabled(false);
         }
 
         private static void CreateWorldBackdrop()

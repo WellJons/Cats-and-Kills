@@ -163,9 +163,11 @@ namespace CatsAndKills.EditorTools
                         ? sr.transform.parent.name
                         : string.Empty;
 
-                if (n == "Wall Top" ||
-                    n == "Wall Side" ||
-                    n == "Wall Shadow" ||
+                // Keep the actual wall faces enabled. They belong to the
+                // gameplay collider geometry and are the visual fallback if a
+                // concept replacement is missing, cropped incorrectly or fails
+                // to render. Only obsolete decorative layers are hidden.
+                if (n == "Wall Shadow" ||
                     n == "Prop Shadow" ||
                     n == "Floor" ||
                     n.Contains("Floor Zone") ||

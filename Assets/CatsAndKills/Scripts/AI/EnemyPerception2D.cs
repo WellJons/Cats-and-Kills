@@ -12,9 +12,16 @@ namespace CatsAndKills.AI
 
         private Vector2 _heardPosition;
         private float _heardAt = -999f;
+        private Vector2 _facing = Vector2.right;
 
         public bool HasRecentNoise => Time.time - _heardAt < 2.5f;
         public Vector2 HeardPosition => _heardPosition;
+
+        public void SetFacing(Vector2 direction)
+        {
+            if (direction.sqrMagnitude > 0.001f)
+                _facing = direction.normalized;
+        }
 
         public void Configure(
             LayerMask mask,
@@ -54,23 +61,28 @@ namespace CatsAndKills.AI
         {
             if (target == null) return false;
 
-            Vector2 origin = transform.position;
-            Vector2 delta = (Vector2)target.position - origin;
+            Vector2 origin =
+                CharacterCombatGeometry2D.AimPoint(transform);
+
+            Vector2 targetPoint =
+                CharacterCombatGeometry2D.AimPoint(target);
+
+            Vector2 delta = targetPoint - origin;
             float distance = delta.magnitude;
 
             if (distance > viewDistance || distance < 0.001f)
                 return false;
 
-            if (Vector2.Angle(transform.right, delta) > viewAngle * 0.5f)
+            if (Vector2.Angle(_facing, delta) > viewAngle * 0.5f)
                 return false;
 
             Vector2 direction = delta / distance;
-            Vector2 rayOrigin = origin + direction * 0.52f;
+            Vector2 rayOrigin = origin + direction * 0.12f;
 
             RaycastHit2D block = Physics2D.Raycast(
                 rayOrigin,
                 direction,
-                Mathf.Max(0f, distance - 0.55f),
+                Mathf.Max(0f, distance - 0.20f),
                 obstacleMask);
 
             return block.collider == null;

@@ -10,6 +10,8 @@ namespace CatsAndKills.Visual
         [SerializeField] private int unitsPerWorldUnit = 32;
         [SerializeField] private float visualHeightOffset;
 
+        private int[] _localOrders;
+
         public void Configure(
             SpriteRenderer[] spriteRenderers,
             int order = 1000,
@@ -18,6 +20,7 @@ namespace CatsAndKills.Visual
             renderers = spriteRenderers;
             baseOrder = order;
             visualHeightOffset = heightOffset;
+            CacheLocalOrders();
             Refresh();
         }
 
@@ -25,6 +28,8 @@ namespace CatsAndKills.Visual
         {
             if (renderers == null || renderers.Length == 0)
                 renderers = GetComponentsInChildren<SpriteRenderer>(true);
+
+            CacheLocalOrders();
         }
 
         private void LateUpdate()
@@ -32,9 +37,35 @@ namespace CatsAndKills.Visual
             Refresh();
         }
 
+        private void CacheLocalOrders()
+        {
+            if (renderers == null)
+            {
+                _localOrders = null;
+                return;
+            }
+
+            _localOrders = new int[renderers.Length];
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                SpriteRenderer sr = renderers[i];
+                _localOrders[i] = sr != null
+                    ? Mathf.Clamp(sr.sortingOrder, -24, 24)
+                    : 0;
+            }
+        }
+
         private void Refresh()
         {
-            if (renderers == null) return;
+            if (renderers == null)
+                return;
+
+            if (_localOrders == null ||
+                _localOrders.Length != renderers.Length)
+            {
+                CacheLocalOrders();
+            }
 
             int anchorOrder =
                 baseOrder -
@@ -45,11 +76,12 @@ namespace CatsAndKills.Visual
             for (int i = 0; i < renderers.Length; i++)
             {
                 SpriteRenderer sr = renderers[i];
-                if (sr == null) continue;
+                if (sr == null)
+                    continue;
 
-                // Preserve local layering between body / weapon / foreground pieces.
-                int local = Mathf.Clamp(sr.sortingOrder, -24, 24);
-                sr.sortingOrder = anchorOrder + local;
+                sr.sortingOrder =
+                    anchorOrder +
+                    _localOrders[i];
             }
         }
     }

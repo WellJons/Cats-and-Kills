@@ -14,6 +14,15 @@ namespace CatsAndKills.Combat
             if (characterRoot == null)
                 return Vector2.zero;
 
+            CharacterCombatAnchor2D anchor =
+                characterRoot.GetComponent<CharacterCombatAnchor2D>();
+
+            if (anchor != null &&
+                anchor.IsValid)
+            {
+                return anchor.AimPoint;
+            }
+
             return
                 (Vector2)characterRoot.position +
                 Vector2.up * ChestHeight;
@@ -25,6 +34,15 @@ namespace CatsAndKills.Combat
         {
             if (characterRoot == null)
                 return Vector2.zero;
+
+            CharacterCombatAnchor2D anchor =
+                characterRoot.GetComponent<CharacterCombatAnchor2D>();
+
+            if (anchor != null &&
+                anchor.IsValid)
+            {
+                return anchor.MuzzlePoint;
+            }
 
             Vector2 dir =
                 direction.sqrMagnitude > 0.0001f
