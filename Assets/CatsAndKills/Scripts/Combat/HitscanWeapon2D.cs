@@ -279,6 +279,7 @@ namespace CatsAndKills.Combat
         private IEnumerator ReloadRoutine()
         {
             _reloading = true;
+            visualRecoil?.SetReloading(true);
 
             AudioClip reloadClip =
                 definition.reloadClip != null
@@ -296,6 +297,7 @@ namespace CatsAndKills.Combat
             Reserve -= moved;
 
             _reloading = false;
+            visualRecoil?.SetReloading(false);
         }
     }
 }
