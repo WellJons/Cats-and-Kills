@@ -349,17 +349,69 @@ namespace CatsAndKills.EditorTools
             CreateProp(
                 parent,
                 "Crate Stack A",
-                pack.crateLight,
-                new Vector2(-11.0f, -0.5f),
-                0.72f,
+                pack.crateStack != null
+                    ? pack.crateStack
+                    : pack.crateLight,
+                new Vector2(-14.5f, -8.1f),
+                0.68f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Barrel Stack A",
+                pack.barrelStack != null
+                    ? pack.barrelStack
+                    : pack.fuelDrum,
+                new Vector2(-11.3f, -8.5f),
+                0.64f,
                 lit);
 
             CreateProp(
                 parent,
                 "Fuel Drum A",
                 pack.fuelDrum,
-                new Vector2(-18.4f, -3.8f),
+                new Vector2(-18.4f, -4.3f),
                 0.72f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Burning Barrel A",
+                pack.burningBarrel,
+                new Vector2(-21.0f, -10.7f),
+                0.58f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Ammo Box A",
+                pack.ammoBox,
+                new Vector2(-17.0f, -6.2f),
+                0.60f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Medkit Box A",
+                pack.medkitBox,
+                new Vector2(-12.1f, -6.3f),
+                0.60f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Cable Bundle A",
+                pack.cableBundle,
+                new Vector2(-19.8f, -5.2f),
+                0.60f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Barricade A",
+                pack.barricade,
+                new Vector2(-16.4f, -10.5f),
+                0.66f,
                 lit);
 
             CreateProp(
@@ -464,18 +516,45 @@ namespace CatsAndKills.EditorTools
                 0.48f,
                 lit);
 
-            for (int i = 0; i < 6; i++)
-            {
-                CreateProp(
-                    parent,
-                    "Debris Detail " + i,
-                    pack.debris,
-                    new Vector2(
-                        -18f + i * 5.8f,
-                        -8.3f + Mathf.Sin(i * 1.4f) * 1.3f),
-                    0.32f + i % 2 * 0.08f,
-                    lit);
-            }
+            CreateProp(
+                parent,
+                "Debris Detail A",
+                pack.debris,
+                new Vector2(-8.0f, -6.8f),
+                0.28f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Debris Detail B",
+                pack.debris,
+                new Vector2(4.1f, -5.4f),
+                0.24f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Cable Bundle Warehouse",
+                pack.cableBundle,
+                new Vector2(2.4f, 4.3f),
+                0.52f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Crate Stack Warehouse",
+                pack.crateStack,
+                new Vector2(6.2f, 5.4f),
+                0.58f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Barricade Admin",
+                pack.barricade,
+                new Vector2(13.2f, -4.0f),
+                0.62f,
+                lit);
         }
 
         private static void AddFogPass(
