@@ -10,6 +10,7 @@ namespace CatsAndKills.Visual
         [Header("One sprite per direction: E, NE, N, NW, W, SW, S, SE")]
         [SerializeField] private Sprite[] idle = new Sprite[8];
         [SerializeField] private Sprite[] move = new Sprite[8];
+        [SerializeField] private Sprite[] moveAlt = new Sprite[8];
         [SerializeField] private Sprite[] fire = new Sprite[8];
         [SerializeField] private Sprite[] reload = new Sprite[8];
         [SerializeField] private Sprite[] hurt = new Sprite[8];
@@ -34,11 +35,34 @@ namespace CatsAndKills.Visual
             dead = Normalize(deadSet);
         }
 
+        public void ConfigureExtended(
+            Sprite[] idleSet,
+            Sprite[] moveSet,
+            Sprite[] moveAltSet,
+            Sprite[] fireSet,
+            Sprite[] reloadSet,
+            Sprite[] hurtSet,
+            Sprite[] crawlSet,
+            Sprite[] deadSet)
+        {
+            idle = Normalize(idleSet);
+            move = Normalize(moveSet);
+            moveAlt = Normalize(moveAltSet);
+            fire = Normalize(fireSet);
+            reload = Normalize(reloadSet);
+            hurt = Normalize(hurtSet);
+            crawl = Normalize(crawlSet);
+            dead = Normalize(deadSet);
+        }
+
         public Sprite GetIdle(CharacterDirection8 direction) =>
             Get(idle, direction);
 
         public Sprite GetMove(CharacterDirection8 direction) =>
             Get(move, direction, GetIdle(direction));
+
+        public Sprite GetMoveAlt(CharacterDirection8 direction) =>
+            Get(moveAlt, direction, GetMove(direction));
 
         public Sprite GetFire(CharacterDirection8 direction) =>
             Get(fire, direction, GetIdle(direction));
