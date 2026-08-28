@@ -36,6 +36,30 @@ namespace CatsAndKills.Combat
         public bool IsReloading => _reloading;
         public event System.Action Fired;
 
+        private void Awake()
+        {
+            ownerVitals =
+                ownerVitals != null
+                    ? ownerVitals
+                    : GetComponentInParent<CharacterVitals>();
+
+            collar =
+                collar != null
+                    ? collar
+                    : GetComponentInParent<CollarAbility>();
+
+            // Magazine/Reserve are runtime properties and are not serialized
+            // into the scene. Builder-time Configure() therefore cannot be
+            // relied on after entering Play Mode.
+            if (definition != null &&
+                Magazine <= 0 &&
+                Reserve <= 0)
+            {
+                Magazine = definition.magazineSize;
+                Reserve = definition.startingReserve;
+            }
+        }
+
         public void Configure(
             WeaponDefinition newDefinition,
             PlayerAim2D newAim,
