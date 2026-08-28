@@ -120,6 +120,7 @@ namespace CatsAndKills.EditorTools
         private static void CreateSystems()
         {
             new GameObject("Combat Director").AddComponent<CombatDirector>();
+            new GameObject("Combat Stats").AddComponent<CombatStats>();
             new GameObject("Haptics").AddComponent<HapticsManager>();
             new GameObject("Radio Dialogue").AddComponent<RadioDialogueSystem>();
             new GameObject("World Callouts").AddComponent<WorldCalloutSystem>();
