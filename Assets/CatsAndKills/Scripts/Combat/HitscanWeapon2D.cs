@@ -29,6 +29,7 @@ namespace CatsAndKills.Combat
         private float _horizontalRecoil;
         private bool _reloading;
         private bool _semiLatch;
+        private Coroutine _reloadRoutine;
 
         public int Magazine { get; private set; }
         public int Reserve { get; private set; }
@@ -353,7 +354,23 @@ namespace CatsAndKills.Combat
             if (_reloading || definition == null) return;
             if (Magazine >= definition.magazineSize || Reserve <= 0) return;
 
-            StartCoroutine(ReloadRoutine());
+            _reloadRoutine =
+                StartCoroutine(
+                    ReloadRoutine());
+        }
+
+        public void CancelReload()
+        {
+            if (_reloadRoutine != null)
+            {
+                StopCoroutine(
+                    _reloadRoutine);
+
+                _reloadRoutine = null;
+            }
+
+            _reloading = false;
+            visualRecoil?.SetReloading(false);
         }
 
         private IEnumerator ReloadRoutine()
@@ -384,7 +401,13 @@ namespace CatsAndKills.Combat
             Reserve -= moved;
 
             _reloading = false;
+            _reloadRoutine = null;
             visualRecoil?.SetReloading(false);
+        }
+
+        private void OnDisable()
+        {
+            CancelReload();
         }
     }
 }
