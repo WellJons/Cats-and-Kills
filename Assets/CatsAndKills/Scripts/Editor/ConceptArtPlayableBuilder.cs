@@ -449,6 +449,7 @@ namespace CatsAndKills.EditorTools
 
             fx.bloodSprite = pack.bloodDrop;
             fx.sparkSprite = pack.spark;
+            fx.casingSprite = pack.casing;
             fx.bulletHoleSprite = pack.bulletHole;
             fx.explosionSprite = pack.explosion;
             fx.smokeSprite = pack.smoke;
