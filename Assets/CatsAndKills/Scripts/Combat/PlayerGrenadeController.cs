@@ -2,6 +2,7 @@ using CatsAndKills.Audio;
 using CatsAndKills.Core;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
+using CatsAndKills.Tactical;
 using UnityEngine;
 
 namespace CatsAndKills.Combat
@@ -49,6 +50,18 @@ namespace CatsAndKills.Combat
         {
             if (Time.timeScale <= 0f) return;
 
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            if (tactical != null &&
+                tactical.IsTacticalCombat)
+            {
+                if (_cooking)
+                    _cooking = false;
+
+                return;
+            }
+
             if (CKInput.GrenadePressed && grenadeCount > 0 && !_cooking)
                 BeginCook();
 
@@ -63,6 +76,90 @@ namespace CatsAndKills.Combat
             {
                 InputConsumption.ConsumeInteract();
             }
+        }
+
+        public bool ThrowTacticalAt(
+            Vector2 targetWorld)
+        {
+            if (grenadeCount <= 0)
+                return false;
+
+            Vector2 origin =
+                transform.position;
+
+            Vector2 delta =
+                targetWorld -
+                origin;
+
+            float distance =
+                delta.magnitude;
+
+            if (distance < 0.4f)
+                return false;
+
+            Vector2 direction =
+                delta.normalized;
+
+            float clampedDistance =
+                Mathf.Clamp(
+                    distance,
+                    1.2f,
+                    8.5f);
+
+            grenadeCount--;
+            CombatStats.Instance?.RecordGrenade();
+
+            GameObject go =
+                new GameObject(
+                    "Player Tactical Grenade");
+
+            go.transform.position =
+                origin +
+                direction *
+                0.55f;
+
+            var renderer =
+                go.AddComponent<SpriteRenderer>();
+
+            renderer.sprite =
+                grenadeSprite;
+
+            var rb =
+                go.AddComponent<Rigidbody2D>();
+
+            var collider =
+                go.AddComponent<CircleCollider2D>();
+
+            collider.radius = 0.12f;
+
+            var grenade =
+                go.AddComponent<Grenade2D>();
+
+            grenade.Configure(
+                grenadeSprite,
+                explosionClip,
+                gameObject,
+                0.78f);
+
+            float force =
+                Mathf.Lerp(
+                    4.8f,
+                    8.2f,
+                    clampedDistance / 8.5f);
+
+            rb.AddForce(
+                direction * force,
+                ForceMode2D.Impulse);
+
+            rb.AddTorque(
+                Random.Range(
+                    -220f,
+                    220f));
+
+            aim?.SetTacticalAimPoint(
+                targetWorld);
+
+            return true;
         }
 
         private void BeginCook()
