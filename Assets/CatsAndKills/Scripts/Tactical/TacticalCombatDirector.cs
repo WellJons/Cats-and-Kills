@@ -166,6 +166,9 @@ namespace CatsAndKills.Tactical
                         player.transform.position,
                         enemy.transform.position);
 
+                if (!enemy.IsHostileToPlayer)
+                    continue;
+
                 if (enemy == trigger ||
                     enemy.IsAlerted ||
                     distance <= encounterRadius)
@@ -180,6 +183,7 @@ namespace CatsAndKills.Tactical
         {
             if (enemy == null ||
                 !enemy.IsAlive ||
+                !enemy.IsHostileToPlayer ||
                 _participants.Contains(enemy))
             {
                 return;
