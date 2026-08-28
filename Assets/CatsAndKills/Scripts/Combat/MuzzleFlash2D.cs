@@ -50,6 +50,13 @@ namespace CatsAndKills.Combat
             muzzleLight.overlapOperation =
                 Light2D.OverlapOperation.Additive;
 
+            muzzleLight.targetSortingLayers =
+                new[]
+                {
+                    SortingLayer.NameToID(
+                        "Default")
+                };
+
             muzzleLight.intensity = 0f;
             muzzleLight.enabled = false;
         }
