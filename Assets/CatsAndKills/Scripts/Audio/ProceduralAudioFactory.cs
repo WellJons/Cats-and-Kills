@@ -112,7 +112,7 @@ namespace CatsAndKills.Audio
                     (transient + body + low + mechanical) *
                     Mathf.Exp(-t * 5f);
 
-                data[i] = Mathf.Tanh(sample * 0.82f) * 0.82f;
+                data[i] = (float)Math.Tanh(sample * 0.82f) * 0.82f;
             }
 
             return MakeClip(name, data, 1);
@@ -141,7 +141,7 @@ namespace CatsAndKills.Audio
                     Mathf.Exp(-t * 5.4f) *
                     1.15f;
 
-                data[i] = Mathf.Tanh(boom + blast) * 0.88f;
+                data[i] = (float)Math.Tanh(boom + blast) * 0.88f;
             }
 
             return MakeClip("Explosion", data, 1);
@@ -273,8 +273,8 @@ namespace CatsAndKills.Audio
                     (float)(random.NextDouble() * 2.0 - 1.0) *
                     (intensity == 0 ? 0.007f : 0.012f);
 
-                data[i * channels] = Mathf.Tanh((left + hiss) * 1.25f) * 0.78f;
-                data[i * channels + 1] = Mathf.Tanh((right - hiss) * 1.25f) * 0.78f;
+                data[i * channels] = (float)Math.Tanh((left + hiss) * 1.25f) * 0.78f;
+                data[i * channels + 1] = (float)Math.Tanh((right - hiss) * 1.25f) * 0.78f;
             }
 
             return MakeClip(name, data, channels);
