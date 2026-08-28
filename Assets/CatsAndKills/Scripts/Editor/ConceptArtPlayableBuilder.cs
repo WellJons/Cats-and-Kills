@@ -40,6 +40,7 @@ namespace CatsAndKills.EditorTools
             // generated characters correctly. Install it AFTER the lighting
             // polish so no lit-material pass can make the cats disappear.
             InstallDirectAtlasCharacterVisuals();
+            ValidateConceptCharacterVisuals();
 
             ConfigureConceptDoors();
             InstallConceptHUD(pack);
@@ -187,6 +188,47 @@ namespace CatsAndKills.EditorTools
                     player.transform,
                     false,
                     scale);
+            }
+        }
+
+        private static void ValidateConceptCharacterVisuals()
+        {
+            int expected =
+                1 +
+                Object.FindObjectsByType<EnemyBrain>(
+                    FindObjectsSortMode.None).Length;
+
+            ConceptAtlasCharacterVisual2D[] visuals =
+                Object.FindObjectsByType<ConceptAtlasCharacterVisual2D>(
+                    FindObjectsSortMode.None);
+
+            int enabledRenderers = 0;
+
+            foreach (ConceptAtlasCharacterVisual2D visual in visuals)
+            {
+                if (visual == null)
+                    continue;
+
+                SpriteRenderer sr =
+                    visual.GetComponent<SpriteRenderer>();
+
+                if (sr != null && sr.enabled)
+                    enabledRenderers++;
+            }
+
+            if (visuals.Length != expected ||
+                enabledRenderers != expected)
+            {
+                Debug.LogError(
+                    "Concept character visual validation failed. " +
+                    $"Expected {expected}, found {visuals.Length}, " +
+                    $"enabled renderers {enabledRenderers}.");
+            }
+            else
+            {
+                Debug.Log(
+                    "Concept character visuals installed: " +
+                    expected);
             }
         }
 
