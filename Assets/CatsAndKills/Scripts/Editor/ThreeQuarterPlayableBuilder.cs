@@ -221,10 +221,28 @@ namespace CatsAndKills.EditorTools
             DepthSortedSprite2D depth =
                 go.AddComponent<DepthSortedSprite2D>();
 
-            depth.Configure(
-                new[] { sr },
-                5000,
-                -0.58f);
+            SpriteRenderer weaponRenderer =
+                weapon != null
+                    ? weapon.GetComponent<SpriteRenderer>()
+                    : null;
+
+            if (weaponRenderer != null)
+            {
+                weaponRenderer.enabled = true;
+                weaponRenderer.forceRenderingOff = false;
+
+                depth.Configure(
+                    new[] { sr, weaponRenderer },
+                    5000,
+                    -0.58f);
+            }
+            else
+            {
+                depth.Configure(
+                    new[] { sr },
+                    5000,
+                    -0.58f);
+            }
 
             return go;
         }
@@ -241,8 +259,13 @@ namespace CatsAndKills.EditorTools
                 string n = sr.gameObject.name;
 
                 if (n.Contains("Muzzle Flash") ||
-                    n.Contains("Actor Shadow"))
+                    n.Contains("Actor Shadow") ||
+                    n == "Weapon")
                 {
+                    // Weapon is a gameplay renderer and must remain visible so
+                    // switching slots can actually change the held gun.
+                    sr.enabled = true;
+                    sr.forceRenderingOff = false;
                     continue;
                 }
 
@@ -369,11 +392,17 @@ namespace CatsAndKills.EditorTools
                 if (n == "Wall Top" ||
                     n == "Wall Side")
                 {
-                    sr.sprite = pack.wallStraight;
+                    // These are prototype tiled renderers whose size is tied
+                    // to gameplay geometry. The large concept wall illustration
+                    // cannot be tiled here: doing so creates giant repeated
+                    // vertical strips. ConceptVisualPolishBuilder owns the
+                    // visible 3/4 wall art.
+                    sr.sprite = GeneratedArtFactory.Get("wall");
+                    sr.drawMode = SpriteDrawMode.Tiled;
                     sr.color =
                         n == "Wall Top"
-                            ? new Color(0.93f, 0.97f, 1f, 1f)
-                            : new Color(0.54f, 0.60f, 0.72f, 1f);
+                            ? new Color(0.86f, 0.90f, 0.98f, 1f)
+                            : new Color(0.40f, 0.46f, 0.58f, 1f);
 
                     continue;
                 }
