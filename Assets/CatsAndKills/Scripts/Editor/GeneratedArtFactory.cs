@@ -14,6 +14,7 @@ namespace CatsAndKills.EditorTools
         private static readonly string[] Ids =
         {
             "ui_square",
+            "ui_circle",
             "cat_head",
             "enemy_head",
             "torso",
@@ -31,7 +32,10 @@ namespace CatsAndKills.EditorTools
             "muzzle",
             "blood",
             "spark",
-            "casing"
+            "casing",
+            "bullet_hole",
+            "smoke",
+            "explosion"
         };
 
         private static readonly Color32 Transparent =
@@ -106,6 +110,7 @@ namespace CatsAndKills.EditorTools
         {
             PixelCanvas canvas = id switch
             {
+                "ui_circle" => UiCircle(),
                 "cat_head" => CatHead(false),
                 "enemy_head" => CatHead(true),
                 "torso" => Torso(),
@@ -124,6 +129,9 @@ namespace CatsAndKills.EditorTools
                 "blood" => Blood(),
                 "spark" => Spark(),
                 "casing" => Casing(),
+                "bullet_hole" => BulletHole(),
+                "smoke" => Smoke(),
+                "explosion" => Explosion(),
                 _ => SolidSquare()
             };
 
@@ -170,6 +178,13 @@ namespace CatsAndKills.EditorTools
         {
             PixelCanvas c = new PixelCanvas(32, 32);
             c.Rect(0, 0, 32, 32, White);
+            return c;
+        }
+
+        private static PixelCanvas UiCircle()
+        {
+            PixelCanvas c = new PixelCanvas(32, 32);
+            c.Circle(16, 16, 15, White);
             return c;
         }
 
@@ -530,6 +545,56 @@ namespace CatsAndKills.EditorTools
             return c;
         }
 
+        private static PixelCanvas BulletHole()
+        {
+            PixelCanvas c = new PixelCanvas(32, 32);
+            c.Circle(16, 16, 7, new Color32(6, 7, 10, 230));
+            c.Circle(16, 16, 3, new Color32(1, 1, 2, 255));
+
+            for (int i = 0; i < 8; i++)
+            {
+                float angle = i * Mathf.PI * 0.25f;
+                int x = 16 + Mathf.RoundToInt(Mathf.Cos(angle) * 13f);
+                int y = 16 + Mathf.RoundToInt(Mathf.Sin(angle) * 13f);
+                c.Line(16, 16, x, y, new Color32(33, 35, 42, 170), 1);
+            }
+
+            return c;
+        }
+
+        private static PixelCanvas Smoke()
+        {
+            PixelCanvas c = new PixelCanvas(64, 64);
+            Color32 smokeA = new Color32(96, 101, 113, 100);
+            Color32 smokeB = new Color32(72, 77, 90, 80);
+
+            c.Circle(23, 35, 18, smokeA);
+            c.Circle(38, 28, 19, smokeA);
+            c.Circle(31, 18, 15, smokeB);
+            c.Circle(45, 42, 13, smokeB);
+
+            return c;
+        }
+
+        private static PixelCanvas Explosion()
+        {
+            PixelCanvas c = new PixelCanvas(96, 96);
+
+            for (int i = 0; i < 18; i++)
+            {
+                float angle = i * Mathf.PI * 2f / 18f;
+                int x = 48 + Mathf.RoundToInt(Mathf.Cos(angle) * 43f);
+                int y = 48 + Mathf.RoundToInt(Mathf.Sin(angle) * 43f);
+                c.Line(48, 48, x, y, new Color32(255, 125, 36, 210), 5);
+            }
+
+            c.Circle(48, 48, 31, new Color32(255, 164, 57, 235));
+            c.Circle(48, 48, 20, new Color32(255, 223, 118, 250));
+            c.Circle(48, 48, 9, new Color32(255, 250, 220, 255));
+
+            return c;
+        }
+
         private sealed class PixelCanvas
         {
             public int Width { get; }
@@ -656,11 +721,18 @@ namespace CatsAndKills.EditorTools
                         if ((pi.y < y && pj.y >= y) ||
                             (pj.y < y && pi.y >= y))
                         {
+                            int denominator = pj.y - pi.y;
+                            if (denominator == 0)
+                            {
+                                j = i;
+                                continue;
+                            }
+
                             nodes[count++] =
                                 pi.x +
                                 (y - pi.y) *
                                 (pj.x - pi.x) /
-                                Mathf.Max(1, pj.y - pi.y);
+                                denominator;
                         }
 
                         j = i;
