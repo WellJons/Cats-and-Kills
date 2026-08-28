@@ -19,10 +19,19 @@ namespace CatsAndKills.EditorTools
             ProductionArtPack pack =
                 ThreeQuarterStarterArtFactory.EnsureStarterPack();
 
+            BuildWithPack(
+                pack,
+                "starter");
+        }
+
+        public static void BuildWithPack(
+            ProductionArtPack pack,
+            string label = "custom")
+        {
             if (pack == null || !pack.HasMinimumPlayableArt)
             {
                 Debug.LogError(
-                    "3/4 starter art pack is incomplete.");
+                    "3/4 art pack is incomplete: " + label);
                 return;
             }
 
@@ -68,8 +77,9 @@ namespace CatsAndKills.EditorTools
             Selection.activeGameObject = player.gameObject;
 
             Debug.Log(
-                "Cats and Kills playable 3/4 starter room rebuilt. " +
-                "Press Play and open the Game tab.");
+                "Cats and Kills playable 3/4 room rebuilt with " +
+                label +
+                " art. Press Play and open the Game tab.");
         }
 
         private static void ConvertPlayer(
