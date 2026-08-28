@@ -1,6 +1,7 @@
 using System.Collections;
 using CatsAndKills.Audio;
 using CatsAndKills.Core;
+using CatsAndKills.Narrative;
 using CatsAndKills.Tactical;
 using CatsAndKills.UI;
 using UnityEngine;
@@ -23,6 +24,11 @@ namespace CatsAndKills.Player
 
         public bool IsActive => _active;
 
+        public bool IsUnlocked =>
+            NarrativeWorldState.Instance != null &&
+            NarrativeWorldState.Instance.HasFlag(
+                "collar_protocol_unlocked");
+
         public float Instability01 =>
             Mathf.Clamp01(
                 _instability / 100f);
@@ -31,7 +37,9 @@ namespace CatsAndKills.Player
             _instability;
 
         public string TacticalAbilityName =>
-            "РАЗРЫВ ПРОТОКОЛА";
+            IsUnlocked
+                ? "НЕСТАБИЛЬНЫЙ ПРОТОКОЛ"
+                : "ПРОТОКОЛ НЕДОСТУПЕН";
 
         public float Cooldown01
         {
@@ -93,7 +101,8 @@ namespace CatsAndKills.Player
                     tactical.RoundIndex;
             }
 
-            if (!CKInput.CollarPressed ||
+            if (!IsUnlocked ||
+                !CKInput.CollarPressed ||
                 _active ||
                 !tactical.IsPlayerTurn ||
                 tactical.RoundIndex <
