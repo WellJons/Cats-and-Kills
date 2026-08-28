@@ -590,10 +590,11 @@ namespace CatsAndKills.AI
 
         private float FlankSideSign()
         {
-            int id =
-                GetEntityId();
+            int idHash =
+                GetEntityId()
+                    .GetHashCode();
 
-            return (id & 1) == 0
+            return (idHash & 1) == 0
                 ? 1f
                 : -1f;
         }
