@@ -219,6 +219,16 @@ namespace CatsAndKills.AI
 
             NoiseSystem.Report(transform.position, 15f, gameObject);
             SuppressionSystem.ReportShot(origin, endPoint, _suppressing ? 0.36f : 0.22f, gameObject);
+
+            if (_suppressing || Random.value < 0.42f)
+            {
+                FXService.Instance?.Tracer(
+                    origin,
+                    endPoint,
+                    new Color(1f, 0.46f, 0.20f, 0.88f),
+                    _suppressing ? 0.030f : 0.022f);
+            }
+
             Debug.DrawLine(origin, endPoint, new Color(1f, 0.55f, 0.2f), 0.08f);
         }
     }
