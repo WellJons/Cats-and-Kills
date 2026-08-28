@@ -250,6 +250,15 @@ namespace CatsAndKills.Combat
                 definition.pellets > 1 ? 0.18f : 0.30f,
                 gameObject);
 
+            if (definition.pellets <= 1 || Random.value < 0.28f)
+            {
+                FXService.Instance?.Tracer(
+                    origin,
+                    endPoint,
+                    new Color(1f, 0.74f, 0.34f, 0.95f),
+                    definition.pellets > 1 ? 0.018f : 0.032f);
+            }
+
             Debug.DrawLine(origin, endPoint, Color.red, 0.1f);
         }
 
