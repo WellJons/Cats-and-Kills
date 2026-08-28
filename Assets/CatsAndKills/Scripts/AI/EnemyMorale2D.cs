@@ -21,6 +21,12 @@ namespace CatsAndKills.AI
         public void Configure(float startingMorale)
         {
             morale = Mathf.Clamp01(startingMorale);
+
+            if (_vitals == null)
+                _vitals = GetComponent<CharacterVitals>();
+
+            if (_vitals != null)
+                _lastHealth = _vitals.Health;
         }
 
         private void Awake()
