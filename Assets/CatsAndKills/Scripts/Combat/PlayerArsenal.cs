@@ -51,6 +51,17 @@ namespace CatsAndKills.Combat
             _reserves[CurrentSlot] = weapon.Reserve;
         }
 
+        public void AddAmmo(int amount)
+        {
+            if (_reserves == null || amount <= 0) return;
+
+            for (int i = 0; i < _reserves.Length; i++)
+                _reserves[i] += amount;
+
+            if (weapon != null && CurrentSlot >= 0 && CurrentSlot < _reserves.Length)
+                weapon.SetAmmo(_magazines[CurrentSlot], _reserves[CurrentSlot]);
+        }
+
         public void Equip(int index, bool refill = false)
         {
             if (slots == null || index < 0 || index >= slots.Length || slots[index] == null)
