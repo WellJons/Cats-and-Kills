@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CatsAndKills.FX;
+using CatsAndKills.Visual;
 using UnityEngine;
 
 namespace CatsAndKills.Damage
@@ -96,6 +97,14 @@ namespace CatsAndKills.Damage
                 sr.color = originalRenderer.color;
                 sr.sortingOrder = originalRenderer.sortingOrder + 1;
             }
+
+            DepthSortedSprite2D depth =
+                detached.AddComponent<DepthSortedSprite2D>();
+
+            depth.Configure(
+                new[] { sr },
+                5000,
+                0f);
 
             var rb = detached.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0f;
