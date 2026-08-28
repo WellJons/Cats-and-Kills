@@ -6,6 +6,7 @@ using CatsAndKills.Core;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
+using CatsAndKills.Tactical;
 using CatsAndKills.UI;
 using CatsAndKills.Visual;
 using CatsAndKills.World;
@@ -185,6 +186,53 @@ namespace CatsAndKills.EditorTools
                     camera,
                     cameraFollow);
 
+            TacticalCombatDirector tactical =
+                Object.FindAnyObjectByType<TacticalCombatDirector>();
+
+            PlayerMotor2D playerMotor =
+                player.GetComponent<PlayerMotor2D>();
+
+            HitscanWeapon2D playerWeapon =
+                player.GetComponentInChildren<HitscanWeapon2D>(
+                    true);
+
+            PlayerGrenadeController playerGrenades =
+                player.GetComponent<PlayerGrenadeController>();
+
+            PlayerAim2D playerAim =
+                player.GetComponent<PlayerAim2D>();
+
+            tactical?.Configure(
+                playerMotor,
+                nav);
+
+            TacticalPlayerController tacticalPlayer =
+                player.AddComponent<TacticalPlayerController>();
+
+            tacticalPlayer.Configure(
+                nav,
+                tactical,
+                playerWeapon,
+                playerGrenades,
+                playerAim,
+                camera);
+
+            GameObject tacticalHudGo =
+                new GameObject("Tactical HUD");
+
+            tacticalHudGo.AddComponent<TacticalHUD>();
+
+            GameObject gridOverlayGo =
+                new GameObject("Tactical Grid Overlay");
+
+            TacticalGridOverlay2D gridOverlay =
+                gridOverlayGo.AddComponent<TacticalGridOverlay2D>();
+
+            gridOverlay.Configure(
+                nav,
+                player.transform,
+                tactical);
+
             var squadGate =
                 new GameObject(
                     "Squad A // West Gate")
@@ -312,6 +360,7 @@ namespace CatsAndKills.EditorTools
         private static void CreateSystems()
         {
             new GameObject("Combat Director").AddComponent<CombatDirector>();
+            new GameObject("Tactical Combat").AddComponent<TacticalCombatDirector>();
             new GameObject("Facility Alarm").AddComponent<FacilityAlarmDirector>();
             new GameObject("Combat Stats").AddComponent<CombatStats>();
             new GameObject("Haptics").AddComponent<HapticsManager>();
@@ -874,6 +923,8 @@ namespace CatsAndKills.EditorTools
                 var charge = root.AddComponent<DemolitionistCharge2D>();
                 charge.Configure(player, vitals);
             }
+
+            root.AddComponent<TacticalEnemyAgent>();
 
             return root;
         }
