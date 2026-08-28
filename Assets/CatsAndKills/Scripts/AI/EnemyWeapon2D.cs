@@ -33,6 +33,8 @@ namespace CatsAndKills.AI
         private bool _triggerHeld;
         private bool _suppressing;
 
+        public event System.Action Fired;
+
         public void Configure(
             Transform target,
             Transform muzzleRef,
@@ -141,6 +143,8 @@ namespace CatsAndKills.AI
 
         private void Fire()
         {
+            Fired?.Invoke();
+
             Vector2 origin = muzzle != null
                 ? (Vector2)muzzle.position
                 : (Vector2)transform.position;
