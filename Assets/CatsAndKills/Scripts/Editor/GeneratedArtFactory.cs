@@ -164,6 +164,7 @@ namespace CatsAndKills.EditorTools
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
             importer.spritePixelsPerUnit = 64f;
+            importer.spriteMeshType = SpriteMeshType.FullRect;
             importer.filterMode = FilterMode.Point;
             importer.textureCompression =
                 TextureImporterCompression.Uncompressed;
