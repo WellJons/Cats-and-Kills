@@ -62,8 +62,10 @@ namespace CatsAndKills.EditorTools
             DisableLegacyWallVisuals();
             DisableLegacyInternalWallColliders();
 
-            Material lit =
-                GetOrCreateLitMaterial();
+            // Keep structural art on the default sprite shader until the
+            // geometry is proven stable. Applying Sprite-Lit here made complete
+            // buildings disappear on some generated scenes.
+            Material lit = null;
 
             CreateConceptFloor(
                 root.transform,
@@ -72,14 +74,14 @@ namespace CatsAndKills.EditorTools
             AddStructuralPass(
                 root.transform,
                 pack,
-                lit);
+                null);
 
             Physics2D.SyncTransforms();
 
             AddPropPass(
                 root.transform,
                 pack,
-                lit);
+                null);
 
             AddFloorDetailPass(
                 root.transform,
@@ -96,8 +98,6 @@ namespace CatsAndKills.EditorTools
             if (root.GetComponent<AlarmLighting2D>() == null)
                 root.AddComponent<AlarmLighting2D>();
 
-            ApplyMaterialToConceptSprites(
-                lit);
         }
 
         private static void RemoveLegacyPresentationObjects()
@@ -1294,27 +1294,6 @@ namespace CatsAndKills.EditorTools
             CreateProp(parent, "Barracks Barrel Stack", barrels, new Vector2(31f, -13f), 0.46f, lit);
             CreateProp(parent, "South Road Barricade", pack.barricade, new Vector2(8f, -23f), 0.56f, lit);
             CreateProp(parent, "South Road Fuel Drum", pack.fuelDrum, new Vector2(3f, -18f), 0.50f, lit);
-
-            CreateHazardStrip(
-                parent,
-                "West Gate Marking",
-                new Vector2(-39f, -22f),
-                new Vector2(4.8f, 0.30f),
-                lit);
-
-            CreateHazardStrip(
-                parent,
-                "Plaza Crossing",
-                new Vector2(0f, -10f),
-                new Vector2(7.5f, 0.30f),
-                lit);
-
-            CreateHazardStrip(
-                parent,
-                "Admin Entry Marking",
-                new Vector2(15f, 2f),
-                new Vector2(4.5f, 0.30f),
-                lit);
 
             CreateStreetLight(parent, "West Gate Lamp A", pack.lamp, new Vector2(-37f, -17f), new Color(0.25f, 0.70f, 1f), lit, true);
             CreateStreetLight(parent, "West Gate Lamp B", pack.lamp, new Vector2(-28f, -26f), new Color(1f, 0.20f, 0.25f), lit, false);
