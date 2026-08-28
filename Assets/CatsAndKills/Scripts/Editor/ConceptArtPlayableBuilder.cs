@@ -29,7 +29,6 @@ namespace CatsAndKills.EditorTools
 
             AddAtmosphere();
             ImproveCamera();
-            ApplyLitSpriteMaterial();
             ApplyConceptFX(pack);
 
             EditorSceneManager.MarkSceneDirty(
