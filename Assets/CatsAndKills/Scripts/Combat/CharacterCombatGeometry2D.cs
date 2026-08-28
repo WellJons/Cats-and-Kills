@@ -102,8 +102,16 @@ namespace CatsAndKills.Combat
                         CharacterVitals>();
 
                 // A character's movement footprint is intentionally separate
-                // from the visible body hitboxes. Do not let the footprint at
-                // the feet consume bullets.
+                // from the visible body hitboxes. Do not let the collider on
+                // the character root consume bullets, even in older scenes
+                // where a BodyPartHitbox component was attached to that root.
+                if (character != null &&
+                    hit.collider.transform ==
+                    character.transform)
+                {
+                    continue;
+                }
+
                 if (character != null &&
                     receiver == null)
                 {
