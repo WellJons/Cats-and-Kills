@@ -1,3 +1,4 @@
+using CatsAndKills.Audio;
 using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
@@ -206,15 +207,27 @@ namespace CatsAndKills.AI
 
             muzzleFlash?.Flash();
 
-            if (shotClip != null)
+            AudioClip resolvedShot = shotClip;
+
+            if (resolvedShot == null)
+            {
+                if (_fireRate > 10f)
+                    resolvedShot = ProceduralAudioFactory.MachineGunShot;
+                else if (_fireRate < 5f)
+                    resolvedShot = ProceduralAudioFactory.PistolShot;
+                else
+                    resolvedShot = ProceduralAudioFactory.RifleShot;
+            }
+
+            if (resolvedShot != null)
             {
                 if (audioSource != null)
                 {
                     audioSource.pitch = Random.Range(0.96f, 1.04f);
-                    audioSource.PlayOneShot(shotClip, 0.58f);
+                    audioSource.PlayOneShot(resolvedShot, 0.58f);
                 }
                 else
-                    AudioSource.PlayClipAtPoint(shotClip, transform.position, 0.55f);
+                    AudioSource.PlayClipAtPoint(resolvedShot, transform.position, 0.55f);
             }
 
             NoiseSystem.Report(transform.position, 15f, gameObject);
