@@ -777,7 +777,19 @@ namespace CatsAndKills.EditorTools
             motor.Configure(nav, archetype == EnemyArchetype.MachineGunner ? 2.45f : 3.15f);
 
             var perception = root.AddComponent<EnemyPerception2D>();
-            perception.Configure(1 << _obstacleLayer, 14f, 170f, 1f);
+
+            float sightDistance =
+                archetype == EnemyArchetype.MachineGunner
+                    ? 12f
+                    : archetype == EnemyArchetype.Rifleman
+                        ? 10.5f
+                        : 9.2f;
+
+            perception.Configure(
+                1 << _obstacleLayer,
+                sightDistance,
+                145f,
+                1f);
 
             var gun = new GameObject("Gun");
             gun.transform.SetParent(root.transform, false);
@@ -822,16 +834,16 @@ namespace CatsAndKills.EditorTools
             switch (archetype)
             {
                 case EnemyArchetype.Pistolier:
-                    enemyWeapon.ConfigureStats(17f, 3.6f, 5.2f, 1, 2, 11f);
+                    enemyWeapon.ConfigureStats(17f, 3.6f, 5.2f, 1, 2, 8.0f);
                     break;
                 case EnemyArchetype.MachineGunner:
-                    enemyWeapon.ConfigureStats(13f, 11.5f, 3.1f, 6, 11, 17f, 2.2f);
+                    enemyWeapon.ConfigureStats(13f, 11.5f, 3.1f, 5, 9, 11.0f, 2.2f);
                     break;
                 case EnemyArchetype.Demolitionist:
-                    enemyWeapon.ConfigureStats(17f, 7f, 3.3f, 2, 4, 12f);
+                    enemyWeapon.ConfigureStats(17f, 7f, 3.3f, 2, 4, 8.8f);
                     break;
                 default:
-                    enemyWeapon.ConfigureStats(18f, 8.4f, 2.25f, 2, 5, 14f);
+                    enemyWeapon.ConfigureStats(18f, 8.4f, 2.25f, 2, 4, 9.5f);
                     break;
             }
 
