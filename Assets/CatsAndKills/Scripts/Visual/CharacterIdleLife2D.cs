@@ -204,6 +204,7 @@ namespace CatsAndKills.Visual
                 return;
             }
 
+            SyncOverlaySorting();
             UpdateBlink();
 
             if (!CanIdle())
@@ -260,6 +261,30 @@ namespace CatsAndKills.Visual
             }
 
             return true;
+        }
+
+        private void SyncOverlaySorting()
+        {
+            if (bodyRenderer == null)
+                return;
+
+            int baseOrder =
+                bodyRenderer.sortingOrder;
+
+            if (_blinkRenderer != null)
+                _blinkRenderer.sortingOrder = baseOrder + 8;
+
+            if (_cigaretteRenderer != null)
+                _cigaretteRenderer.sortingOrder = baseOrder + 9;
+
+            if (_cigaretteTipRenderer != null)
+                _cigaretteTipRenderer.sortingOrder = baseOrder + 10;
+
+            if (_smokeRenderer != null)
+                _smokeRenderer.sortingOrder = baseOrder + 7;
+
+            if (_grenadeRenderer != null)
+                _grenadeRenderer.sortingOrder = baseOrder + 10;
         }
 
         private void UpdateBlink()
@@ -375,20 +400,20 @@ namespace CatsAndKills.Visual
 
         private void BeginRandomAction()
         {
-            int min =
-                playerWeaponVisual != null
-                    ? 1
-                    : 1;
-
-            int max =
-                playerWeaponVisual != null
-                    ? 5
-                    : 3;
-
-            _action =
-                (IdleAction)Random.Range(
-                    min,
-                    max);
+            if (playerWeaponVisual != null)
+            {
+                _action =
+                    (IdleAction)Random.Range(
+                        (int)IdleAction.Cigarette,
+                        (int)IdleAction.GrenadePlay + 1);
+            }
+            else
+            {
+                _action =
+                    Random.value < 0.58f
+                        ? IdleAction.Cigarette
+                        : IdleAction.GrenadePlay;
+            }
 
             _actionUntil =
                 Time.time +
