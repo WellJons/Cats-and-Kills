@@ -106,65 +106,199 @@ namespace CatsAndKills.EditorTools
             CreateFloor();
             CreateGeometry();
 
-            CreatePickup("Ammo Cache", new Vector2(-6f, 7f), PickupType.Ammo, 45, new Color(0.25f, 0.65f, 0.95f));
-            CreatePickup("Field Medkit", new Vector2(7f, -7f), PickupType.Medkit, 38, new Color(0.25f, 0.9f, 0.45f));
-            CreatePickup("Grenade Box", new Vector2(15f, 7f), PickupType.Grenades, 2, new Color(0.95f, 0.65f, 0.15f));
+            CreatePickup(
+                "West Gate Ammo Cache",
+                new Vector2(-36f, -20f),
+                PickupType.Ammo,
+                55,
+                new Color(0.25f, 0.65f, 0.95f));
+
+            CreatePickup(
+                "Warehouse Field Medkit",
+                new Vector2(-24f, 10f),
+                PickupType.Medkit,
+                42,
+                new Color(0.25f, 0.9f, 0.45f));
+
+            CreatePickup(
+                "Central Grenade Crate",
+                new Vector2(1f, -2f),
+                PickupType.Grenades,
+                2,
+                new Color(0.95f, 0.65f, 0.15f));
+
+            CreatePickup(
+                "Admin Ammo Cache",
+                new Vector2(27f, 10f),
+                PickupType.Ammo,
+                50,
+                new Color(0.25f, 0.65f, 0.95f));
+
+            CreatePickup(
+                "Barracks Medkit",
+                new Vector2(25f, -18f),
+                PickupType.Medkit,
+                36,
+                new Color(0.25f, 0.9f, 0.45f));
+
+            CreateCheckpoint(
+                "PLAZA",
+                new Vector2(-7f, -8f),
+                new Vector2(-8f, -9f));
 
             CreateCheckpoint(
                 "WAREHOUSE",
-                new Vector2(-6.0f, -7.5f),
-                new Vector2(-6.0f, -7.0f));
+                new Vector2(-18f, 1f),
+                new Vector2(-19f, 0f));
 
             CreateCheckpoint(
                 "ADMIN",
-                new Vector2(9.0f, -5.5f),
-                new Vector2(9.0f, -5.0f));
+                new Vector2(15f, 2f),
+                new Vector2(14f, 1f));
 
-            var navGo = new GameObject("Navigation Grid");
-            var nav = navGo.AddComponent<NavigationGrid2D>();
-            nav.Configure(new Vector2(46f, 28f), 0.65f, 0.27f, 1 << _obstacleLayer);
+            var navGo =
+                new GameObject("Navigation Grid");
 
-            var coverManagerGo = new GameObject("Cover Manager");
-            var coverManager = coverManagerGo.AddComponent<CoverManager>();
-            coverManager.Configure(1 << _obstacleLayer);
+            var nav =
+                navGo.AddComponent<NavigationGrid2D>();
+
+            nav.Configure(
+                new Vector2(96f, 64f),
+                0.85f,
+                0.29f,
+                1 << _obstacleLayer);
+
+            var coverManagerGo =
+                new GameObject("Cover Manager");
+
+            var coverManager =
+                coverManagerGo.AddComponent<CoverManager>();
+
+            coverManager.Configure(
+                1 << _obstacleLayer);
+
             CreateCoverPoints();
 
-            var player = CreatePlayer(new Vector2(-19f, -9f), camera, cameraFollow);
+            var player =
+                CreatePlayer(
+                    new Vector2(-43f, -24f),
+                    camera,
+                    cameraFollow);
 
-            var squadA = new GameObject("Squad A // Gate").AddComponent<SquadController>();
-            var squadB = new GameObject("Squad B // Warehouse").AddComponent<SquadController>();
-            var squadC = new GameObject("Squad C // Admin").AddComponent<SquadController>();
+            var squadGate =
+                new GameObject(
+                    "Squad A // West Gate")
+                    .AddComponent<SquadController>();
 
-            CreateEnemy("Pistolier 01", new Vector2(-13f, -7f), player.transform, nav, coverManager, squadA, EnemyArchetype.Pistolier);
-            CreateEnemy("Rifleman 01", new Vector2(-10f, -4f), player.transform, nav, coverManager, squadA, EnemyArchetype.Rifleman);
-            CreateEnemy("Rifleman 02", new Vector2(-14f, -1f), player.transform, nav, coverManager, squadA, EnemyArchetype.Rifleman);
+            var squadPlaza =
+                new GameObject(
+                    "Squad B // Central Plaza")
+                    .AddComponent<SquadController>();
 
-            CreateEnemy("Rifleman 03", new Vector2(-3f, -5f), player.transform, nav, coverManager, squadB, EnemyArchetype.Rifleman);
-            CreateEnemy("Rifleman 04", new Vector2(0f, 1f), player.transform, nav, coverManager, squadB, EnemyArchetype.Rifleman);
-            CreateEnemy("Machine Gunner", new Vector2(3f, -2f), player.transform, nav, coverManager, squadB, EnemyArchetype.MachineGunner);
-            CreateEnemy("Demolitionist", new Vector2(1f, 6f), player.transform, nav, coverManager, squadB, EnemyArchetype.Demolitionist);
+            var squadWarehouse =
+                new GameObject(
+                    "Squad C // Warehouse")
+                    .AddComponent<SquadController>();
 
-            CreateEnemy("Rifleman 05", new Vector2(10f, -6f), player.transform, nav, coverManager, squadC, EnemyArchetype.Rifleman);
-            CreateEnemy("Rifleman 06", new Vector2(12f, 0f), player.transform, nav, coverManager, squadC, EnemyArchetype.Rifleman);
-            CreateEnemy("Pistolier 02", new Vector2(16f, 4f), player.transform, nav, coverManager, squadC, EnemyArchetype.Pistolier);
-            CreateEnemy("Demolitionist 02", new Vector2(18f, 7f), player.transform, nav, coverManager, squadC, EnemyArchetype.Demolitionist);
+            var squadNorth =
+                new GameObject(
+                    "Squad D // North Alley")
+                    .AddComponent<SquadController>();
 
-            var responseSquad = new GameObject("Squad D // Response").AddComponent<SquadController>();
-            var reinforcementUnits = new[]
-            {
-                CreateEnemy("Reinforcement Rifle 01", new Vector2(18f, -10f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Rifleman),
-                CreateEnemy("Reinforcement Rifle 02", new Vector2(20f, -8f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Rifleman),
-                CreateEnemy("Reinforcement MG", new Vector2(20f, -11f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.MachineGunner),
-                CreateEnemy("Reinforcement Demo", new Vector2(16f, -11f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Demolitionist)
-            };
+            var squadAdmin =
+                new GameObject(
+                    "Squad E // Administration")
+                    .AddComponent<SquadController>();
 
-            var reinforcementDirector = new GameObject("Reinforcement Director")
-                .AddComponent<ReinforcementDirector>();
-            reinforcementDirector.Configure(reinforcementUnits);
+            var squadBarracks =
+                new GameObject(
+                    "Squad F // Barracks")
+                    .AddComponent<SquadController>();
+
+            var squadWorkshop =
+                new GameObject(
+                    "Squad G // Workshop")
+                    .AddComponent<SquadController>();
+
+            // West approach: first contact is spread across road and side lane.
+            CreateEnemy("Gate Pistolier 01", new Vector2(-36f, -23f), player.transform, nav, coverManager, squadGate, EnemyArchetype.Pistolier);
+            CreateEnemy("Gate Rifleman 01", new Vector2(-33f, -19f), player.transform, nav, coverManager, squadGate, EnemyArchetype.Rifleman);
+            CreateEnemy("Gate Rifleman 02", new Vector2(-30f, -25f), player.transform, nav, coverManager, squadGate, EnemyArchetype.Rifleman);
+            CreateEnemy("Gate Rifleman 03", new Vector2(-27f, -20f), player.transform, nav, coverManager, squadGate, EnemyArchetype.Rifleman);
+
+            // Central square: open combat with crossfire and a suppressor.
+            CreateEnemy("Plaza Rifleman 01", new Vector2(-8f, -4f), player.transform, nav, coverManager, squadPlaza, EnemyArchetype.Rifleman);
+            CreateEnemy("Plaza Rifleman 02", new Vector2(-3f, 2f), player.transform, nav, coverManager, squadPlaza, EnemyArchetype.Rifleman);
+            CreateEnemy("Plaza Rifleman 03", new Vector2(5f, -5f), player.transform, nav, coverManager, squadPlaza, EnemyArchetype.Rifleman);
+            CreateEnemy("Plaza Machine Gunner", new Vector2(7f, 3f), player.transform, nav, coverManager, squadPlaza, EnemyArchetype.MachineGunner);
+            CreateEnemy("Plaza Demolitionist", new Vector2(1f, 6f), player.transform, nav, coverManager, squadPlaza, EnemyArchetype.Demolitionist);
+
+            // Warehouse interior and loading apron.
+            CreateEnemy("Warehouse Rifleman 01", new Vector2(-27f, 7f), player.transform, nav, coverManager, squadWarehouse, EnemyArchetype.Rifleman);
+            CreateEnemy("Warehouse Rifleman 02", new Vector2(-21f, 13f), player.transform, nav, coverManager, squadWarehouse, EnemyArchetype.Rifleman);
+            CreateEnemy("Warehouse Pistolier", new Vector2(-16f, 7f), player.transform, nav, coverManager, squadWarehouse, EnemyArchetype.Pistolier);
+            CreateEnemy("Warehouse Machine Gunner", new Vector2(-28f, 17f), player.transform, nav, coverManager, squadWarehouse, EnemyArchetype.MachineGunner);
+            CreateEnemy("Warehouse Demolitionist", new Vector2(-14f, 15f), player.transform, nav, coverManager, squadWarehouse, EnemyArchetype.Demolitionist);
+
+            // North alley can flank both warehouse and administration.
+            CreateEnemy("North Rifleman 01", new Vector2(-8f, 22f), player.transform, nav, coverManager, squadNorth, EnemyArchetype.Rifleman);
+            CreateEnemy("North Rifleman 02", new Vector2(1f, 24f), player.transform, nav, coverManager, squadNorth, EnemyArchetype.Rifleman);
+            CreateEnemy("North Pistolier", new Vector2(9f, 21f), player.transform, nav, coverManager, squadNorth, EnemyArchetype.Pistolier);
+            CreateEnemy("North Rifleman 03", new Vector2(15f, 25f), player.transform, nav, coverManager, squadNorth, EnemyArchetype.Rifleman);
+
+            // Administration: denser defensive group.
+            CreateEnemy("Admin Rifleman 01", new Vector2(19f, 6f), player.transform, nav, coverManager, squadAdmin, EnemyArchetype.Rifleman);
+            CreateEnemy("Admin Rifleman 02", new Vector2(25f, 13f), player.transform, nav, coverManager, squadAdmin, EnemyArchetype.Rifleman);
+            CreateEnemy("Admin Rifleman 03", new Vector2(31f, 6f), player.transform, nav, coverManager, squadAdmin, EnemyArchetype.Rifleman);
+            CreateEnemy("Admin Machine Gunner", new Vector2(30f, 17f), player.transform, nav, coverManager, squadAdmin, EnemyArchetype.MachineGunner);
+            CreateEnemy("Admin Demolitionist", new Vector2(20f, 17f), player.transform, nav, coverManager, squadAdmin, EnemyArchetype.Demolitionist);
+
+            // Southern barracks.
+            CreateEnemy("Barracks Rifleman 01", new Vector2(19f, -20f), player.transform, nav, coverManager, squadBarracks, EnemyArchetype.Rifleman);
+            CreateEnemy("Barracks Rifleman 02", new Vector2(27f, -15f), player.transform, nav, coverManager, squadBarracks, EnemyArchetype.Rifleman);
+            CreateEnemy("Barracks Pistolier", new Vector2(31f, -22f), player.transform, nav, coverManager, squadBarracks, EnemyArchetype.Pistolier);
+            CreateEnemy("Barracks Demolitionist", new Vector2(21f, -12f), player.transform, nav, coverManager, squadBarracks, EnemyArchetype.Demolitionist);
+
+            // South-west workshop / service yard.
+            CreateEnemy("Workshop Rifleman 01", new Vector2(-26f, -14f), player.transform, nav, coverManager, squadWorkshop, EnemyArchetype.Rifleman);
+            CreateEnemy("Workshop Rifleman 02", new Vector2(-20f, -18f), player.transform, nav, coverManager, squadWorkshop, EnemyArchetype.Rifleman);
+            CreateEnemy("Workshop Pistolier", new Vector2(-15f, -13f), player.transform, nav, coverManager, squadWorkshop, EnemyArchetype.Pistolier);
+            CreateEnemy("Workshop Machine Gunner", new Vector2(-18f, -24f), player.transform, nav, coverManager, squadWorkshop, EnemyArchetype.MachineGunner);
+
+            var responseSquad =
+                new GameObject(
+                    "Squad H // Response")
+                    .AddComponent<SquadController>();
+
+            var reinforcementUnits =
+                new[]
+                {
+                    CreateEnemy("Response Rifle 01", new Vector2(42f, -27f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Rifleman),
+                    CreateEnemy("Response Rifle 02", new Vector2(44f, -23f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Rifleman),
+                    CreateEnemy("Response Rifle 03", new Vector2(40f, -19f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Rifleman),
+                    CreateEnemy("Response Pistolier", new Vector2(43f, -15f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Pistolier),
+                    CreateEnemy("Response MG", new Vector2(45f, -26f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.MachineGunner),
+                    CreateEnemy("Response Demo", new Vector2(39f, -28f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Demolitionist)
+                };
+
+            var reinforcementDirector =
+                new GameObject(
+                    "Reinforcement Director")
+                    .AddComponent<ReinforcementDirector>();
+
+            reinforcementDirector.Configure(
+                reinforcementUnits);
 
             coverManager.Refresh();
             nav.Build();
-            cameraFollow.Configure(player.transform, player.GetComponent<PlayerAim2D>());
+            cameraFollow.Configure(
+                player.transform,
+                player.GetComponent<PlayerAim2D>());
+
+            cameraFollow.ConfigureBounds(
+                new Vector2(-48f, -32f),
+                new Vector2(48f, 32f),
+                camera);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
