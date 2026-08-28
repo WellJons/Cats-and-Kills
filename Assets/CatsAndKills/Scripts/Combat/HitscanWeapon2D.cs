@@ -34,6 +34,7 @@ namespace CatsAndKills.Combat
         public int Reserve { get; private set; }
         public WeaponDefinition Definition => definition;
         public bool IsReloading => _reloading;
+        public event System.Action Fired;
 
         public void Configure(
             WeaponDefinition newDefinition,
@@ -137,6 +138,7 @@ namespace CatsAndKills.Combat
                 cadenceScale;
 
             Magazine--;
+            Fired?.Invoke();
             CombatStats.Instance?.RecordShot(
                 Mathf.Max(1, definition.pellets));
 
