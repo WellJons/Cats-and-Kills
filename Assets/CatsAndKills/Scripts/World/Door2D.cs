@@ -1,5 +1,6 @@
 using System.Collections;
 using CatsAndKills.AI;
+using CatsAndKills.Combat;
 using UnityEngine;
 
 namespace CatsAndKills.World
@@ -31,6 +32,7 @@ namespace CatsAndKills.World
         {
             if (locked) return;
             _open = !_open;
+            NoiseSystem.Report(transform.position, 4.5f, gameObject);
             StartCoroutine(Animate());
         }
 
