@@ -11,7 +11,7 @@ namespace CatsAndKills.Combat
         [SerializeField] private SpriteRenderer weaponRenderer;
         [SerializeField] private HitscanWeapon2D weapon;
         [SerializeField] private bool anchorToCharacter = true;
-        [SerializeField] private float visualLengthMultiplier = 1.65f;
+        [SerializeField] private float visualLengthMultiplier = 1.05f;
 
         private Vector3 _basePos;
         private Quaternion _baseRot;
@@ -181,8 +181,8 @@ namespace CatsAndKills.Combat
                     anchorDistance *
                     visualLengthMultiplier *
                     GetWeaponLengthMultiplier(),
-                    0.48f,
-                    1.65f);
+                    0.30f,
+                    1.05f);
 
             float spriteWidth =
                 Mathf.Max(
@@ -201,7 +201,7 @@ namespace CatsAndKills.Combat
             Vector2 center =
                 muzzlePoint -
                 direction *
-                (targetLength * 0.48f);
+                (targetLength * 0.50f);
 
             center -=
                 direction *
