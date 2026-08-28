@@ -30,6 +30,14 @@ namespace CatsAndKills.EditorTools
                 return;
             }
 
+            if (!ValidateCharacterArt(pack))
+            {
+                Debug.LogError(
+                    "Character art integration is incomplete. " +
+                    "Playable scene build was stopped instead of saving a broken scene.");
+                return;
+            }
+
             ThreeQuarterPlayableBuilder.BuildWithPack(
                 pack,
                 "generated concept");
@@ -62,6 +70,54 @@ namespace CatsAndKills.EditorTools
                 "Cats and Kills concept-art version built. " +
                 "This scene now uses the generated character, environment, " +
                 "weapon and atmosphere assets.");
+        }
+
+        private static bool ValidateCharacterArt(
+            ProductionArtPack pack)
+        {
+            return
+                ValidateSet("player", pack.player) &&
+                ValidateSet("pistolier", pack.pistolier) &&
+                ValidateSet("rifleman", pack.rifleman) &&
+                ValidateSet("machine gunner", pack.machineGunner) &&
+                ValidateSet("demolitionist", pack.demolitionist);
+        }
+
+        private static bool ValidateSet(
+            string label,
+            DirectionalSpriteSet set)
+        {
+            if (set == null)
+            {
+                Debug.LogError(
+                    "Missing DirectionalSpriteSet: " + label);
+                return false;
+            }
+
+            CharacterDirection8[] directions =
+            {
+                CharacterDirection8.East,
+                CharacterDirection8.North,
+                CharacterDirection8.West,
+                CharacterDirection8.South
+            };
+
+            foreach (CharacterDirection8 direction in directions)
+            {
+                if (set.GetIdle(direction) == null ||
+                    set.GetMove(direction) == null ||
+                    set.GetFire(direction) == null)
+                {
+                    Debug.LogError(
+                        "Incomplete character sprite set: " +
+                        label +
+                        " / " +
+                        direction);
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void ImproveCamera()
