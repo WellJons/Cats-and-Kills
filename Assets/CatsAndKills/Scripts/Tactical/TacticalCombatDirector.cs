@@ -193,13 +193,6 @@ namespace CatsAndKills.Tactical
             PlayerAP -= amount;
             ActionPointsChanged?.Invoke();
 
-            if (PlayerAP <= 0 &&
-                !_processingEnemyTurn)
-            {
-                StartCoroutine(
-                    EndPlayerTurnDeferred());
-            }
-
             return true;
         }
 
@@ -249,17 +242,6 @@ namespace CatsAndKills.Tactical
 
             StartCoroutine(
                 RunEnemyTurn());
-        }
-
-        private IEnumerator EndPlayerTurnDeferred()
-        {
-            yield return null;
-
-            if (IsPlayerTurn &&
-                PlayerAP <= 0)
-            {
-                EndPlayerTurn();
-            }
         }
 
         private IEnumerator RunEnemyTurn()
