@@ -58,6 +58,7 @@ namespace CatsAndKills.EditorTools
 
             RemoveLegacyPresentationObjects();
             DisableLegacyWallVisuals();
+            DisableLegacyInternalWallColliders();
 
             Material lit =
                 GetOrCreateLitMaterial();
@@ -163,11 +164,12 @@ namespace CatsAndKills.EditorTools
                         ? sr.transform.parent.name
                         : string.Empty;
 
-                // Keep the actual wall faces enabled. They belong to the
-                // gameplay collider geometry and are the visual fallback if a
-                // concept replacement is missing, cropped incorrectly or fails
-                // to render. Only obsolete decorative layers are hidden.
-                if (n == "Wall Shadow" ||
+                // The legacy wall renderers are tiled prototype geometry.
+                // The concept wall sprite is a full illustration, so keeping
+                // these renderers visible causes the repeated giant strips.
+                if (n == "Wall Top" ||
+                    n == "Wall Side" ||
+                    n == "Wall Shadow" ||
                     n == "Prop Shadow" ||
                     n == "Floor" ||
                     n.Contains("Floor Zone") ||
@@ -177,6 +179,42 @@ namespace CatsAndKills.EditorTools
                 {
                     sr.enabled = false;
                 }
+            }
+        }
+
+        private static void DisableLegacyInternalWallColliders()
+        {
+            foreach (BoxCollider2D collider in
+                     Object.FindObjectsByType<BoxCollider2D>(
+                         FindObjectsSortMode.None))
+            {
+                if (collider == null)
+                    continue;
+
+                Transform wallRoot =
+                    collider.transform;
+
+                bool prototypeWall =
+                    wallRoot.Find("Wall Top") != null ||
+                    wallRoot.Find("Wall Side") != null;
+
+                if (!prototypeWall)
+                    continue;
+
+                string n =
+                    wallRoot.gameObject.name;
+
+                // Keep the outer world boundary only. Interior prototype walls
+                // do not line up with the concept-art wall pieces and therefore
+                // become invisible blockers after the visual conversion.
+                bool outerBoundary =
+                    n == "North" ||
+                    n == "South" ||
+                    n == "West" ||
+                    n == "East";
+
+                if (!outerBoundary)
+                    collider.enabled = false;
             }
         }
 
@@ -1083,6 +1121,13 @@ namespace CatsAndKills.EditorTools
                 baseOrder,
                 -0.55f);
 
+            AddFootprintCollider(
+                go,
+                sprite,
+                0.84f,
+                0.17f,
+                0.015f);
+
             ThreeQuarterOccluder2D occ =
                 go.AddComponent<
                     ThreeQuarterOccluder2D>();
@@ -1130,6 +1175,95 @@ namespace CatsAndKills.EditorTools
                 new[] { sr },
                 3380,
                 -0.20f);
+
+            if (IsSolidProp(name))
+            {
+                AddFootprintCollider(
+                    go,
+                    sprite,
+                    0.72f,
+                    0.22f,
+                    0.02f);
+            }
+        }
+
+        private static bool IsSolidProp(
+            string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+
+            return
+                name.Contains("Cover") ||
+                name.Contains("Crate") ||
+                name.Contains("Barrel") ||
+                name.Contains("Fuel Drum") ||
+                name.Contains("Barricade") ||
+                name.Contains("Terminal") ||
+                name.Contains("Fence") ||
+                name.Contains("Pipe") ||
+                name.Contains("Ammo Box") ||
+                name.Contains("Medkit Box");
+        }
+
+        private static void AddFootprintCollider(
+            GameObject go,
+            Sprite sprite,
+            float widthFraction,
+            float heightFraction,
+            float verticalInsetFraction)
+        {
+            if (go == null ||
+                sprite == null)
+            {
+                return;
+            }
+
+            int obstacleLayer =
+                LayerMask.NameToLayer(
+                    "Obstacles");
+
+            if (obstacleLayer >= 0)
+                go.layer = obstacleLayer;
+
+            Bounds bounds =
+                sprite.bounds;
+
+            float width =
+                Mathf.Max(
+                    0.28f,
+                    bounds.size.x *
+                    Mathf.Clamp01(
+                        widthFraction));
+
+            float height =
+                Mathf.Clamp(
+                    bounds.size.y *
+                    Mathf.Clamp01(
+                        heightFraction),
+                    0.22f,
+                    0.90f);
+
+            float inset =
+                bounds.size.y *
+                Mathf.Max(
+                    0f,
+                    verticalInsetFraction);
+
+            BoxCollider2D collider =
+                go.AddComponent<BoxCollider2D>();
+
+            collider.size =
+                new Vector2(
+                    width,
+                    height);
+
+            collider.offset =
+                new Vector2(
+                    bounds.center.x,
+                    bounds.min.y +
+                    inset +
+                    height * 0.5f);
         }
 
         private static void ApplyMaterialToConceptSprites(
