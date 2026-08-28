@@ -16,6 +16,21 @@ namespace CatsAndKills.AI
         public Vector2 LastKnownPlayerPosition { get; private set; }
         public float LastReportTime { get; private set; }
 
+        private void OnEnable()
+        {
+            FacilityAlarmDirector.Instance?.Register(this);
+        }
+
+        private void Start()
+        {
+            FacilityAlarmDirector.Instance?.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            FacilityAlarmDirector.Instance?.Unregister(this);
+        }
+
         public void Register(EnemyBrain brain)
         {
             if (brain != null && !_members.Contains(brain))
@@ -83,6 +98,7 @@ namespace CatsAndKills.AI
             LastReportTime = Time.time;
 
             CombatDirector.Instance?.ReportCombat();
+            FacilityAlarmDirector.Instance?.ReportContact(this, position);
 
             foreach (var member in _members)
             {
@@ -112,6 +128,23 @@ namespace CatsAndKills.AI
             {
                 if (member != null)
                     member.ReceiveNoiseContact(position);
+            }
+        }
+
+        public void ReceiveFacilityAlert(Vector2 approximatePosition)
+        {
+            if (HasContact) return;
+
+            LastKnownPlayerPosition = approximatePosition;
+            LastReportTime = Time.time;
+
+            Vector2 uncertainty = Random.insideUnitCircle * 2.2f;
+
+            foreach (var member in _members)
+            {
+                if (member != null)
+                    member.ReceiveNoiseContact(
+                        approximatePosition + uncertainty);
             }
         }
 
