@@ -16,6 +16,7 @@ namespace CatsAndKills.Visual
         [SerializeField] private Sprite[] hurt = new Sprite[8];
         [SerializeField] private Sprite[] crawl = new Sprite[8];
         [SerializeField] private Sprite[] dead = new Sprite[8];
+        [SerializeField] private bool mirrorNorthEastFromNorthWest;
 
         public void Configure(
             Sprite[] idleSet,
@@ -26,6 +27,7 @@ namespace CatsAndKills.Visual
             Sprite[] crawlSet,
             Sprite[] deadSet)
         {
+            mirrorNorthEastFromNorthWest = false;
             idle = Normalize(idleSet);
             move = Normalize(moveSet);
             fire = Normalize(fireSet);
@@ -43,8 +45,10 @@ namespace CatsAndKills.Visual
             Sprite[] reloadSet,
             Sprite[] hurtSet,
             Sprite[] crawlSet,
-            Sprite[] deadSet)
+            Sprite[] deadSet,
+            bool mirrorNorthEast = false)
         {
+            mirrorNorthEastFromNorthWest = mirrorNorthEast;
             idle = Normalize(idleSet);
             move = Normalize(moveSet);
             moveAlt = Normalize(moveAltSet);
@@ -78,6 +82,10 @@ namespace CatsAndKills.Visual
 
         public Sprite GetDead(CharacterDirection8 direction) =>
             Get(dead, direction, GetIdle(direction));
+
+        public bool ShouldFlipX(CharacterDirection8 direction) =>
+            mirrorNorthEastFromNorthWest &&
+            direction == CharacterDirection8.NorthEast;
 
         private static Sprite[] Normalize(Sprite[] source)
         {
