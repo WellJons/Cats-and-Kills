@@ -30,7 +30,7 @@ namespace CatsAndKills.Visual
         [SerializeField] private float walkSway = 0.009f;
         [SerializeField] private float recoilKick = 0.060f;
         [SerializeField] private float hurtKick = 0.045f;
-        [SerializeField] private float frameBlendTime = 0.065f;
+        [SerializeField] private float frameBlendTime = 0.028f;
 
         private SpriteRenderer _transitionRenderer;
         private float _transitionUntil;
@@ -395,7 +395,7 @@ namespace CatsAndKills.Visual
             Color c =
                 _transitionRenderer.color;
 
-            c.a = alpha * 0.55f;
+            c.a = alpha * 0.22f;
             _transitionRenderer.color = c;
         }
 
