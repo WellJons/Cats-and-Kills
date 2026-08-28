@@ -123,6 +123,14 @@ namespace CatsAndKills.Core
             (Keyboard.current != null &&
              Keyboard.current.fKey.wasPressedThisFrame);
 
+        public static bool MolotovPressed =>
+            Keyboard.current != null &&
+            Keyboard.current.mKey.wasPressedThisFrame;
+
+        public static bool SmokePressed =>
+            Keyboard.current != null &&
+            Keyboard.current.xKey.wasPressedThisFrame;
+
         public static bool EndTurnPressed =>
             (Keyboard.current != null &&
              (Keyboard.current.enterKey.wasPressedThisFrame ||
