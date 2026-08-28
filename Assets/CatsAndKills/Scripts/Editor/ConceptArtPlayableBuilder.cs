@@ -42,7 +42,9 @@ namespace CatsAndKills.EditorTools
                 pack,
                 "generated concept");
 
+            ApplyConceptWeaponSprites(pack);
             ConceptVisualPolishBuilder.Apply(pack);
+            RebuildConceptNavigation();
 
             // Use one character presentation pipeline only.
             // BuildWithPack already installs the stable DirectionalSpriteSet
@@ -140,6 +142,89 @@ namespace CatsAndKills.EditorTools
             }
 
             CreateWorldBackdrop();
+        }
+
+        private static void ApplyConceptWeaponSprites(
+            ProductionArtPack pack)
+        {
+            if (pack == null)
+                return;
+
+            SetWeaponSprite(
+                "Assets/CatsAndKills/Data/CK74.asset",
+                pack.rifle);
+
+            SetWeaponSprite(
+                "Assets/CatsAndKills/Data/Service_Pistol.asset",
+                pack.pistol);
+
+            SetWeaponSprite(
+                "Assets/CatsAndKills/Data/KS-12.asset",
+                pack.shotgun);
+
+            PlayerMotor2D player =
+                Object.FindAnyObjectByType<PlayerMotor2D>();
+
+            HitscanWeapon2D weapon =
+                player != null
+                    ? player.GetComponentInChildren<HitscanWeapon2D>(true)
+                    : null;
+
+            if (weapon != null &&
+                weapon.Definition != null)
+            {
+                weapon.SetDefinition(
+                    weapon.Definition,
+                    false);
+
+                EditorUtility.SetDirty(
+                    weapon);
+            }
+        }
+
+        private static void SetWeaponSprite(
+            string assetPath,
+            Sprite sprite)
+        {
+            if (sprite == null)
+                return;
+
+            WeaponDefinition definition =
+                AssetDatabase.LoadAssetAtPath<WeaponDefinition>(
+                    assetPath);
+
+            if (definition == null)
+                return;
+
+            definition.weaponSprite =
+                sprite;
+
+            EditorUtility.SetDirty(
+                definition);
+        }
+
+        private static void RebuildConceptNavigation()
+        {
+            // Prototype navigation is generated before concept walls and props
+            // exist. Rebuild it now so enemies use the same collision layout
+            // the player actually sees.
+            Physics2D.SyncTransforms();
+
+            foreach (NavigationGrid2D nav in
+                     Object.FindObjectsByType<NavigationGrid2D>(
+                         FindObjectsSortMode.None))
+            {
+                if (nav != null)
+                    nav.Build();
+            }
+
+            foreach (CoverManager cover in
+                     Object.FindObjectsByType<CoverManager>(
+                         FindObjectsSortMode.None))
+            {
+                if (cover != null)
+                    cover.Refresh();
+            }
         }
 
         private static void ConfigureConceptDoors()
