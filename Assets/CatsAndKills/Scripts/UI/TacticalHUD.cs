@@ -13,6 +13,8 @@ namespace CatsAndKills.UI
 
         private GUIStyle _phase;
         private GUIStyle _hint;
+        private GUIStyle _action;
+        private GUIStyle _actionCost;
 
         private void Awake()
         {
@@ -64,6 +66,35 @@ namespace CatsAndKills.UI
                     0.82f,
                     0.86f,
                     0.94f,
+                    1f);
+
+            _action =
+                new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 13,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+
+            _action.normal.textColor =
+                new Color(
+                    0.94f,
+                    0.95f,
+                    0.99f,
+                    1f);
+
+            _actionCost =
+                new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 11,
+                    alignment = TextAnchor.MiddleCenter
+                };
+
+            _actionCost.normal.textColor =
+                new Color(
+                    0.96f,
+                    0.72f,
+                    0.22f,
                     1f);
         }
 
@@ -303,7 +334,163 @@ namespace CatsAndKills.UI
                 }
             }
 
+            if (tactical.IsPlayerTurn)
+            {
+                DrawActionBar(
+                    width,
+                    Screen.height / scale);
+            }
+
             GUI.matrix = old;
+        }
+
+        private void DrawActionBar(
+            float width,
+            float height)
+        {
+            string[] labels =
+            {
+                "MOVE",
+                "FIRE",
+                "OVERWATCH",
+                "GRENADE",
+                "MOLOTOV",
+                "SMOKE",
+                "RELOAD",
+                "END TURN"
+            };
+
+            string[] costs =
+            {
+                "1 AP / CELL",
+                "3 AP",
+                "3 AP",
+                "4 AP",
+                "4 AP",
+                "3 AP",
+                "2 AP",
+                "ENTER"
+            };
+
+            string[] keys =
+            {
+                "ЛКМ / WASD",
+                "ПКМ / F",
+                "O",
+                "G",
+                "M",
+                "X",
+                "R",
+                "ENTER"
+            };
+
+            float itemWidth = 112f;
+            float gap = 6f;
+
+            float total =
+                labels.Length *
+                itemWidth +
+                (labels.Length - 1) *
+                gap;
+
+            float startX =
+                (width - total) *
+                0.5f;
+
+            float y =
+                height -
+                92f;
+
+            for (int i = 0;
+                 i < labels.Length;
+                 i++)
+            {
+                Rect box =
+                    new Rect(
+                        startX +
+                        i *
+                        (itemWidth + gap),
+                        y,
+                        itemWidth,
+                        58f);
+
+                Color oldColor =
+                    GUI.color;
+
+                bool affordable =
+                    i == 0 ||
+                    i == 7 ||
+                    tactical.PlayerAP >=
+                    ActionCost(i);
+
+                GUI.color =
+                    affordable
+                        ? new Color(
+                            0.10f,
+                            0.12f,
+                            0.18f,
+                            0.94f)
+                        : new Color(
+                            0.07f,
+                            0.07f,
+                            0.09f,
+                            0.82f);
+
+                GUI.Box(
+                    box,
+                    GUIContent.none);
+
+                GUI.color = oldColor;
+
+                GUI.Label(
+                    new Rect(
+                        box.x + 4f,
+                        box.y + 5f,
+                        box.width - 8f,
+                        18f),
+                    labels[i],
+                    _action);
+
+                GUI.Label(
+                    new Rect(
+                        box.x + 4f,
+                        box.y + 23f,
+                        box.width - 8f,
+                        15f),
+                    costs[i],
+                    _actionCost);
+
+                GUI.Label(
+                    new Rect(
+                        box.x + 4f,
+                        box.y + 38f,
+                        box.width - 8f,
+                        14f),
+                    keys[i],
+                    _hint);
+            }
+        }
+
+        private static int ActionCost(
+            int actionIndex)
+        {
+            switch (actionIndex)
+            {
+                case 1:
+                    return 3;
+                case 2:
+                    return 3;
+                case 3:
+                    return 4;
+                case 4:
+                    return 4;
+                case 5:
+                    return 3;
+                case 6:
+                    return 2;
+                default:
+                    return 0;
+            }
         }
     }
 }
