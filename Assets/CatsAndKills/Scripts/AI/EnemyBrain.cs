@@ -1,0 +1,476 @@
+using CatsAndKills.Core;
+using CatsAndKills.Damage;
+using CatsAndKills.UI;
+using UnityEngine;
+
+namespace CatsAndKills.AI
+{
+    public sealed class EnemyBrain : MonoBehaviour
+    {
+        private enum State
+        {
+            Idle,
+            Investigate,
+            MoveToCover,
+            HoldCover,
+            Flank,
+            Advance,
+            Engage,
+            Retreat
+        }
+
+        [Header("References")]
+        [SerializeField] private Transform player;
+        [SerializeField] private EnemyMotor2D motor;
+        [SerializeField] private EnemyPerception2D perception;
+        [SerializeField] private EnemyWeapon2D weapon;
+        [SerializeField] private EnemyGrenadeThrower grenades;
+        [SerializeField] private SquadController squad;
+        [SerializeField] private CoverManager coverManager;
+        [SerializeField] private CharacterVitals vitals;
+
+        [Header("Identity")]
+        [SerializeField] private EnemyArchetype archetype = EnemyArchetype.Rifleman;
+        [SerializeField] private SquadRole role = SquadRole.Assault;
+
+        [Header("Decision")]
+        [SerializeField] private float decisionInterval = 0.48f;
+        [SerializeField] private float preferredRange = 6.5f;
+        [SerializeField] private float flankDistance = 5f;
+        [SerializeField] private float suppressionHold = 1.8f;
+        [SerializeField] private float firingRange = 13f;
+
+        [Header("Personality")]
+        [Range(0f, 1f)] [SerializeField] private float aggression = 0.55f;
+        [Range(0f, 1f)] [SerializeField] private float teamwork = 0.75f;
+        [Range(0f, 1f)] [SerializeField] private float courage = 0.65f;
+
+        private State _state;
+        private float _nextDecision;
+        private Vector2 _knownPlayerPos;
+        private bool _hasKnowledge;
+        private bool _hadVisual;
+        private CoverPoint _cover;
+        private float _stateUntil;
+        private float _lastCommand;
+
+        public EnemyArchetype Archetype => archetype;
+        public SquadRole Role => role;
+
+        public void Configure(
+            Transform newPlayer,
+            EnemyMotor2D newMotor,
+            EnemyPerception2D newPerception,
+            EnemyWeapon2D newWeapon,
+            EnemyGrenadeThrower newGrenades,
+            SquadController newSquad,
+            CoverManager newCoverManager,
+            CharacterVitals newVitals,
+            EnemyArchetype type)
+        {
+            player = newPlayer;
+            motor = newMotor;
+            perception = newPerception;
+            weapon = newWeapon;
+            grenades = newGrenades;
+            squad = newSquad;
+            coverManager = newCoverManager;
+            vitals = newVitals;
+            archetype = type;
+
+            ApplyArchetype();
+        }
+
+        public void AssignRole(SquadRole newRole)
+        {
+            role = newRole;
+        }
+
+        private void ApplyArchetype()
+        {
+            switch (archetype)
+            {
+                case EnemyArchetype.Pistolier:
+                    aggression = Random.Range(0.25f, 0.48f);
+                    courage = Random.Range(0.28f, 0.55f);
+                    teamwork = Random.Range(0.35f, 0.62f);
+                    preferredRange = 5.5f;
+                    firingRange = 10.5f;
+                    break;
+
+                case EnemyArchetype.Rifleman:
+                    aggression = Random.Range(0.48f, 0.72f);
+                    courage = Random.Range(0.56f, 0.78f);
+                    teamwork = Random.Range(0.65f, 0.9f);
+                    preferredRange = 7f;
+                    firingRange = 14f;
+                    break;
+
+                case EnemyArchetype.MachineGunner:
+                    aggression = 0.42f;
+                    courage = 0.88f;
+                    teamwork = 0.9f;
+                    preferredRange = 9f;
+                    firingRange = 16f;
+                    role = SquadRole.Suppress;
+                    break;
+
+                case EnemyArchetype.Demolitionist:
+                    aggression = 0.92f;
+                    courage = 0.94f;
+                    teamwork = 0.35f;
+                    preferredRange = 5f;
+                    firingRange = 11f;
+                    break;
+            }
+        }
+
+        private void Awake()
+        {
+            if (motor == null) motor = GetComponent<EnemyMotor2D>();
+            if (perception == null) perception = GetComponent<EnemyPerception2D>();
+            if (weapon == null) weapon = GetComponent<EnemyWeapon2D>();
+            if (grenades == null) grenades = GetComponent<EnemyGrenadeThrower>();
+            if (vitals == null) vitals = GetComponent<CharacterVitals>();
+        }
+
+        private void OnEnable()
+        {
+            squad?.Register(this);
+            if (vitals != null)
+            {
+                vitals.Died += OnDied;
+                vitals.Damaged += OnDamaged;
+            }
+        }
+
+        private void Start()
+        {
+            squad?.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            weapon?.SetTrigger(false);
+            squad?.Unregister(this);
+            ReleaseCover();
+
+            if (vitals != null)
+            {
+                vitals.Died -= OnDied;
+                vitals.Damaged -= OnDamaged;
+            }
+        }
+
+        private void Update()
+        {
+            if (vitals != null && vitals.IsDead) return;
+
+            bool sees = player != null && perception != null && perception.CanSee(player);
+
+            if (sees)
+            {
+                _knownPlayerPos = player.position;
+                _hasKnowledge = true;
+                squad?.ReportPlayer(this, _knownPlayerPos);
+
+                if (!_hadVisual)
+                    Callout("КОНТАКТ!");
+            }
+            else if (!_hasKnowledge && perception != null && perception.HasRecentNoise)
+            {
+                _knownPlayerPos = perception.HeardPosition;
+                _hasKnowledge = true;
+                squad?.ReportNoise(this, _knownPlayerPos);
+                _state = State.Investigate;
+            }
+
+            _hadVisual = sees;
+            FaceThreat();
+
+            float distance = player != null
+                ? Vector2.Distance(transform.position, player.position)
+                : float.MaxValue;
+
+            bool suppressing = role == SquadRole.Suppress;
+            bool shouldFire =
+                sees &&
+                distance <= firingRange &&
+                (_state == State.Engage ||
+                 _state == State.HoldCover ||
+                 _state == State.MoveToCover ||
+                 _state == State.Advance);
+
+            weapon?.SetTrigger(shouldFire, suppressing);
+
+            if (sees)
+                grenades?.TryThrow(true, aggression);
+
+            if (_state == State.MoveToCover &&
+                motor != null &&
+                motor.ReachedDestination &&
+                _cover != null)
+            {
+                _state = State.HoldCover;
+                _stateUntil = Time.time + suppressionHold;
+            }
+
+            if (_state == State.Flank &&
+                motor != null &&
+                motor.ReachedDestination)
+            {
+                _state = State.Engage;
+            }
+
+            if (Time.time >= _nextDecision)
+            {
+                _nextDecision =
+                    Time.time +
+                    decisionInterval +
+                    Random.Range(-0.08f, 0.12f);
+
+                Decide(sees);
+            }
+        }
+
+        public void ReceiveSquadContact(Vector2 position)
+        {
+            if (teamwork <= 0.1f) return;
+
+            _knownPlayerPos = position;
+            _hasKnowledge = true;
+
+            if (_state == State.Idle)
+            {
+                _state = State.Investigate;
+                motor?.MoveTo(position);
+            }
+        }
+
+        public void ReceiveNoiseContact(Vector2 position)
+        {
+            if (_hasKnowledge) return;
+
+            _knownPlayerPos = position;
+            _hasKnowledge = true;
+            _state = State.Investigate;
+            motor?.MoveTo(position);
+        }
+
+        private void Decide(bool seesPlayer)
+        {
+            if (!_hasKnowledge && squad != null && squad.HasContact)
+            {
+                _knownPlayerPos = squad.LastKnownPlayerPosition;
+                _hasKnowledge = true;
+            }
+
+            if (!_hasKnowledge)
+            {
+                _state = State.Idle;
+                return;
+            }
+
+            float distance = Vector2.Distance(
+                transform.position,
+                _knownPlayerPos);
+
+            if (!seesPlayer)
+            {
+                if (_state == State.HoldCover && Time.time < _stateUntil)
+                    return;
+
+                _state = State.Investigate;
+                motor?.MoveTo(_knownPlayerPos);
+                return;
+            }
+
+            if (archetype == EnemyArchetype.Pistolier &&
+                vitals != null &&
+                vitals.Health < vitals.MaxHealth * 0.38f &&
+                courage < 0.5f)
+            {
+                BeginRetreat();
+                return;
+            }
+
+            switch (role)
+            {
+                case SquadRole.Suppress:
+                    if (_cover == null && _state != State.MoveToCover)
+                        TryTakeCover();
+                    else
+                    {
+                        _state = State.HoldCover;
+                        motor?.Stop();
+                        if (Time.time - _lastCommand > 3f)
+                            Callout("ПРИЖМУ ЕГО! ОБХОДИТЕ!");
+                    }
+                    break;
+
+                case SquadRole.Flank:
+                    if (_state != State.Flank && distance > 3.5f)
+                        BeginFlank(Random.value > 0.5f ? 1f : -1f);
+                    else if (_state != State.Flank)
+                    {
+                        _state = State.Engage;
+                        motor?.Stop();
+                    }
+                    break;
+
+                case SquadRole.Hold:
+                    if (_cover == null && _state != State.MoveToCover)
+                        TryTakeCover();
+                    else
+                    {
+                        _state = State.HoldCover;
+                        motor?.Stop();
+                    }
+                    break;
+
+                default:
+                    if (distance > preferredRange * 1.25f && aggression > 0.5f)
+                    {
+                        _state = State.Advance;
+                        motor?.MoveTo(
+                            _knownPlayerPos -
+                            ((Vector2)_knownPlayerPos - (Vector2)transform.position).normalized *
+                            preferredRange * 0.65f);
+                    }
+                    else if (distance < preferredRange * 0.55f && courage < 0.82f)
+                        TryTakeCover();
+                    else
+                    {
+                        _state = State.Engage;
+                        motor?.Stop();
+                    }
+                    break;
+            }
+        }
+
+        private void TryTakeCover()
+        {
+            if (coverManager == null)
+            {
+                _state = State.Engage;
+                return;
+            }
+
+            CoverPoint candidate = coverManager.FindBestCover(
+                transform.position,
+                _knownPlayerPos,
+                this,
+                archetype == EnemyArchetype.MachineGunner ? 16f : 12f);
+
+            if (candidate == null || !candidate.TryReserve(this))
+            {
+                _state = State.Engage;
+                return;
+            }
+
+            ReleaseCover();
+            _cover = candidate;
+            _state = State.MoveToCover;
+            _stateUntil = Time.time + suppressionHold;
+            motor?.MoveTo(candidate.transform.position);
+
+            Callout(archetype == EnemyArchetype.MachineGunner
+                ? "ЗАНИМАЮ ПОЗИЦИЮ!"
+                : "ПРИКРОЙ!");
+        }
+
+        private void BeginFlank(float side)
+        {
+            Vector2 toThreat =
+                (_knownPlayerPos - (Vector2)transform.position).normalized;
+
+            Vector2 perpendicular =
+                new Vector2(-toThreat.y, toThreat.x) * side;
+
+            float extra =
+                archetype == EnemyArchetype.Pistolier
+                    ? 0.72f
+                    : 1f;
+
+            Vector2 flankPoint =
+                _knownPlayerPos +
+                perpendicular * flankDistance * extra -
+                toThreat * 1.6f;
+
+            ReleaseCover();
+            _state = State.Flank;
+            motor?.MoveTo(flankPoint);
+
+            Callout(side > 0f
+                ? "ОБХОЖУ СЛЕВА!"
+                : "ОБХОЖУ СПРАВА!");
+        }
+
+        private void BeginRetreat()
+        {
+            if (player == null) return;
+
+            Vector2 away =
+                ((Vector2)transform.position - (Vector2)player.position).normalized;
+
+            _state = State.Retreat;
+            ReleaseCover();
+            motor?.MoveTo((Vector2)transform.position + away * 6f);
+            Callout("ОТХОДИМ!");
+        }
+
+        private void FaceThreat()
+        {
+            if (!_hasKnowledge) return;
+
+            Vector2 delta =
+                _knownPlayerPos - (Vector2)transform.position;
+
+            if (delta.sqrMagnitude < 0.001f) return;
+
+            float angle =
+                Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
+
+            transform.rotation =
+                Quaternion.Euler(0f, 0f, angle);
+        }
+
+        private void OnDamaged(DamageInfo info)
+        {
+            _knownPlayerPos = info.Source != null
+                ? info.Source.transform.position
+                : _knownPlayerPos;
+
+            _hasKnowledge = true;
+            CombatDirector.Instance?.ReportCombat();
+
+            if (Random.value < 0.35f)
+                Callout(vitals != null && vitals.Health < 35f
+                    ? "Я РАНЕН!"
+                    : "ПО МНЕ РАБОТАЮТ!");
+        }
+
+        private void Callout(string text)
+        {
+            _lastCommand = Time.time;
+            WorldCalloutSystem.Instance?.Show(transform, text, 1.05f);
+        }
+
+        private void ReleaseCover()
+        {
+            if (_cover != null)
+            {
+                _cover.Release(this);
+                _cover = null;
+            }
+        }
+
+        private void OnDied()
+        {
+            weapon?.SetTrigger(false);
+            motor?.Stop();
+            ReleaseCover();
+            enabled = false;
+        }
+    }
+}
