@@ -113,6 +113,34 @@ namespace CatsAndKills.EditorTools
             bool legacyFloorPresent =
                 GameObject.Find("Floor") != null;
 
+            bool legacyPanelPresent = false;
+            bool legacyHazardPresent = false;
+
+            foreach (SpriteRenderer renderer in
+                     Object.FindObjectsByType<SpriteRenderer>(
+                         FindObjectsSortMode.None))
+            {
+                if (renderer == null)
+                    continue;
+
+                string objectName =
+                    renderer.gameObject.name;
+
+                string spriteName =
+                    renderer.sprite != null
+                        ? renderer.sprite.name
+                        : string.Empty;
+
+                if (objectName.Contains("Floor Zone") ||
+                    spriteName.Contains("floor_panel"))
+                {
+                    legacyPanelPresent = true;
+                }
+
+                if (objectName.Contains("Hazard //"))
+                    legacyHazardPresent = true;
+            }
+
             bool legacyBootstrapPresent =
                 Object.FindAnyObjectByType<
                     RuntimeCharacterVisualBootstrap>() != null;
@@ -122,6 +150,8 @@ namespace CatsAndKills.EditorTools
                 buildings.Length >= 8 &&
                 solidColliders >= 28 &&
                 !legacyFloorPresent &&
+                !legacyPanelPresent &&
+                !legacyHazardPresent &&
                 !legacyBootstrapPresent;
 
             if (!valid)
@@ -133,6 +163,10 @@ namespace CatsAndKills.EditorTools
                     solidColliders +
                     ", legacyFloor=" +
                     legacyFloorPresent +
+                    ", legacyPanel=" +
+                    legacyPanelPresent +
+                    ", legacyHazard=" +
+                    legacyHazardPresent +
                     ", runtimeBootstrap=" +
                     legacyBootstrapPresent);
 
@@ -193,6 +227,19 @@ namespace CatsAndKills.EditorTools
                     return false;
                 }
 
+                if (!HasVisibleCharacterPixels(
+                        set.GetIdle(direction)))
+                {
+                    Debug.LogError(
+                        "Character body generation failed: " +
+                        label +
+                        " / " +
+                        direction +
+                        " contains too little visible sprite content.");
+
+                    return false;
+                }
+
                 var uniqueWalkFrames =
                     new System.Collections.Generic.HashSet<Sprite>();
 
@@ -225,6 +272,93 @@ namespace CatsAndKills.EditorTools
             }
 
             return true;
+        }
+
+        private static bool HasVisibleCharacterPixels(
+            Sprite sprite)
+        {
+            if (sprite == null ||
+                sprite.texture == null)
+            {
+                return false;
+            }
+
+            Texture2D texture =
+                sprite.texture;
+
+            Color32[] pixels;
+
+            try
+            {
+                pixels =
+                    texture.GetPixels32(0);
+            }
+            catch
+            {
+                return true;
+            }
+
+            Rect rect =
+                sprite.rect;
+
+            int x0 =
+                Mathf.Clamp(
+                    Mathf.FloorToInt(rect.x),
+                    0,
+                    texture.width - 1);
+
+            int y0 =
+                Mathf.Clamp(
+                    Mathf.FloorToInt(rect.y),
+                    0,
+                    texture.height - 1);
+
+            int x1 =
+                Mathf.Clamp(
+                    Mathf.CeilToInt(rect.xMax),
+                    x0 + 1,
+                    texture.width);
+
+            int y1 =
+                Mathf.Clamp(
+                    Mathf.CeilToInt(rect.yMax),
+                    y0 + 1,
+                    texture.height);
+
+            int visible = 0;
+            int area =
+                Mathf.Max(
+                    1,
+                    (x1 - x0) *
+                    (y1 - y0));
+
+            int required =
+                Mathf.Max(
+                    120,
+                    Mathf.RoundToInt(
+                        area * 0.012f));
+
+            for (int y = y0;
+                 y < y1 &&
+                 visible < required;
+                 y++)
+            {
+                for (int x = x0;
+                     x < x1;
+                     x++)
+                {
+                    if (pixels[
+                            y *
+                            texture.width +
+                            x].a > 32)
+                    {
+                        visible++;
+                    }
+                }
+            }
+
+            return
+                visible >= required;
         }
 
         private static void ImproveCamera()
