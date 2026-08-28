@@ -10,10 +10,14 @@ namespace CatsAndKills.AI
         [SerializeField] private AudioClip explosionClip;
         [SerializeField] private Transform target;
 
-        private int _grenades = 1;
+        [Header("Behaviour")]
+        [SerializeField] private int grenadeCount = 1;
+        [SerializeField] private float minDistance = 4f;
+        [SerializeField] private float maxDistance = 10.5f;
+        [SerializeField] private float initialDelayMin = 3.5f;
+        [SerializeField] private float initialDelayMax = 6.5f;
+
         private float _nextThrow;
-        private float _minDistance = 4f;
-        private float _maxDistance = 10.5f;
 
         public void Configure(
             Transform targetTransform,
@@ -24,20 +28,48 @@ namespace CatsAndKills.AI
             target = targetTransform;
             grenadeSprite = sprite;
             explosionClip = explosion;
-            _grenades = count;
-            _nextThrow = Time.time + Random.Range(4f, 8f);
+            grenadeCount = Mathf.Max(0, count);
+            ScheduleInitialThrow();
+        }
+
+        private void Awake()
+        {
+            ScheduleInitialThrow();
+        }
+
+        private void OnEnable()
+        {
+            ScheduleInitialThrow();
+        }
+
+        private void ScheduleInitialThrow()
+        {
+            if (_nextThrow > Time.time)
+                return;
+
+            _nextThrow =
+                Time.time +
+                Random.Range(
+                    Mathf.Max(0.5f, initialDelayMin),
+                    Mathf.Max(
+                        initialDelayMin + 0.25f,
+                        initialDelayMax));
         }
 
         public bool TryThrow(bool hasVisual, float aggression)
         {
-            if (!hasVisual || target == null || _grenades <= 0)
+            if (!hasVisual ||
+                target == null ||
+                grenadeCount <= 0)
+            {
                 return false;
+            }
 
             if (Time.time < _nextThrow)
                 return false;
 
             float distance = Vector2.Distance(transform.position, target.position);
-            if (distance < _minDistance || distance > _maxDistance)
+            if (distance < minDistance || distance > maxDistance)
                 return false;
 
             Collider2D[] nearby =
@@ -56,7 +88,7 @@ namespace CatsAndKills.AI
                 }
             }
 
-            float chance = Mathf.Lerp(0.18f, 0.46f, aggression);
+            float chance = Mathf.Lerp(0.08f, 0.26f, aggression);
             if (Random.value > chance)
             {
                 _nextThrow = Time.time + Random.Range(2.5f, 4.5f);
@@ -69,8 +101,8 @@ namespace CatsAndKills.AI
 
         private void Throw()
         {
-            _grenades--;
-            _nextThrow = Time.time + Random.Range(8f, 13f);
+            grenadeCount--;
+            _nextThrow = Time.time + Random.Range(9f, 14f);
 
             Vector2 origin = transform.position;
             Vector2 targetPos = target.position;
