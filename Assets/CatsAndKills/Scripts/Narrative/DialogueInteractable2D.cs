@@ -25,6 +25,8 @@ namespace CatsAndKills.Narrative
             _visibleChoices =
                 new List<DialogueChoiceData>();
 
+        private bool _conversationProgressed;
+
         public string InteractionPrompt =>
             prompt;
 
@@ -75,11 +77,14 @@ namespace CatsAndKills.Narrative
                 DialogueNodeData node =
                     nodes[i];
 
-                if (node != null &&
-                    node.id == id)
+                if (node == null ||
+                    node.id != id ||
+                    !IsNodeAvailable(node))
                 {
-                    return node;
+                    continue;
                 }
+
+                return node;
             }
 
             return null;
@@ -127,26 +132,85 @@ namespace CatsAndKills.Narrative
                     continue;
                 }
 
+                if (!string.IsNullOrWhiteSpace(
+                        choice.requiredValueKey) &&
+                    (state == null ||
+                     state.GetValue(
+                         choice.requiredValueKey) <
+                     choice.minimumValue))
+                {
+                    continue;
+                }
+
                 _visibleChoices.Add(choice);
             }
 
             return _visibleChoices.ToArray();
         }
 
+        public void NotifyDialogueOpened()
+        {
+            _conversationProgressed = false;
+        }
+
+        public void NotifyNodeAdvanced()
+        {
+            _conversationProgressed = true;
+        }
+
         public void NotifyChoice(
             DialogueChoiceData choice)
         {
+            _conversationProgressed = true;
         }
 
         public void NotifyDialogueClosed()
         {
-            if (!string.IsNullOrWhiteSpace(
+            if (_conversationProgressed &&
+                !string.IsNullOrWhiteSpace(
                     completedFlag))
             {
                 NarrativeWorldState.Instance
                     ?.SetFlag(
                         completedFlag);
             }
+        }
+
+        private static bool IsNodeAvailable(
+            DialogueNodeData node)
+        {
+            NarrativeWorldState state =
+                NarrativeWorldState.Instance;
+
+            if (!string.IsNullOrWhiteSpace(
+                    node.requiredFlag) &&
+                (state == null ||
+                 !state.HasFlag(
+                     node.requiredFlag)))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                    node.forbiddenFlag) &&
+                state != null &&
+                state.HasFlag(
+                    node.forbiddenFlag))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                    node.requiredValueKey) &&
+                (state == null ||
+                 state.GetValue(
+                     node.requiredValueKey) <
+                 node.minimumValue))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
