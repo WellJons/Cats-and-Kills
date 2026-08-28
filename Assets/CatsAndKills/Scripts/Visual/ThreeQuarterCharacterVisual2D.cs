@@ -20,7 +20,18 @@ namespace CatsAndKills.Visual
         [SerializeField] private float moveThreshold = 0.12f;
         [SerializeField] private float moveFrameRate = 8f;
 
+        [Header("Presentation")]
+        [SerializeField] private float idleBreath = 0.012f;
+        [SerializeField] private float walkBob = 0.045f;
+        [SerializeField] private float walkSway = 0.018f;
+        [SerializeField] private float recoilKick = 0.075f;
+        [SerializeField] private float hurtKick = 0.055f;
+
         private float _fireUntil;
+        private float _recoil;
+        private float _hurtImpulse;
+        private float _phase;
+        private Vector3 _baseScale = Vector3.one;
 
         private Vector2 _facing = Vector2.down;
         private float _hurtUntil;
@@ -66,6 +77,9 @@ namespace CatsAndKills.Visual
 
             if (enemyWeapon == null)
                 enemyWeapon = GetComponentInParent<EnemyWeapon2D>();
+
+            _baseScale = transform.localScale;
+            _phase = Random.Range(0f, Mathf.PI * 2f);
         }
 
         private void OnEnable()
@@ -94,11 +108,26 @@ namespace CatsAndKills.Visual
 
         private void LateUpdate()
         {
+            // EnemyBrain rotates its gameplay root to aim. Directional 3/4 art
+            // must remain upright and select a facing sprite instead.
+            transform.rotation = Quaternion.identity;
+
             if (bodyRenderer == null || sprites == null)
                 return;
 
+            _recoil = Mathf.MoveTowards(
+                _recoil,
+                0f,
+                Time.unscaledDeltaTime * 11f);
+
+            _hurtImpulse = Mathf.MoveTowards(
+                _hurtImpulse,
+                0f,
+                Time.unscaledDeltaTime * 12f);
+
             UpdateFacing();
             UpdateSprite();
+            AnimatePresentation();
         }
 
         private void UpdateFacing()
@@ -191,20 +220,120 @@ namespace CatsAndKills.Visual
             }
 
             if (next != null)
+            {
                 bodyRenderer.sprite = next;
+                bodyRenderer.enabled = true;
+                bodyRenderer.color =
+                    vitals != null && vitals.IsDead
+                        ? new Color(0.58f, 0.60f, 0.66f, 0.96f)
+                        : Time.unscaledTime < _hurtUntil
+                            ? new Color(1f, 0.60f, 0.64f, 1f)
+                            : Color.white;
+            }
 
             bodyRenderer.flipX =
                 sprites.ShouldFlipX(_direction);
         }
 
+        private void AnimatePresentation()
+        {
+            if (transform.parent == null)
+                return;
+
+            float t = Time.unscaledTime;
+            bool dead = vitals != null && vitals.IsDead;
+            bool crawling =
+                !dead &&
+                vitals != null &&
+                vitals.LeftLegDisabled &&
+                vitals.RightLegDisabled;
+
+            bool moving =
+                !dead &&
+                body != null &&
+                body.linearVelocity.sqrMagnitude >
+                moveThreshold * moveThreshold;
+
+            Vector3 world = transform.parent.position;
+            Vector3 scale = _baseScale;
+
+            if (dead)
+            {
+                world += Vector3.down * 0.12f;
+                scale = new Vector3(
+                    _baseScale.x * 1.06f,
+                    _baseScale.y * 0.76f,
+                    _baseScale.z);
+            }
+            else if (crawling)
+            {
+                float crawl = Mathf.Sin(t * 7.5f + _phase);
+                world +=
+                    Vector3.down * 0.17f +
+                    Vector3.right * crawl * 0.018f;
+
+                scale = new Vector3(
+                    _baseScale.x * 1.10f,
+                    _baseScale.y * 0.62f,
+                    _baseScale.z);
+            }
+            else if (moving)
+            {
+                float step =
+                    t * moveFrameRate * Mathf.PI + _phase;
+
+                world +=
+                    Vector3.up *
+                    Mathf.Abs(Mathf.Sin(step)) *
+                    walkBob;
+
+                world +=
+                    Vector3.right *
+                    Mathf.Sin(step) *
+                    walkSway;
+            }
+            else
+            {
+                float breath =
+                    Mathf.Sin(t * 2.2f + _phase) *
+                    idleBreath;
+
+                world += Vector3.up * breath;
+                scale.y *= 1f + breath;
+            }
+
+            if (_recoil > 0f)
+            {
+                world +=
+                    (Vector3)(-_facing * recoilKick * _recoil);
+            }
+
+            if (_hurtImpulse > 0f)
+            {
+                world +=
+                    (Vector3)(-_facing * hurtKick * _hurtImpulse);
+
+                world +=
+                    Vector3.up *
+                    Mathf.Sin(t * 50f) *
+                    0.016f *
+                    _hurtImpulse;
+            }
+
+            transform.position = world;
+            transform.localScale = scale;
+        }
+
         private void OnDamaged(DamageInfo info)
         {
-            _hurtUntil = Time.unscaledTime + 0.16f;
+            _hurtUntil = Time.unscaledTime + 0.18f;
+            _hurtImpulse = 1f;
         }
 
         private void OnWeaponFired()
         {
-            _fireUntil = Time.unscaledTime + 0.085f;
+            _fireUntil = Time.unscaledTime + 0.10f;
+            _recoil = 1f;
         }
     }
 }
