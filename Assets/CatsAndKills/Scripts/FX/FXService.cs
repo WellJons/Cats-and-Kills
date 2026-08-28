@@ -25,6 +25,23 @@ namespace CatsAndKills.FX
 
         public void BloodBurst(Vector2 position, Vector2 direction, int count = 7, float force = 1f)
         {
+            if (bloodSprite != null && count >= 5)
+            {
+                GameObject decal = new GameObject("Blood Decal");
+                decal.transform.position = position + Random.insideUnitCircle * 0.08f;
+                decal.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
+                decal.transform.localScale =
+                    new Vector3(
+                        Random.Range(0.24f, 0.48f),
+                        Random.Range(0.14f, 0.32f),
+                        1f);
+
+                var decalRenderer = decal.AddComponent<SpriteRenderer>();
+                decalRenderer.sprite = bloodSprite;
+                decalRenderer.color = new Color(0.42f, 0.015f, 0.025f, 0.82f);
+                decalRenderer.sortingOrder = 1;
+            }
+
             for (int i = 0; i < count; i++)
             {
                 GameObject go = new GameObject("Blood");
