@@ -47,6 +47,7 @@ namespace CatsAndKills.Combat
         private void ThrowGrenade()
         {
             grenadeCount--;
+            CombatStats.Instance?.RecordGrenade();
 
             if (pinClip != null)
                 AudioSource.PlayClipAtPoint(pinClip, transform.position, 0.45f);
