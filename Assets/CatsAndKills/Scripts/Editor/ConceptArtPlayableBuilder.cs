@@ -211,8 +211,7 @@ namespace CatsAndKills.EditorTools
 
             ProductionArtPack pack =
                 AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
-                    ConceptArtIntegrator.GeneratedRoot +
-                    "/Data/ProductionArtPack.asset");
+                    ConceptArtIntegrator.PackPath);
 
             if (pack == null)
             {
