@@ -282,19 +282,27 @@ namespace CatsAndKills.EditorTools
             collider.radius = 0.46f;
 
             var vitals = root.AddComponent<CharacterVitals>();
+            var suppression = root.AddComponent<SuppressionReceiver2D>();
+            var grenadeAwareness = root.AddComponent<GrenadeAwareness2D>();
+            var morale = root.AddComponent<EnemyMorale2D>();
+
             switch (archetype)
             {
                 case EnemyArchetype.Pistolier:
                     vitals.Configure(78f, 34f, 40f);
+                    morale.Configure(0.48f);
                     break;
                 case EnemyArchetype.MachineGunner:
                     vitals.Configure(145f, 62f, 70f);
+                    morale.Configure(0.92f);
                     break;
                 case EnemyArchetype.Demolitionist:
                     vitals.Configure(105f, 50f, 54f);
+                    morale.Configure(0.82f);
                     break;
                 default:
                     vitals.Configure(100f, 44f, 50f);
+                    morale.Configure(0.74f);
                     break;
             }
 
