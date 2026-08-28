@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CatsAndKills.AI;
 using CatsAndKills.Combat;
 using CatsAndKills.Core;
+using CatsAndKills.Narrative;
 using CatsAndKills.Tactical;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -80,7 +81,8 @@ namespace CatsAndKills.Player
 
             if (tactical == null ||
                 !tactical.IsPlayerTurn ||
-                _moving)
+                _moving ||
+                NarrativeDialogueSystem.IsDialogueOpen)
             {
                 return;
             }
