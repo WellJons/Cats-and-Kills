@@ -220,7 +220,7 @@ namespace CatsAndKills.EditorTools
 
             overwatch.Configure(
                 playerWeapon,
-                obstacleMask);
+                1 << _obstacleLayer);
 
             PlayerAim2D playerAim =
                 player.GetComponent<PlayerAim2D>();
