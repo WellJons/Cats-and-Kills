@@ -192,6 +192,9 @@ namespace CatsAndKills.Visual
 
             if (next != null)
                 bodyRenderer.sprite = next;
+
+            bodyRenderer.flipX =
+                sprites.ShouldFlipX(_direction);
         }
 
         private void OnDamaged(DamageInfo info)
