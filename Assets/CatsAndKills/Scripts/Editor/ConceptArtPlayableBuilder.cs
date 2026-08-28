@@ -40,6 +40,7 @@ namespace CatsAndKills.EditorTools
             // generated characters correctly. Install it AFTER the lighting
             // polish so no lit-material pass can make the cats disappear.
             InstallDirectAtlasCharacterVisuals();
+            InstallRuntimeCharacterBootstrap();
             ValidateConceptCharacterVisuals();
 
             ConfigureConceptDoors();
@@ -189,6 +190,33 @@ namespace CatsAndKills.EditorTools
                     false,
                     scale);
             }
+        }
+
+        private static void InstallRuntimeCharacterBootstrap()
+        {
+            RuntimeCharacterVisualBootstrap bootstrap =
+                Object.FindAnyObjectByType<
+                    RuntimeCharacterVisualBootstrap>();
+
+            if (bootstrap == null)
+            {
+                GameObject go =
+                    new GameObject(
+                        "Runtime Character Visual Bootstrap");
+
+                bootstrap =
+                    go.AddComponent<
+                        RuntimeCharacterVisualBootstrap>();
+            }
+
+            bootstrap.Configure(
+                LoadConceptAtlas("player.png"),
+                LoadConceptAtlas("pistolier.png"),
+                LoadConceptAtlas("rifleman.png"),
+                LoadConceptAtlas("machinegunner.png"),
+                LoadConceptAtlas("demolitionist.png"));
+
+            EditorUtility.SetDirty(bootstrap);
         }
 
         private static void ValidateConceptCharacterVisuals()
