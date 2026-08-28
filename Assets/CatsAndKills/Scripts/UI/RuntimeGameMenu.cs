@@ -216,13 +216,31 @@ namespace CatsAndKills.UI
 
         private void DrawComplete(float x, float width)
         {
-            GUI.Label(new Rect(x, 105, width, 60), "ОПЕРАЦИЯ ЗАВЕРШЕНА", _title);
+            GUI.Label(new Rect(x, 85, width, 60), "ОПЕРАЦИЯ ЗАВЕРШЕНА", _title);
+
+            CombatStats stats = CombatStats.Instance;
+            string summary = "Архив получен. Объект покинут.";
+
+            if (stats != null)
+            {
+                int minutes = Mathf.FloorToInt(stats.ElapsedSeconds / 60f);
+                int seconds = Mathf.FloorToInt(stats.ElapsedSeconds % 60f);
+
+                summary +=
+                    $"\n\nВремя: {minutes:00}:{seconds:00}" +
+                    $"\nУничтожено противников: {stats.Kills}" +
+                    $"\nВыстрелов: {stats.ShotsFired}" +
+                    $"\nПопаданий: {stats.Hits}" +
+                    $"\nТочность: {stats.Accuracy * 100f:0}%" +
+                    $"\nГранат использовано: {stats.GrenadesThrown}";
+            }
+
             GUI.Label(
-                new Rect(x + 50, 190, width - 100, 100),
-                "Архив получен. Объект покинут. Это конец первого vertical slice — не конец истории.",
+                new Rect(x + 50, 165, width - 100, 190),
+                summary,
                 _body);
 
-            if (GUI.Button(new Rect(x + 180, 320, width - 360, 44), "СЫГРАТЬ ЕЩЁ РАЗ", _button))
+            if (GUI.Button(new Rect(x + 180, 390, width - 360, 44), "СЫГРАТЬ ЕЩЁ РАЗ", _button))
             {
                 CheckpointSystem.Clear();
                 Time.timeScale = 1f;
