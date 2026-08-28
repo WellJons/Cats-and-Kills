@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace CatsAndKills.Combat
 {
+    [DefaultExecutionOrder(-100)]
     public sealed class PlayerGrenadeController : MonoBehaviour
     {
         [SerializeField] private PlayerAim2D aim;
@@ -57,8 +58,11 @@ namespace CatsAndKills.Combat
             if (_cooking && Time.time - _cookStarted >= baseFuse)
                 ThrowCooked(true);
 
-            if (CKInput.InteractPressed)
-                TryReturnGrenade();
+            if (CKInput.InteractPressed &&
+                TryReturnGrenade())
+            {
+                InputConsumption.ConsumeInteract();
+            }
         }
 
         private void BeginCook()
@@ -108,7 +112,7 @@ namespace CatsAndKills.Combat
             rb.AddTorque(Random.Range(-240f, 240f));
         }
 
-        private void TryReturnGrenade()
+        private bool TryReturnGrenade()
         {
             Grenade2D[] grenades = FindObjectsByType<Grenade2D>(FindObjectsSortMode.None);
 
@@ -125,11 +129,12 @@ namespace CatsAndKills.Combat
                 }
             }
 
-            if (best == null) return;
+            if (best == null) return false;
 
             best.Kick(aim.AimDirection, 9f, gameObject);
             HapticsManager.Instance?.Pulse(0.18f, 0.25f, 0.08f);
             RadioDialogueSystem.Instance?.ShowTransient("ГРАНАТА ОТПРАВЛЕНА ОБРАТНО", 0.65f);
+            return true;
         }
     }
 }
