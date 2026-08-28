@@ -3,6 +3,13 @@ using UnityEngine;
 
 namespace CatsAndKills.Combat
 {
+    public enum WeaponIdlePose
+    {
+        Ready,
+        LowReady,
+        Shoulder
+    }
+
     [DefaultExecutionOrder(11000)]
     public sealed class WeaponVisualRecoil2D : MonoBehaviour
     {
@@ -21,6 +28,9 @@ namespace CatsAndKills.Combat
         private float _returnSharpness = 24f;
         private float _reloadBlend;
         private bool _reloading;
+        private WeaponIdlePose _idlePose;
+        private float _lowReadyBlend;
+        private float _shoulderBlend;
 
         private void Awake()
         {
@@ -80,6 +90,12 @@ namespace CatsAndKills.Combat
             _reloading = value;
         }
 
+        public void SetIdlePose(
+            WeaponIdlePose pose)
+        {
+            _idlePose = pose;
+        }
+
         private void LateUpdate()
         {
             float dt =
@@ -110,6 +126,24 @@ namespace CatsAndKills.Combat
                     _reloadBlend,
                     _reloading ? 1f : 0f,
                     dt * 5.8f);
+
+            _lowReadyBlend =
+                Mathf.MoveTowards(
+                    _lowReadyBlend,
+                    _idlePose ==
+                    WeaponIdlePose.LowReady
+                        ? 1f
+                        : 0f,
+                    dt * 4.2f);
+
+            _shoulderBlend =
+                Mathf.MoveTowards(
+                    _shoulderBlend,
+                    _idlePose ==
+                    WeaponIdlePose.Shoulder
+                        ? 1f
+                        : 0f,
+                    dt * 3.8f);
 
             if (anchorToCharacter &&
                 TryApplyCharacterAnchoredPose())
@@ -212,6 +246,24 @@ namespace CatsAndKills.Combat
                  perpendicular * 0.10f) *
                 _reloadBlend;
 
+            center +=
+                Vector2.down *
+                0.18f *
+                _lowReadyBlend;
+
+            Vector2 shoulderTarget =
+                aimPoint -
+                direction *
+                (targetLength * 0.08f) +
+                Vector2.up *
+                0.16f;
+
+            center =
+                Vector2.Lerp(
+                    center,
+                    shoulderTarget,
+                    _shoulderBlend);
+
             float angle =
                 Mathf.Atan2(
                     direction.y,
@@ -229,6 +281,16 @@ namespace CatsAndKills.Combat
                 _reloadBlend *
                 handedness;
 
+            float lowReadyRotation =
+                -24f *
+                _lowReadyBlend *
+                handedness;
+
+            float shoulderRotation =
+                58f *
+                _shoulderBlend *
+                handedness;
+
             transform.position =
                 new Vector3(
                     center.x,
@@ -241,7 +303,9 @@ namespace CatsAndKills.Combat
                     0f,
                     angle +
                     _kickRotation +
-                    reloadRotation);
+                    reloadRotation +
+                    lowReadyRotation +
+                    shoulderRotation);
 
             transform.localScale =
                 Vector3.one *
