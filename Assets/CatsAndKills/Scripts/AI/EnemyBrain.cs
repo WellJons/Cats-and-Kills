@@ -1,6 +1,7 @@
 using CatsAndKills.Core;
 using CatsAndKills.Damage;
 using CatsAndKills.UI;
+using CatsAndKills.World;
 using CatsAndKills.Tactical;
 using UnityEngine;
 
@@ -32,6 +33,7 @@ namespace CatsAndKills.AI
         [SerializeField] private SuppressionReceiver2D suppression;
         [SerializeField] private GrenadeAwareness2D grenadeAwareness;
         [SerializeField] private EnemyMorale2D morale;
+        [SerializeField] private WorldFactionMember2D factionMember;
 
         [Header("Identity")]
         [SerializeField] private EnemyArchetype archetype = EnemyArchetype.Rifleman;
@@ -146,6 +148,7 @@ namespace CatsAndKills.AI
             if (suppression == null) suppression = GetComponent<SuppressionReceiver2D>();
             if (grenadeAwareness == null) grenadeAwareness = GetComponent<GrenadeAwareness2D>();
             if (morale == null) morale = GetComponent<EnemyMorale2D>();
+            if (factionMember == null) factionMember = GetComponent<WorldFactionMember2D>();
         }
 
         private void OnEnable()
@@ -179,6 +182,18 @@ namespace CatsAndKills.AI
         private void Update()
         {
             if (vitals != null && vitals.IsDead) return;
+
+            if (factionMember == null)
+                factionMember = GetComponent<WorldFactionMember2D>();
+
+            if (factionMember != null &&
+                !factionMember.IsHostileToPlayer)
+            {
+                weapon?.SetTrigger(false);
+                _hasKnowledge = false;
+                _hadVisual = false;
+                return;
+            }
 
             TacticalCombatDirector tactical =
                 TacticalCombatDirector.Instance;
@@ -650,6 +665,11 @@ namespace CatsAndKills.AI
 
         private void OnDamaged(DamageInfo info)
         {
+            if (factionMember == null)
+                factionMember = GetComponent<WorldFactionMember2D>();
+
+            factionMember?.BecomeHostile();
+
             _knownPlayerPos = info.Source != null
                 ? info.Source.transform.position
                 : _knownPlayerPos;
