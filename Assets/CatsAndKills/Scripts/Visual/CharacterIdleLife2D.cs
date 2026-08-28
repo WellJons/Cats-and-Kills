@@ -23,6 +23,7 @@ namespace CatsAndKills.Visual
         [SerializeField] private Rigidbody2D body;
         [SerializeField] private CharacterVitals vitals;
         [SerializeField] private WeaponVisualRecoil2D playerWeaponVisual;
+        [SerializeField] private EnemyWeaponVisual2D enemyWeaponVisual;
         [SerializeField] private EnemyBrain enemyBrain;
         [SerializeField] private Sprite simpleSprite;
         [SerializeField] private Sprite grenadeSprite;
@@ -55,6 +56,7 @@ namespace CatsAndKills.Visual
             Rigidbody2D rigidbodyRef,
             CharacterVitals characterVitals,
             WeaponVisualRecoil2D weaponVisual,
+            EnemyWeaponVisual2D enemyVisual,
             EnemyBrain brain,
             Sprite utilitySprite,
             Sprite grenade,
@@ -65,6 +67,7 @@ namespace CatsAndKills.Visual
             body = rigidbodyRef;
             vitals = characterVitals;
             playerWeaponVisual = weaponVisual;
+            enemyWeaponVisual = enemyVisual;
             enemyBrain = brain;
             simpleSprite = utilitySprite;
             grenadeSprite = grenade;
@@ -87,6 +90,9 @@ namespace CatsAndKills.Visual
 
             if (enemyBrain == null)
                 enemyBrain = GetComponentInParent<EnemyBrain>();
+
+            if (enemyWeaponVisual == null)
+                enemyWeaponVisual = GetComponentInParent<EnemyWeaponVisual2D>();
 
             if (playerWeaponVisual == null)
             {
@@ -400,7 +406,11 @@ namespace CatsAndKills.Visual
 
         private void BeginRandomAction()
         {
-            if (playerWeaponVisual != null)
+            bool hasWeaponPose =
+                playerWeaponVisual != null ||
+                enemyWeaponVisual != null;
+
+            if (hasWeaponPose)
             {
                 _action =
                     (IdleAction)Random.Range(
@@ -428,12 +438,12 @@ namespace CatsAndKills.Visual
                     break;
 
                 case IdleAction.LowReady:
-                    playerWeaponVisual?.SetIdlePose(
+                    SetWeaponIdlePose(
                         WeaponIdlePose.LowReady);
                     break;
 
                 case IdleAction.Shoulder:
-                    playerWeaponVisual?.SetIdlePose(
+                    SetWeaponIdlePose(
                         WeaponIdlePose.Shoulder);
                     break;
 
@@ -666,7 +676,7 @@ namespace CatsAndKills.Visual
             if (_action == IdleAction.None)
                 return;
 
-            playerWeaponVisual?.SetIdlePose(
+            SetWeaponIdlePose(
                 WeaponIdlePose.Ready);
 
             SetCigarette(false);
@@ -676,6 +686,16 @@ namespace CatsAndKills.Visual
 
             _action =
                 IdleAction.None;
+        }
+
+        private void SetWeaponIdlePose(
+            WeaponIdlePose pose)
+        {
+            playerWeaponVisual?.SetIdlePose(
+                pose);
+
+            enemyWeaponVisual?.SetIdlePose(
+                pose);
         }
 
         private void SetCigarette(
