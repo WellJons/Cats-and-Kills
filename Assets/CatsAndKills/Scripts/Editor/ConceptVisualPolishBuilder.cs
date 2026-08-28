@@ -321,95 +321,160 @@ namespace CatsAndKills.EditorTools
             ProductionArtPack pack,
             Material lit)
         {
-            // Starting sector back wall.
-            for (int i = 0; i < 5; i++)
-            {
-                CreateStructure(
-                    parent,
-                    "Start Back Wall " + i,
-                    pack.wallStraight,
-                    new Vector2(
-                        -21f + i * 3.45f,
-                        -2.8f),
-                    new Vector2(0.98f, 0.98f),
-                    0f,
-                    false,
-                    3480,
-                    lit);
-            }
+            Sprite straight =
+                pack.wallStraight;
+
+            Sprite corner =
+                pack.wallCorner != null
+                    ? pack.wallCorner
+                    : pack.wallStraight;
+
+            // START YARD: one readable back wall with a clear exit on the right.
+            CreateWallRun(
+                parent,
+                "Start Yard",
+                straight,
+                new Vector2(-20.4f, -3.15f),
+                5,
+                2.75f,
+                0.72f,
+                lit);
 
             CreateStructure(
                 parent,
-                "Start Left Corner",
-                pack.wallCorner != null
-                    ? pack.wallCorner
-                    : pack.wallStraight,
-                new Vector2(-21.1f, -6.1f),
-                new Vector2(0.95f, 0.95f),
+                "Start Yard Left Corner",
+                corner,
+                new Vector2(-21.1f, -5.45f),
+                new Vector2(0.72f, 0.72f),
                 0f,
                 false,
-                3480,
+                5000,
                 lit);
 
             CreateStructure(
                 parent,
-                "Start Right Corner",
-                pack.wallCorner != null
-                    ? pack.wallCorner
-                    : pack.wallStraight,
-                new Vector2(-7.3f, -6.1f),
-                new Vector2(0.95f, 0.95f),
+                "Start Yard Exit Corner",
+                corner,
+                new Vector2(-8.45f, -5.45f),
+                new Vector2(0.72f, 0.72f),
                 0f,
                 true,
-                3480,
+                5000,
                 lit);
 
-            // Warehouse visual wall line.
-            for (int i = 0; i < 4; i++)
-            {
-                CreateStructure(
-                    parent,
-                    "Warehouse Wall " + i,
-                    pack.wallStraight,
-                    new Vector2(
-                        -6.4f + i * 3.55f,
-                        4.8f),
-                    new Vector2(0.96f, 0.96f),
-                    0f,
-                    false,
-                    3460,
-                    lit);
-            }
+            // WAREHOUSE: coherent wall line above the playable lanes.
+            CreateWallRun(
+                parent,
+                "Warehouse",
+                straight,
+                new Vector2(-5.7f, 5.55f),
+                5,
+                2.75f,
+                0.70f,
+                lit);
 
-            // Administration visual wall line.
-            for (int i = 0; i < 4; i++)
-            {
-                CreateStructure(
-                    parent,
-                    "Admin Wall " + i,
-                    pack.wallStraight,
-                    new Vector2(
-                        9.4f + i * 3.3f,
-                        7.7f),
-                    new Vector2(0.92f, 0.92f),
-                    0f,
-                    i % 2 == 1,
-                    3440,
-                    lit);
-            }
+            CreateStructure(
+                parent,
+                "Warehouse Left Corner",
+                corner,
+                new Vector2(-6.35f, 3.35f),
+                new Vector2(0.70f, 0.70f),
+                0f,
+                false,
+                5000,
+                lit);
+
+            CreateStructure(
+                parent,
+                "Warehouse Right Corner",
+                corner,
+                new Vector2(6.1f, 3.35f),
+                new Vector2(0.70f, 0.70f),
+                0f,
+                true,
+                5000,
+                lit);
+
+            // ADMINISTRATION: separate readable zone instead of random walls.
+            CreateWallRun(
+                parent,
+                "Administration",
+                straight,
+                new Vector2(10.7f, 7.0f),
+                4,
+                2.75f,
+                0.70f,
+                lit);
+
+            CreateStructure(
+                parent,
+                "Admin Left Corner",
+                corner,
+                new Vector2(10.15f, 4.85f),
+                new Vector2(0.70f, 0.70f),
+                0f,
+                false,
+                5000,
+                lit);
+
+            CreateStructure(
+                parent,
+                "Admin Right Corner",
+                corner,
+                new Vector2(19.55f, 4.85f),
+                new Vector2(0.70f, 0.70f),
+                0f,
+                true,
+                5000,
+                lit);
 
             if (pack.wallDamaged != null)
             {
                 CreateStructure(
                     parent,
-                    "Damaged Wall",
+                    "Warehouse Admin Breach",
                     pack.wallDamaged,
-                    new Vector2(17.2f, 3.1f),
-                    new Vector2(0.86f, 0.86f),
+                    new Vector2(7.7f, 1.7f),
+                    new Vector2(0.66f, 0.66f),
                     0f,
                     false,
-                    3480,
+                    5000,
                     lit);
+            }
+        }
+
+        private static void CreateWallRun(
+            Transform parent,
+            string label,
+            Sprite sprite,
+            Vector2 start,
+            int count,
+            float spacing,
+            float scale,
+            Material material)
+        {
+            if (sprite == null)
+                return;
+
+            for (int i = 0;
+                 i < count;
+                 i++)
+            {
+                CreateStructure(
+                    parent,
+                    label + " Wall " + i,
+                    sprite,
+                    start +
+                    Vector2.right *
+                    spacing *
+                    i,
+                    new Vector2(
+                        scale,
+                        scale),
+                    0f,
+                    false,
+                    5000,
+                    material);
             }
         }
 
@@ -418,234 +483,260 @@ namespace CatsAndKills.EditorTools
             ProductionArtPack pack,
             Material lit)
         {
-            CreateProp(
-                parent,
-                "Heavy Cover A",
+            Sprite heavy =
                 pack.crateHeavy != null
                     ? pack.crateHeavy
-                    : pack.crateLight,
-                new Vector2(-15.2f, -5.1f),
-                0.92f,
-                lit);
+                    : pack.crateLight;
 
-            CreateProp(
-                parent,
-                "Heavy Cover B",
-                pack.crateHeavy != null
-                    ? pack.crateHeavy
-                    : pack.crateLight,
-                new Vector2(-10.6f, -4.2f),
-                0.82f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Crate Stack A",
+            Sprite stack =
                 pack.crateStack != null
                     ? pack.crateStack
-                    : pack.crateLight,
-                new Vector2(-14.5f, -8.1f),
-                0.68f,
-                lit);
+                    : pack.crateLight;
 
-            CreateProp(
-                parent,
-                "Barrel Stack A",
+            Sprite barrels =
                 pack.barrelStack != null
                     ? pack.barrelStack
-                    : pack.fuelDrum,
-                new Vector2(-11.3f, -8.5f),
-                0.64f,
-                lit);
+                    : pack.fuelDrum;
 
+            // START YARD: cover is arranged around lanes instead of stacked
+            // on top of the wall artwork.
             CreateProp(
                 parent,
-                "Fuel Drum A",
-                pack.fuelDrum,
-                new Vector2(-18.4f, -4.3f),
-                0.72f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Burning Barrel A",
-                pack.burningBarrel,
-                new Vector2(-21.0f, -10.7f),
-                0.58f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Ammo Box A",
-                pack.ammoBox,
-                new Vector2(-17.0f, -6.2f),
-                0.60f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Medkit Box A",
-                pack.medkitBox,
-                new Vector2(-12.1f, -6.3f),
-                0.60f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Cable Bundle A",
-                pack.cableBundle,
-                new Vector2(-19.8f, -5.2f),
-                0.60f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Barricade A",
-                pack.barricade,
-                new Vector2(-16.4f, -10.5f),
+                "Start Heavy Cover",
+                heavy,
+                new Vector2(-16.6f, -7.0f),
                 0.66f,
                 lit);
 
             CreateProp(
                 parent,
-                "Terminal A",
-                pack.terminal,
-                new Vector2(-9.0f, -2.7f),
-                0.78f,
+                "Start Crate Stack",
+                stack,
+                new Vector2(-12.7f, -8.25f),
+                0.56f,
                 lit);
 
             CreateProp(
                 parent,
-                "Pipe Cluster A",
-                pack.pipeCluster,
-                new Vector2(-20.4f, -2.9f),
-                0.70f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Poster A",
-                pack.propagandaPoster,
-                new Vector2(-17.8f, -2.55f),
+                "Start Barrel Stack",
+                barrels,
+                new Vector2(-10.1f, -8.5f),
                 0.52f,
                 lit);
 
             CreateProp(
                 parent,
-                "Fence A",
-                pack.fence,
-                new Vector2(-12.6f, -7.3f),
-                0.76f,
+                "Start Barricade",
+                pack.barricade,
+                new Vector2(-15.1f, -10.45f),
+                0.58f,
                 lit);
 
-            CreateHazardStrip(
+            CreateProp(
                 parent,
-                "Start Door Marking",
-                new Vector2(-8.25f, -3.75f),
-                new Vector2(2.8f, 0.32f),
+                "Start Fuel Drum",
+                pack.fuelDrum,
+                new Vector2(-19.7f, -6.2f),
+                0.56f,
                 lit);
 
-            CreateHazardStrip(
+            CreateProp(
                 parent,
-                "Admin Door Marking",
-                new Vector2(9.95f, -0.9f),
-                new Vector2(2.4f, 0.28f),
+                "Start Ammo Box",
+                pack.ammoBox,
+                new Vector2(-17.9f, -9.45f),
+                0.50f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Start Medkit Box",
+                pack.medkitBox,
+                new Vector2(-9.4f, -6.8f),
+                0.50f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Start Cable Detail",
+                pack.cableBundle,
+                new Vector2(-18.7f, -4.35f),
+                0.46f,
                 lit);
 
             CreateProp(
                 parent,
                 "Start Lamp Cyan",
                 pack.lamp,
-                new Vector2(-16.2f, -2.65f),
-                0.55f,
+                new Vector2(-18.0f, -3.25f),
+                0.44f,
                 lit);
 
             CreateProp(
                 parent,
                 "Start Lamp Red",
                 pack.lamp,
-                new Vector2(-9.2f, -2.65f),
-                0.55f,
+                new Vector2(-10.8f, -3.25f),
+                0.44f,
+                lit);
+
+            CreateHazardStrip(
+                parent,
+                "Start Exit Marking",
+                new Vector2(-8.1f, -7.0f),
+                new Vector2(2.4f, 0.28f),
+                lit);
+
+            // WAREHOUSE: shelves/cover form two combat lanes.
+            CreateProp(
+                parent,
+                "Warehouse Heavy Cover",
+                heavy,
+                new Vector2(-3.7f, -0.7f),
+                0.62f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Warehouse Crate Stack",
+                stack,
+                new Vector2(2.2f, 0.3f),
+                0.54f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Warehouse Barrel Stack",
+                barrels,
+                new Vector2(4.9f, -2.6f),
+                0.50f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Warehouse Fence",
+                pack.fence,
+                new Vector2(-5.1f, 1.8f),
+                0.58f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Warehouse Terminal",
+                pack.terminal,
+                new Vector2(4.4f, 4.55f),
+                0.60f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Warehouse Pipe",
+                pack.pipeCluster,
+                new Vector2(-4.8f, 4.65f),
+                0.52f,
                 lit);
 
             CreateProp(
                 parent,
                 "Warehouse Lamp",
                 pack.lamp,
-                new Vector2(0.8f, 4.45f),
-                0.55f,
+                new Vector2(0.1f, 5.2f),
+                0.42f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Warehouse Debris",
+                pack.debris,
+                new Vector2(0.2f, -3.8f),
+                0.24f,
+                lit);
+
+            CreateHazardStrip(
+                parent,
+                "Warehouse Center Marking",
+                new Vector2(0.2f, -1.8f),
+                new Vector2(3.2f, 0.30f),
+                lit);
+
+            // ADMIN: smaller cover pieces and interactable-looking props.
+            CreateProp(
+                parent,
+                "Admin Heavy Cover",
+                heavy,
+                new Vector2(12.0f, 0.0f),
+                0.58f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Admin Crate Stack",
+                stack,
+                new Vector2(17.4f, 0.8f),
+                0.50f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Admin Barricade",
+                pack.barricade,
+                new Vector2(13.1f, -4.0f),
+                0.56f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Admin Terminal",
+                pack.terminal,
+                new Vector2(14.6f, 5.85f),
+                0.56f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Admin Pipe",
+                pack.pipeCluster,
+                new Vector2(18.7f, 5.35f),
+                0.50f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Admin Medkit Box",
+                pack.medkitBox,
+                new Vector2(18.0f, -4.5f),
+                0.48f,
                 lit);
 
             CreateProp(
                 parent,
                 "Admin Lamp",
                 pack.lamp,
-                new Vector2(12.8f, 7.25f),
-                0.55f,
+                new Vector2(12.4f, 6.6f),
+                0.42f,
                 lit);
 
             CreateProp(
                 parent,
-                "Terminal Warehouse",
-                pack.terminal,
-                new Vector2(5.4f, 3.7f),
-                0.72f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Pipe Warehouse",
-                pack.pipeCluster,
-                new Vector2(-5.6f, 4.35f),
-                0.68f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Poster Admin",
+                "Admin Poster",
                 pack.propagandaPoster,
-                new Vector2(14.6f, 7.2f),
-                0.48f,
+                new Vector2(16.8f, 6.6f),
+                0.40f,
                 lit);
 
             CreateProp(
                 parent,
-                "Debris Detail A",
+                "Admin Debris",
                 pack.debris,
-                new Vector2(-8.0f, -6.8f),
-                0.28f,
+                new Vector2(15.4f, -1.7f),
+                0.22f,
                 lit);
 
-            CreateProp(
+            CreateHazardStrip(
                 parent,
-                "Debris Detail B",
-                pack.debris,
-                new Vector2(4.1f, -5.4f),
-                0.24f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Cable Bundle Warehouse",
-                pack.cableBundle,
-                new Vector2(2.4f, 4.3f),
-                0.52f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Crate Stack Warehouse",
-                pack.crateStack,
-                new Vector2(6.2f, 5.4f),
-                0.58f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Barricade Admin",
-                pack.barricade,
-                new Vector2(13.2f, -4.0f),
-                0.62f,
+                "Admin Entry Marking",
+                new Vector2(9.7f, -0.8f),
+                new Vector2(2.5f, 0.28f),
                 lit);
         }
 
@@ -1118,15 +1209,15 @@ namespace CatsAndKills.EditorTools
 
             depth.Configure(
                 new[] { sr },
-                baseOrder,
-                -0.55f);
+                5000,
+                0f);
 
             AddFootprintCollider(
                 go,
                 sprite,
-                0.84f,
-                0.17f,
-                0.015f);
+                0.96f,
+                0.28f,
+                0.01f);
 
             ThreeQuarterOccluder2D occ =
                 go.AddComponent<
@@ -1173,17 +1264,17 @@ namespace CatsAndKills.EditorTools
 
             depth.Configure(
                 new[] { sr },
-                3380,
-                -0.20f);
+                5000,
+                0f);
 
             if (IsSolidProp(name))
             {
                 AddFootprintCollider(
                     go,
                     sprite,
-                    0.72f,
-                    0.22f,
-                    0.02f);
+                    0.78f,
+                    0.30f,
+                    0.01f);
             }
         }
 
