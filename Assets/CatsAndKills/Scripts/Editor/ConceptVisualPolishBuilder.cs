@@ -110,6 +110,7 @@ namespace CatsAndKills.EditorTools
                 if (n == "Wall Top" ||
                     n == "Wall Side" ||
                     n == "Wall Shadow" ||
+                    n == "Prop Shadow" ||
                     n.Contains("Hazard //") ||
                     parent.Contains("Hazard //"))
                 {
