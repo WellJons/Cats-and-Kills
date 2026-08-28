@@ -75,6 +75,9 @@ namespace CatsAndKills.EditorTools
                 root.transform,
                 lit);
 
+            if (root.GetComponent<AlarmLighting2D>() == null)
+                root.AddComponent<AlarmLighting2D>();
+
             ApplyMaterialToConceptSprites(
                 lit);
         }
@@ -91,9 +94,16 @@ namespace CatsAndKills.EditorTools
                 string n =
                     sr.gameObject.name;
 
+                string parent =
+                    sr.transform.parent != null
+                        ? sr.transform.parent.name
+                        : string.Empty;
+
                 if (n == "Wall Top" ||
                     n == "Wall Side" ||
-                    n == "Wall Shadow")
+                    n == "Wall Shadow" ||
+                    n.Contains("Hazard //") ||
+                    parent.Contains("Hazard //"))
                 {
                     sr.enabled = false;
                 }
@@ -279,6 +289,20 @@ namespace CatsAndKills.EditorTools
                 pack.fence,
                 new Vector2(-12.6f, -7.3f),
                 0.76f,
+                lit);
+
+            CreateHazardStrip(
+                parent,
+                "Start Door Marking",
+                new Vector2(-8.25f, -3.75f),
+                new Vector2(2.8f, 0.32f),
+                lit);
+
+            CreateHazardStrip(
+                parent,
+                "Admin Door Marking",
+                new Vector2(9.95f, -0.9f),
+                new Vector2(2.4f, 0.28f),
                 lit);
 
             CreateProp(
@@ -491,6 +515,52 @@ namespace CatsAndKills.EditorTools
                 dropout ? 0.16f : 0.06f,
                 dropout ? 16f : 7f,
                 dropout);
+        }
+
+        private static void CreateHazardStrip(
+            Transform parent,
+            string name,
+            Vector2 position,
+            Vector2 scale,
+            Material material)
+        {
+            Sprite sprite =
+                GeneratedArtFactory.Get("hazard");
+
+            if (sprite == null)
+                return;
+
+            GameObject go =
+                new GameObject(name);
+
+            go.transform.SetParent(
+                parent,
+                false);
+
+            go.transform.position =
+                position;
+
+            go.transform.localScale =
+                new Vector3(
+                    scale.x,
+                    scale.y,
+                    1f);
+
+            SpriteRenderer sr =
+                go.AddComponent<SpriteRenderer>();
+
+            sr.sprite = sprite;
+            sr.color =
+                new Color(
+                    0.86f,
+                    0.78f,
+                    0.62f,
+                    0.88f);
+
+            sr.sortingOrder = 1230;
+
+            if (material != null)
+                sr.sharedMaterial = material;
         }
 
         private static void CreateStructure(
