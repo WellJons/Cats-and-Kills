@@ -57,6 +57,70 @@ namespace CatsAndKills.Combat
             return false;
         }
 
+        public static bool ApplyTraversalBurn(
+            CharacterVitals vitals,
+            Vector2 point,
+            float amount = 7f)
+        {
+            if (vitals == null ||
+                vitals.IsDead)
+            {
+                return false;
+            }
+
+            for (int i = Active.Count - 1;
+                 i >= 0;
+                 i--)
+            {
+                TacticalFireField2D fire =
+                    Active[i];
+
+                if (fire == null)
+                {
+                    Active.RemoveAt(i);
+                    continue;
+                }
+
+                for (int c = 0;
+                     c < fire._cells.Count;
+                     c++)
+                {
+                    if (Vector2.Distance(
+                            point,
+                            fire._cells[c]) >
+                        fire.cellRadius +
+                        0.20f)
+                    {
+                        continue;
+                    }
+
+                    Vector2 direction =
+                        (Vector2)vitals.transform.position -
+                        fire._cells[c];
+
+                    if (direction.sqrMagnitude <
+                        0.01f)
+                    {
+                        direction = Vector2.up;
+                    }
+
+                    vitals.ReceiveDamage(
+                        new DamageInfo(
+                            amount,
+                            point,
+                            direction.normalized,
+                            0.25f,
+                            fire.owner,
+                            DamageType.Impact,
+                            0f));
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public void Configure(
             GameObject source,
             float tacticalCellSize,
