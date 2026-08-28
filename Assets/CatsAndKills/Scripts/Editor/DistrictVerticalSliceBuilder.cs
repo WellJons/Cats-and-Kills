@@ -1026,6 +1026,17 @@ namespace CatsAndKills.EditorTools
                                 valueKey =
                                     "mechanic_trust",
                                 valueDelta = 1
+                            },
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Мне досталось. Есть чем обработать раны?",
+                                closeDialogue = true,
+                                requiredValueKey =
+                                    "mechanic_trust",
+                                minimumValue = 2,
+                                setFlag =
+                                    "slice_mechanic_medical_help"
                             }
                         }
                 }
