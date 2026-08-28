@@ -81,6 +81,11 @@ namespace CatsAndKills.EditorTools
                 root.transform,
                 pack);
 
+            CreateNightclubCorner(
+                root.transform,
+                pack,
+                nav);
+
             CreateMarketDetails(
                 root.transform,
                 pack);
@@ -1155,6 +1160,232 @@ namespace CatsAndKills.EditorTools
             light.intensity = 0.75f;
             light.pointLightOuterRadius = 3.4f;
             light.pointLightInnerRadius = 0.4f;
+        }
+
+        private static void CreateNightclubCorner(
+            Transform parent,
+            ProductionArtPack pack,
+            NavigationGrid2D nav)
+        {
+            CreateStaticSprite(
+                parent,
+                "Club Facade // Wall",
+                pack.wallStraight,
+                new Vector2(
+                    8.5f,
+                    -14.2f),
+                0.78f);
+
+            CreateStaticSprite(
+                parent,
+                "Club Facade // Door",
+                pack.reinforcedDoor,
+                new Vector2(
+                    8.6f,
+                    -15.4f),
+                0.56f);
+
+            CreateNeonSign(
+                parent,
+                "NEON // Club",
+                "КЛУБ // 03:17",
+                new Vector2(
+                    8.5f,
+                    -12.8f),
+                new Color(
+                    1f,
+                    0.16f,
+                    0.68f));
+
+            GameObject ambience =
+                new GameObject(
+                    "Club Entrance Ambience");
+
+            ambience.transform.SetParent(
+                parent,
+                false);
+
+            ambience.transform.position =
+                new Vector2(
+                    8.5f,
+                    -15.0f);
+
+            Light2D magenta =
+                CreateClubLight(
+                    ambience.transform,
+                    "Club Magenta",
+                    new Vector2(
+                        -0.8f,
+                        0.2f),
+                    new Color(
+                        1f,
+                        0.08f,
+                        0.58f));
+
+            Light2D cyan =
+                CreateClubLight(
+                    ambience.transform,
+                    "Club Cyan",
+                    new Vector2(
+                        0.9f,
+                        -0.1f),
+                    new Color(
+                        0.08f,
+                        0.78f,
+                        1f));
+
+            CityClubAmbience2D clubAudio =
+                ambience.AddComponent<
+                    CityClubAmbience2D>();
+
+            clubAudio.Configure(
+                new[]
+                {
+                    magenta,
+                    cyan
+                },
+                11f,
+                0.40f);
+
+            DialogueNodeData[] bouncerDialogue =
+            {
+                new DialogueNodeData
+                {
+                    id = "start",
+                    speaker = "ОХРАННИК КЛУБА",
+                    forbiddenFlag =
+                        "slice_ambush_cleared",
+                    text =
+                        "Сегодня вход только по жетонам. И убери руку от ошейника — камеры у двери пишут даже звук.",
+                    choices =
+                        new[]
+                        {
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Что за жетоны?",
+                                nextNodeId =
+                                    "tokens"
+                            },
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Почему столько патрулей?",
+                                nextNodeId =
+                                    "patrols",
+                                setFlag =
+                                    "slice_bouncer_asked_patrols"
+                            },
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Я не собираюсь внутрь.",
+                                closeDialogue = true
+                            }
+                        }
+                },
+                new DialogueNodeData
+                {
+                    id = "start",
+                    speaker = "ОХРАННИК КЛУБА",
+                    requiredFlag =
+                        "slice_ambush_cleared",
+                    text =
+                        "Если это ты устроил шум у склада — сегодня внутрь точно не зайдёшь. Через пять минут здесь будет ещё один патруль.",
+                    choices =
+                        new[]
+                        {
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Они уже знают, кто стрелял?",
+                                nextNodeId =
+                                    "afterfight"
+                            },
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Не видел меня.",
+                                closeDialogue = true,
+                                valueKey =
+                                    "city_civilian_trust",
+                                valueDelta = -1
+                            }
+                        }
+                },
+                new DialogueNodeData
+                {
+                    id = "tokens",
+                    speaker = "ОХРАННИК КЛУБА",
+                    text =
+                        "Лицензия заведения плюс отметка в городской сети. Раньше хватало денег. Теперь администрация хочет знать, кто пьёт, где и после скольки."
+                },
+                new DialogueNodeData
+                {
+                    id = "patrols",
+                    speaker = "ОХРАННИК КЛУБА",
+                    text =
+                        "Спроси у них. Только сначала придумай, зачем нормальному человеку ночью задавать патрулю вопросы."
+                },
+                new DialogueNodeData
+                {
+                    id = "afterfight",
+                    speaker = "ОХРАННИК КЛУБА",
+                    text =
+                        "Улица знает быстрее городской сети. И обычно точнее. Но имён пока никто не называет — значит, кто-то очень не хочет их услышать."
+                }
+            };
+
+            CreateCivilian(
+                parent,
+                "Club Bouncer",
+                new Vector2(
+                    7.0f,
+                    -16.2f),
+                pack.machineGunner != null
+                    ? pack.machineGunner
+                    : pack.rifleman,
+                nav,
+                new Color(
+                    0.55f,
+                    0.62f,
+                    0.72f),
+                false,
+                0f,
+                "ОХРАННИК КЛУБА",
+                bouncerDialogue,
+                null);
+        }
+
+        private static Light2D CreateClubLight(
+            Transform parent,
+            string name,
+            Vector2 localPosition,
+            Color color)
+        {
+            GameObject go =
+                new GameObject(name);
+
+            go.transform.SetParent(
+                parent,
+                false);
+
+            go.transform.localPosition =
+                localPosition;
+
+            Light2D light =
+                go.AddComponent<
+                    Light2D>();
+
+            light.lightType =
+                Light2D.LightType.Point;
+
+            light.color = color;
+            light.intensity = 0.7f;
+            light.pointLightInnerRadius = 0.25f;
+            light.pointLightOuterRadius = 4.2f;
+
+            return light;
         }
 
         private static void CreateMarketDetails(
