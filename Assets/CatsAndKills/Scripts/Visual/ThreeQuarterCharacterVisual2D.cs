@@ -14,6 +14,7 @@ namespace CatsAndKills.Visual
         [SerializeField] private PlayerAim2D playerAim;
         [SerializeField] private Rigidbody2D body;
         [SerializeField] private HitscanWeapon2D playerWeapon;
+        [SerializeField] private Transform lookTarget;
         [SerializeField] private float moveThreshold = 0.12f;
 
         private Vector2 _facing = Vector2.down;
@@ -29,7 +30,8 @@ namespace CatsAndKills.Visual
             CharacterVitals characterVitals,
             Rigidbody2D rigidbodyRef = null,
             PlayerAim2D aim = null,
-            HitscanWeapon2D weapon = null)
+            HitscanWeapon2D weapon = null,
+            Transform target = null)
         {
             sprites = spriteSet;
             bodyRenderer = renderer;
@@ -37,6 +39,7 @@ namespace CatsAndKills.Visual
             body = rigidbodyRef;
             playerAim = aim;
             playerWeapon = weapon;
+            lookTarget = target;
         }
 
         private void Awake()
@@ -83,11 +86,27 @@ namespace CatsAndKills.Visual
             Vector2 desired = Vector2.zero;
 
             if (playerAim != null)
+            {
                 desired = playerAim.AimDirection;
+            }
+            else if (lookTarget != null)
+            {
+                desired =
+                    (Vector2)lookTarget.position -
+                    (Vector2)transform.position;
+            }
+            else if (body != null && body.linearVelocity.sqrMagnitude > 0.02f)
+            {
+                desired = body.linearVelocity;
+            }
             else if (transform.parent != null)
+            {
                 desired = transform.parent.right;
+            }
             else
+            {
                 desired = transform.right;
+            }
 
             if (desired.sqrMagnitude > 0.001f)
                 _facing = desired.normalized;
