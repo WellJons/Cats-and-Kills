@@ -46,6 +46,8 @@ namespace CatsAndKills.Combat
 
         private void Update()
         {
+            if (Time.timeScale <= 0f) return;
+
             if (CKInput.GrenadePressed && grenadeCount > 0 && !_cooking)
                 BeginCook();
 
