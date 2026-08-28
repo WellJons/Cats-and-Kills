@@ -357,6 +357,45 @@ namespace CatsAndKills.EditorTools
                 ppu);
         }
 
+        private sealed class AlphaComponentInfo
+        {
+            public readonly List<int> pixels =
+                new List<int>(1024);
+
+            public int minX = int.MaxValue;
+            public int minY = int.MaxValue;
+            public int maxX = int.MinValue;
+            public int maxY = int.MinValue;
+            public long sumX;
+            public long sumY;
+
+            public int Count => pixels.Count;
+
+            public float CenterX =>
+                Count > 0
+                    ? sumX / (float)Count
+                    : 0f;
+
+            public float CenterY =>
+                Count > 0
+                    ? sumY / (float)Count
+                    : 0f;
+
+            public void Add(
+                int index,
+                int x,
+                int y)
+            {
+                pixels.Add(index);
+                minX = Mathf.Min(minX, x);
+                minY = Mathf.Min(minY, y);
+                maxX = Mathf.Max(maxX, x);
+                maxY = Mathf.Max(maxY, y);
+                sumX += x;
+                sumY += y;
+            }
+        }
+
         private static DirectionalSpriteSet BuildCharacterSet(
             string id)
         {
@@ -366,71 +405,396 @@ namespace CatsAndKills.EditorTools
             if (atlas == null)
                 return null;
 
-            // The generated concept sheets visually contain seven columns,
-            // even though the original generation request asked for eight.
-            // Slicing them as 8 columns was cutting every character in half.
             const int sourceColumns = 7;
             const int rowsCount = 5;
 
-            Sprite[][] sourceRows = new Sprite[rowsCount][];
+            List<AlphaComponentInfo> components =
+                FindAlphaComponents(
+                    atlas,
+                    18);
 
-            for (int row = 0; row < rowsCount; row++)
+            var cells =
+                new List<AlphaComponentInfo>[
+                    sourceColumns *
+                    rowsCount];
+
+            for (int i = 0; i < cells.Length; i++)
+                cells[i] =
+                    new List<AlphaComponentInfo>();
+
+            float cellW =
+                atlas.width /
+                (float)sourceColumns;
+
+            float cellH =
+                atlas.height /
+                (float)rowsCount;
+
+            foreach (AlphaComponentInfo component
+                     in components)
             {
-                sourceRows[row] = new Sprite[sourceColumns];
+                if (component.Count < 6)
+                    continue;
 
-                for (int col = 0; col < sourceColumns; col++)
+                float topCenter =
+                    atlas.height -
+                    component.CenterY;
+
+                int col =
+                    Mathf.Clamp(
+                        Mathf.RoundToInt(
+                            component.CenterX /
+                            cellW -
+                            0.5f),
+                        0,
+                        sourceColumns - 1);
+
+                int row =
+                    Mathf.Clamp(
+                        Mathf.RoundToInt(
+                            topCenter /
+                            cellH -
+                            0.5f),
+                        0,
+                        rowsCount - 1);
+
+                cells[
+                    row *
+                    sourceColumns +
+                    col].Add(component);
+            }
+
+            var selected =
+                new List<AlphaComponentInfo>[
+                    sourceColumns *
+                    rowsCount];
+
+            float maxLeft = 0f;
+            float maxRight = 0f;
+            float maxDown = 0f;
+            float maxUp = 0f;
+
+            for (int row = 0;
+                 row < rowsCount;
+                 row++)
+            {
+                for (int col = 0;
+                     col < sourceColumns;
+                     col++)
                 {
-                    int x0 =
-                        Mathf.RoundToInt(
-                            col * atlas.width / (float)sourceColumns);
+                    int index =
+                        row *
+                        sourceColumns +
+                        col;
 
-                    int x1 =
-                        Mathf.RoundToInt(
-                            (col + 1) * atlas.width /
-                            (float)sourceColumns);
+                    selected[index] =
+                        SelectPoseComponents(
+                            cells[index],
+                            cellW,
+                            cellH);
 
-                    int top0 =
-                        Mathf.RoundToInt(
-                            row * atlas.height / (float)rowsCount);
+                    float anchorX =
+                        (col + 0.5f) *
+                        cellW;
 
-                    int top1 =
-                        Mathf.RoundToInt(
-                            (row + 1) * atlas.height /
-                            (float)rowsCount);
+                    float cellBottom =
+                        atlas.height -
+                        (row + 1f) *
+                        cellH;
 
-                    sourceRows[row][col] =
-                        CropCharacterCell(
-                            atlas,
-                            "Characters/" +
-                            id + "/source_" +
-                            RowName(row) + "_" +
-                            col,
-                            x0,
-                            top0,
-                            x1 - x0,
-                            top1 - top0,
-                            128f);
+                    float anchorY =
+                        cellBottom +
+                        cellH *
+                        0.075f;
+
+                    if (selected[index].Count == 0)
+                    {
+                        int x0 =
+                            Mathf.RoundToInt(
+                                col * cellW);
+
+                        int x1 =
+                            Mathf.RoundToInt(
+                                (col + 1) * cellW) -
+                            1;
+
+                        int y0 =
+                            Mathf.RoundToInt(
+                                cellBottom);
+
+                        int y1 =
+                            Mathf.RoundToInt(
+                                cellBottom +
+                                cellH) -
+                            1;
+
+                        maxLeft =
+                            Mathf.Max(
+                                maxLeft,
+                                anchorX - x0);
+
+                        maxRight =
+                            Mathf.Max(
+                                maxRight,
+                                x1 - anchorX);
+
+                        maxDown =
+                            Mathf.Max(
+                                maxDown,
+                                anchorY - y0);
+
+                        maxUp =
+                            Mathf.Max(
+                                maxUp,
+                                y1 - anchorY);
+
+                        continue;
+                    }
+
+                    foreach (AlphaComponentInfo component
+                             in selected[index])
+                    {
+                        maxLeft =
+                            Mathf.Max(
+                                maxLeft,
+                                anchorX -
+                                component.minX);
+
+                        maxRight =
+                            Mathf.Max(
+                                maxRight,
+                                component.maxX -
+                                anchorX);
+
+                        maxDown =
+                            Mathf.Max(
+                                maxDown,
+                                anchorY -
+                                component.minY);
+
+                        maxUp =
+                            Mathf.Max(
+                                maxUp,
+                                component.maxY -
+                                anchorY);
+                    }
                 }
             }
 
-            Sprite[][] mapped = new Sprite[rowsCount][];
+            int paddingX =
+                Mathf.Max(
+                    10,
+                    Mathf.RoundToInt(
+                        cellW *
+                        0.05f));
 
-            for (int row = 0; row < rowsCount; row++)
+            int paddingY =
+                Mathf.Max(
+                    10,
+                    Mathf.RoundToInt(
+                        cellH *
+                        0.05f));
+
+            int canvasW =
+                Mathf.CeilToInt(
+                    maxLeft +
+                    maxRight) +
+                paddingX * 2 +
+                2;
+
+            int canvasH =
+                Mathf.CeilToInt(
+                    maxDown +
+                    maxUp) +
+                paddingY * 2 +
+                2;
+
+            int pivotPixelX =
+                Mathf.CeilToInt(
+                    maxLeft) +
+                paddingX;
+
+            int pivotPixelY =
+                Mathf.CeilToInt(
+                    maxDown) +
+                paddingY;
+
+            Vector2 commonPivot =
+                new Vector2(
+                    pivotPixelX /
+                    (float)Mathf.Max(
+                        1,
+                        canvasW),
+                    pivotPixelY /
+                    (float)Mathf.Max(
+                        1,
+                        canvasH));
+
+            Color32[] sourcePixels =
+                atlas.GetPixels32(0);
+
+            Sprite[][] sourceRows =
+                new Sprite[rowsCount][];
+
+            for (int row = 0;
+                 row < rowsCount;
+                 row++)
             {
-                Sprite[] src = sourceRows[row];
-                Sprite[] dst = new Sprite[8];
+                sourceRows[row] =
+                    new Sprite[sourceColumns];
 
-                // Actual generated layout:
-                // 0 E, 1 SE, 2 N, 3 NW, 4 W, 5 S, 6 SW.
-                // NE is the only missing view; runtime mirrors the NW frame.
-                dst[(int)CharacterDirection8.East] = src[0];
-                dst[(int)CharacterDirection8.NorthEast] = src[3];
-                dst[(int)CharacterDirection8.North] = src[2];
-                dst[(int)CharacterDirection8.NorthWest] = src[3];
-                dst[(int)CharacterDirection8.West] = src[4];
-                dst[(int)CharacterDirection8.SouthWest] = src[6];
-                dst[(int)CharacterDirection8.South] = src[5];
-                dst[(int)CharacterDirection8.SouthEast] = src[1];
+                for (int col = 0;
+                     col < sourceColumns;
+                     col++)
+                {
+                    int index =
+                        row *
+                        sourceColumns +
+                        col;
+
+                    float anchorX =
+                        (col + 0.5f) *
+                        cellW;
+
+                    float cellBottom =
+                        atlas.height -
+                        (row + 1f) *
+                        cellH;
+
+                    float anchorY =
+                        cellBottom +
+                        cellH *
+                        0.075f;
+
+                    Color32[] output =
+                        new Color32[
+                            canvasW *
+                            canvasH];
+
+                    List<AlphaComponentInfo> pose =
+                        selected[index];
+
+                    if (pose.Count > 0)
+                    {
+                        foreach (AlphaComponentInfo component
+                                 in pose)
+                        {
+                            foreach (int sourceIndex
+                                     in component.pixels)
+                            {
+                                int sx =
+                                    sourceIndex %
+                                    atlas.width;
+
+                                int sy =
+                                    sourceIndex /
+                                    atlas.width;
+
+                                int dx =
+                                    Mathf.RoundToInt(
+                                        sx -
+                                        anchorX) +
+                                    pivotPixelX;
+
+                                int dy =
+                                    Mathf.RoundToInt(
+                                        sy -
+                                        anchorY) +
+                                    pivotPixelY;
+
+                                if (dx < 0 ||
+                                    dy < 0 ||
+                                    dx >= canvasW ||
+                                    dy >= canvasH)
+                                {
+                                    continue;
+                                }
+
+                                output[
+                                    dy *
+                                    canvasW +
+                                    dx] =
+                                    sourcePixels[
+                                        sourceIndex];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        CopyNominalCharacterCell(
+                            atlas,
+                            sourcePixels,
+                            output,
+                            canvasW,
+                            canvasH,
+                            row,
+                            col,
+                            sourceColumns,
+                            rowsCount,
+                            pivotPixelX,
+                            pivotPixelY);
+                    }
+
+                    sourceRows[row][col] =
+                        SaveGeneratedSprite(
+                            output,
+                            canvasW,
+                            canvasH,
+                            "Characters/" +
+                            id +
+                            "/source_" +
+                            RowName(row) +
+                            "_" +
+                            col,
+                            128f,
+                            commonPivot);
+                }
+            }
+
+            Sprite[][] mapped =
+                new Sprite[rowsCount][];
+
+            for (int row = 0;
+                 row < rowsCount;
+                 row++)
+            {
+                Sprite[] src =
+                    sourceRows[row];
+
+                Sprite[] dst =
+                    new Sprite[8];
+
+                dst[
+                    (int)CharacterDirection8.East] =
+                    src[0];
+
+                dst[
+                    (int)CharacterDirection8.NorthEast] =
+                    src[3];
+
+                dst[
+                    (int)CharacterDirection8.North] =
+                    src[2];
+
+                dst[
+                    (int)CharacterDirection8.NorthWest] =
+                    src[3];
+
+                dst[
+                    (int)CharacterDirection8.West] =
+                    src[4];
+
+                dst[
+                    (int)CharacterDirection8.SouthWest] =
+                    src[6];
+
+                dst[
+                    (int)CharacterDirection8.South] =
+                    src[5];
+
+                dst[
+                    (int)CharacterDirection8.SouthEast] =
+                    src[1];
 
                 mapped[row] = dst;
             }
@@ -442,7 +806,8 @@ namespace CatsAndKills.EditorTools
                 "_DirectionalSet.asset";
 
             DirectionalSpriteSet set =
-                AssetDatabase.LoadAssetAtPath<DirectionalSpriteSet>(
+                AssetDatabase.LoadAssetAtPath<
+                    DirectionalSpriteSet>(
                     dataPath);
 
             if (set == null)
@@ -470,6 +835,371 @@ namespace CatsAndKills.EditorTools
             EditorUtility.SetDirty(set);
 
             return set;
+        }
+
+        private static List<AlphaComponentInfo>
+            SelectPoseComponents(
+                List<AlphaComponentInfo> candidates,
+                float cellW,
+                float cellH)
+        {
+            var result =
+                new List<AlphaComponentInfo>();
+
+            if (candidates == null ||
+                candidates.Count == 0)
+            {
+                return result;
+            }
+
+            AlphaComponentInfo main = null;
+
+            foreach (AlphaComponentInfo candidate
+                     in candidates)
+            {
+                if (main == null ||
+                    candidate.Count >
+                    main.Count)
+                {
+                    main = candidate;
+                }
+            }
+
+            if (main == null)
+                return result;
+
+            result.Add(main);
+
+            float margin =
+                Mathf.Max(
+                    8f,
+                    Mathf.Min(
+                        cellW,
+                        cellH) *
+                    0.18f);
+
+            foreach (AlphaComponentInfo candidate
+                     in candidates)
+            {
+                if (candidate == main ||
+                    candidate.Count < 6)
+                {
+                    continue;
+                }
+
+                float gapX =
+                    Mathf.Max(
+                        0f,
+                        Mathf.Max(
+                            main.minX -
+                            candidate.maxX,
+                            candidate.minX -
+                            main.maxX));
+
+                float gapY =
+                    Mathf.Max(
+                        0f,
+                        Mathf.Max(
+                            main.minY -
+                            candidate.maxY,
+                            candidate.minY -
+                            main.maxY));
+
+                float distance =
+                    Mathf.Sqrt(
+                        gapX * gapX +
+                        gapY * gapY);
+
+                bool reasonablySized =
+                    candidate.Count <=
+                    main.Count * 0.55f ||
+                    distance <
+                    margin * 0.65f;
+
+                if (distance <= margin &&
+                    reasonablySized)
+                {
+                    result.Add(candidate);
+                }
+            }
+
+            return result;
+        }
+
+        private static List<AlphaComponentInfo>
+            FindAlphaComponents(
+                Texture2D source,
+                byte alphaThreshold)
+        {
+            var result =
+                new List<AlphaComponentInfo>();
+
+            if (source == null)
+                return result;
+
+            int width =
+                source.width;
+
+            int height =
+                source.height;
+
+            Color32[] pixels =
+                source.GetPixels32(0);
+
+            bool[] visited =
+                new bool[
+                    width *
+                    height];
+
+            var queue =
+                new Queue<int>();
+
+            for (int index = 0;
+                 index < pixels.Length;
+                 index++)
+            {
+                if (visited[index] ||
+                    pixels[index].a <=
+                    alphaThreshold)
+                {
+                    continue;
+                }
+
+                AlphaComponentInfo component =
+                    new AlphaComponentInfo();
+
+                queue.Clear();
+                queue.Enqueue(index);
+                visited[index] = true;
+
+                while (queue.Count > 0)
+                {
+                    int current =
+                        queue.Dequeue();
+
+                    int x =
+                        current %
+                        width;
+
+                    int y =
+                        current /
+                        width;
+
+                    component.Add(
+                        current,
+                        x,
+                        y);
+
+                    for (int oy = -1;
+                         oy <= 1;
+                         oy++)
+                    {
+                        for (int ox = -1;
+                             ox <= 1;
+                             ox++)
+                        {
+                            if (ox == 0 &&
+                                oy == 0)
+                            {
+                                continue;
+                            }
+
+                            int nx =
+                                x +
+                                ox;
+
+                            int ny =
+                                y +
+                                oy;
+
+                            if (nx < 0 ||
+                                ny < 0 ||
+                                nx >= width ||
+                                ny >= height)
+                            {
+                                continue;
+                            }
+
+                            int ni =
+                                ny *
+                                width +
+                                nx;
+
+                            if (visited[ni] ||
+                                pixels[ni].a <=
+                                alphaThreshold)
+                            {
+                                continue;
+                            }
+
+                            visited[ni] = true;
+                            queue.Enqueue(ni);
+                        }
+                    }
+                }
+
+                if (component.Count >= 3)
+                    result.Add(component);
+            }
+
+            return result;
+        }
+
+        private static void CopyNominalCharacterCell(
+            Texture2D atlas,
+            Color32[] sourcePixels,
+            Color32[] output,
+            int canvasW,
+            int canvasH,
+            int row,
+            int col,
+            int columns,
+            int rows,
+            int pivotPixelX,
+            int pivotPixelY)
+        {
+            float cellW =
+                atlas.width /
+                (float)columns;
+
+            float cellH =
+                atlas.height /
+                (float)rows;
+
+            int x0 =
+                Mathf.RoundToInt(
+                    col *
+                    cellW);
+
+            int x1 =
+                Mathf.RoundToInt(
+                    (col + 1) *
+                    cellW);
+
+            int top0 =
+                Mathf.RoundToInt(
+                    row *
+                    cellH);
+
+            int top1 =
+                Mathf.RoundToInt(
+                    (row + 1) *
+                    cellH);
+
+            int bottom =
+                atlas.height -
+                top1;
+
+            float anchorX =
+                (col + 0.5f) *
+                cellW;
+
+            float anchorY =
+                bottom +
+                cellH *
+                0.075f;
+
+            for (int sy = bottom;
+                 sy < atlas.height - top0;
+                 sy++)
+            {
+                for (int sx = x0;
+                     sx < x1;
+                     sx++)
+                {
+                    int sourceIndex =
+                        sy *
+                        atlas.width +
+                        sx;
+
+                    if (sourcePixels[
+                            sourceIndex].a <=
+                        18)
+                    {
+                        continue;
+                    }
+
+                    int dx =
+                        Mathf.RoundToInt(
+                            sx -
+                            anchorX) +
+                        pivotPixelX;
+
+                    int dy =
+                        Mathf.RoundToInt(
+                            sy -
+                            anchorY) +
+                        pivotPixelY;
+
+                    if (dx < 0 ||
+                        dy < 0 ||
+                        dx >= canvasW ||
+                        dy >= canvasH)
+                    {
+                        continue;
+                    }
+
+                    output[
+                        dy *
+                        canvasW +
+                        dx] =
+                        sourcePixels[
+                            sourceIndex];
+                }
+            }
+        }
+
+        private static Sprite SaveGeneratedSprite(
+            Color32[] pixels,
+            int width,
+            int height,
+            string relativePath,
+            float ppu,
+            Vector2 pivot)
+        {
+            Texture2D output =
+                new Texture2D(
+                    width,
+                    height,
+                    TextureFormat.RGBA32,
+                    false);
+
+            output.SetPixels32(pixels);
+            output.Apply();
+
+            string path =
+                GeneratedRoot +
+                "/" +
+                relativePath +
+                ".png";
+
+            string folder =
+                Path.GetDirectoryName(path)?
+                    .Replace("\\", "/");
+
+            EnsureFolder(folder);
+
+            File.WriteAllBytes(
+                path,
+                output.EncodeToPNG());
+
+            UnityEngine.Object.DestroyImmediate(
+                output);
+
+            AssetDatabase.ImportAsset(
+                path,
+                ImportAssetOptions
+                    .ForceSynchronousImport);
+
+            ConfigureGeneratedSprite(
+                path,
+                ppu,
+                pivot);
+
+            return
+                AssetDatabase.LoadAssetAtPath<
+                    Sprite>(
+                    path);
         }
 
         private static string RowName(int row)
