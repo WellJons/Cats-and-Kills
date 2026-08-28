@@ -1,3 +1,4 @@
+using CatsAndKills.AI;
 using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.Player;
@@ -14,8 +15,12 @@ namespace CatsAndKills.Visual
         [SerializeField] private PlayerAim2D playerAim;
         [SerializeField] private Rigidbody2D body;
         [SerializeField] private HitscanWeapon2D playerWeapon;
+        [SerializeField] private EnemyWeapon2D enemyWeapon;
         [SerializeField] private Transform lookTarget;
         [SerializeField] private float moveThreshold = 0.12f;
+        [SerializeField] private float moveFrameRate = 8f;
+
+        private float _fireUntil;
 
         private Vector2 _facing = Vector2.down;
         private float _hurtUntil;
@@ -58,18 +63,33 @@ namespace CatsAndKills.Visual
 
             if (playerWeapon == null)
                 playerWeapon = GetComponentInParent<HitscanWeapon2D>();
+
+            if (enemyWeapon == null)
+                enemyWeapon = GetComponentInParent<EnemyWeapon2D>();
         }
 
         private void OnEnable()
         {
             if (vitals != null)
                 vitals.Damaged += OnDamaged;
+
+            if (playerWeapon != null)
+                playerWeapon.Fired += OnWeaponFired;
+
+            if (enemyWeapon != null)
+                enemyWeapon.Fired += OnWeaponFired;
         }
 
         private void OnDisable()
         {
             if (vitals != null)
                 vitals.Damaged -= OnDamaged;
+
+            if (playerWeapon != null)
+                playerWeapon.Fired -= OnWeaponFired;
+
+            if (enemyWeapon != null)
+                enemyWeapon.Fired -= OnWeaponFired;
         }
 
         private void LateUpdate()
@@ -142,6 +162,10 @@ namespace CatsAndKills.Visual
             {
                 next = sprites.GetHurt(_direction);
             }
+            else if (Time.unscaledTime < _fireUntil)
+            {
+                next = sprites.GetFire(_direction);
+            }
             else if (playerWeapon != null && playerWeapon.IsReloading)
             {
                 next = sprites.GetReload(_direction);
@@ -150,7 +174,16 @@ namespace CatsAndKills.Visual
                      body.linearVelocity.sqrMagnitude >
                      moveThreshold * moveThreshold)
             {
-                next = sprites.GetMove(_direction);
+                bool alternate =
+                    Mathf.FloorToInt(
+                        Time.unscaledTime *
+                        Mathf.Max(1f, moveFrameRate)) %
+                    2 == 1;
+
+                next =
+                    alternate
+                        ? sprites.GetMoveAlt(_direction)
+                        : sprites.GetMove(_direction);
             }
             else
             {
@@ -164,6 +197,11 @@ namespace CatsAndKills.Visual
         private void OnDamaged(DamageInfo info)
         {
             _hurtUntil = Time.unscaledTime + 0.16f;
+        }
+
+        private void OnWeaponFired()
+        {
+            _fireUntil = Time.unscaledTime + 0.085f;
         }
     }
 }
