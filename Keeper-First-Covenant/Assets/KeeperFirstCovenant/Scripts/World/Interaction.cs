@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using KeeperFirstCovenant.Combat;
 using KeeperFirstCovenant.Inventory;
 using UnityEngine;
 
@@ -23,6 +24,13 @@ namespace KeeperFirstCovenant.World
         public string InteractionPrompt => prompt;
         public IReadOnlyList<InventoryStack> LastResult => _lastResult;
 
+        public void Configure(LootTableDefinition table, string interactionPrompt = "Search", bool oneTime = true)
+        {
+            lootTable = table;
+            prompt = interactionPrompt;
+            searchOnce = oneTime;
+        }
+
         public bool CanInteract(GameObject actor)
         {
             return actor != null && (!searchOnce || !_searched);
@@ -38,7 +46,7 @@ namespace KeeperFirstCovenant.World
                 return;
 
             int perception = 10;
-            var combatant = actor.GetComponentInParent<Combat.CombatantRuntime>();
+            CombatantRuntime combatant = actor.GetComponentInParent<CombatantRuntime>();
             if (combatant != null && combatant.Definition != null)
                 perception = combatant.Definition.perception;
 
