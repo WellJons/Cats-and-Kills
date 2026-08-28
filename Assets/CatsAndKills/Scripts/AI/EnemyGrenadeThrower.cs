@@ -40,6 +40,22 @@ namespace CatsAndKills.AI
             if (distance < _minDistance || distance > _maxDistance)
                 return false;
 
+            Collider2D[] nearby =
+                Physics2D.OverlapCircleAll(target.position, 2.8f);
+
+            foreach (Collider2D col in nearby)
+            {
+                if (col == null ||
+                    col.transform.root == transform.root)
+                    continue;
+
+                if (col.GetComponentInParent<EnemyBrain>() != null)
+                {
+                    _nextThrow = Time.time + Random.Range(1.6f, 2.8f);
+                    return false;
+                }
+            }
+
             float chance = Mathf.Lerp(0.18f, 0.46f, aggression);
             if (Random.value > chance)
             {
