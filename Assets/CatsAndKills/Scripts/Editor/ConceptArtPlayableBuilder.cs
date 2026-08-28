@@ -57,6 +57,9 @@ namespace CatsAndKills.EditorTools
             RebuildConceptCoverPoints();
             RebuildConceptNavigation();
 
+            DistrictVerticalSliceBuilder.Apply(
+                pack);
+
             // BuildWithPack creates the only character visual pipeline.
             // A runtime bootstrap could recreate/replace that visual after
             // Play starts, which is exactly how duplicate weapon/body layers
