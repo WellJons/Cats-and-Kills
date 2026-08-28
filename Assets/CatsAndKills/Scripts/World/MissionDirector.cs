@@ -1,3 +1,4 @@
+using System.Collections;
 using CatsAndKills.UI;
 using UnityEngine;
 
@@ -23,8 +24,26 @@ namespace CatsAndKills.World
                 extractionMarker.SetActive(false);
         }
 
-        private void Start()
+        private IEnumerator Start()
         {
+            if (CheckpointSystem.HasCheckpoint)
+            {
+                if (!string.IsNullOrEmpty(CheckpointSystem.Label) &&
+                    CheckpointSystem.Label.Contains("ADMIN"))
+                {
+                    CurrentObjective = "ЦЕЛЬ: получить данные из терминала";
+                }
+                else
+                {
+                    CurrentObjective = "ЦЕЛЬ: пройти через склад и найти путь в штаб";
+                }
+
+                yield break;
+            }
+
+            while (Time.timeScale <= 0f)
+                yield return null;
+
             RadioDialogueSystem.Instance?.Say(
                 "ОПЕРАТОР",
                 "Объект ещё работает. Войди через складской сектор и найди архивный терминал. Без лишнего шума, если получится.",
