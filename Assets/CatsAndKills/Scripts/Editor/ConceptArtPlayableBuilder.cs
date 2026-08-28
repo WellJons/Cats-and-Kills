@@ -59,8 +59,10 @@ namespace CatsAndKills.EditorTools
 
             if (follow != null)
             {
-                // Existing follow component keeps gameplay logic.
-                // The tighter framing is intentional for the 3/4 art.
+                follow.ConfigureBounds(
+                    new Vector2(-23f, -14f),
+                    new Vector2(23f, 14f),
+                    camera);
             }
         }
 
