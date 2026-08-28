@@ -8,12 +8,17 @@ namespace CatsAndKills.World
     {
         [SerializeField] private GameObject extractionMarker;
         [SerializeField] private Door2D commandDoor;
+        [SerializeField] private Transform terminalTarget;
+        [SerializeField] private Transform extractionTarget;
 
         public string CurrentObjective { get; private set; } =
             "ЦЕЛЬ: проникнуть в административный корпус";
 
         public bool TerminalDone { get; private set; }
         public bool MissionComplete { get; private set; }
+
+        public Transform CurrentObjectiveTarget =>
+            TerminalDone ? extractionTarget : terminalTarget;
 
         public void Configure(GameObject extraction, Door2D door)
         {
@@ -22,6 +27,14 @@ namespace CatsAndKills.World
 
             if (extractionMarker != null)
                 extractionMarker.SetActive(false);
+        }
+
+        public void BindObjectiveTargets(
+            Transform terminal,
+            Transform extraction)
+        {
+            terminalTarget = terminal;
+            extractionTarget = extraction;
         }
 
         private IEnumerator Start()
