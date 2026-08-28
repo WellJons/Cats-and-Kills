@@ -14,6 +14,7 @@ namespace CatsAndKills.AI
 
         private Transform _target;
         private CharacterVitals _ownerVitals;
+        private SuppressionReceiver2D _suppression;
         private float _range = 20f;
         private float _damage = 18f;
         private float _fireRate = 7.5f;
@@ -40,6 +41,7 @@ namespace CatsAndKills.AI
         {
             _target = target;
             _ownerVitals = GetComponent<CharacterVitals>();
+            _suppression = GetComponent<SuppressionReceiver2D>();
             muzzle = muzzleRef;
             audioSource = source;
             shotClip = clip;
@@ -105,9 +107,13 @@ namespace CatsAndKills.AI
 
             float extra = _suppressing ? 1.35f : 1f;
             float stability = _ownerVitals != null ? _ownerVitals.WeaponStabilityMultiplier : 1f;
+            float suppressionSpread = _suppression != null
+                ? Mathf.Lerp(1f, 2.3f, _suppression.Suppression)
+                : 1f;
+
             float error = Random.Range(
-                -_spreadDegrees * extra * stability,
-                _spreadDegrees * extra * stability);
+                -_spreadDegrees * extra * stability * suppressionSpread,
+                _spreadDegrees * extra * stability * suppressionSpread);
 
             Vector2 direction =
                 Quaternion.Euler(0f, 0f, error) * toTarget.normalized;
