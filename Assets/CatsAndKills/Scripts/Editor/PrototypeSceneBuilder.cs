@@ -570,7 +570,7 @@ namespace CatsAndKills.EditorTools
                     enemyWeapon.ConfigureStats(17f, 3.6f, 5.2f, 1, 2, 11f);
                     break;
                 case EnemyArchetype.MachineGunner:
-                    enemyWeapon.ConfigureStats(13f, 11.5f, 3.1f, 6, 11, 17f);
+                    enemyWeapon.ConfigureStats(13f, 11.5f, 3.1f, 6, 11, 17f, 2.2f);
                     break;
                 case EnemyArchetype.Demolitionist:
                     enemyWeapon.ConfigureStats(17f, 7f, 3.3f, 2, 4, 12f);
@@ -625,6 +625,10 @@ namespace CatsAndKills.EditorTools
             CreateDestructible("Crate 3", new Vector2(0f, -6f));
             CreateDestructible("Crate 4", new Vector2(6f, 4f));
             CreateDestructible("Crate 5", new Vector2(14f, -5f));
+
+            CreateExplosiveProp("Fuel Drum A", new Vector2(-1f, 5.5f));
+            CreateExplosiveProp("Fuel Drum B", new Vector2(6.5f, -2.5f));
+            CreateExplosiveProp("Fuel Drum C", new Vector2(15.5f, 5.0f));
         }
 
         private static GameObject CreateWall(string name, Vector2 position, Vector2 size)
@@ -642,6 +646,27 @@ namespace CatsAndKills.EditorTools
             var col = go.AddComponent<BoxCollider2D>();
             col.size = Vector2.one;
             return go;
+        }
+
+        private static void CreateExplosiveProp(string name, Vector2 position)
+        {
+            var go = new GameObject(name);
+            go.transform.position = position;
+            go.transform.localScale = new Vector3(0.72f, 1.05f, 1f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = _circle;
+            sr.color = new Color(0.62f, 0.13f, 0.10f);
+            sr.sortingOrder = 5;
+
+            var col = go.AddComponent<CircleCollider2D>();
+            col.radius = 0.48f;
+
+            var prop = go.AddComponent<ExplosiveProp2D>();
+            prop.Configure(
+                42f,
+                _circle,
+                ProceduralAudioFactory.Explosion);
         }
 
         private static void CreateDestructible(string name, Vector2 position)
