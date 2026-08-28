@@ -23,6 +23,12 @@ namespace CatsAndKills.FX
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         public void BloodBurst(Vector2 position, Vector2 direction, int count = 7, float force = 1f)
         {
             if (bloodSprite != null && count >= 5)
