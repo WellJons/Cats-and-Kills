@@ -23,6 +23,12 @@ namespace CatsAndKills.Combat
     {
         public static event Action<SuppressionEvent> ShotPassed;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            ShotPassed = null;
+        }
+
         public static void ReportShot(Vector2 start, Vector2 end, float strength, GameObject source)
         {
             ShotPassed?.Invoke(new SuppressionEvent(start, end, Mathf.Max(0f, strength), source));
