@@ -83,6 +83,37 @@ namespace CatsAndKills.AI
             }
 
             Vector2 desired = delta.normalized * moveSpeed * limbFactor;
+
+            Vector2 separation = Vector2.zero;
+            Collider2D[] neighbours =
+                Physics2D.OverlapCircleAll(transform.position, 0.72f);
+
+            foreach (Collider2D neighbour in neighbours)
+            {
+                if (neighbour == null ||
+                    neighbour.transform.root == transform.root)
+                    continue;
+
+                EnemyMotor2D other =
+                    neighbour.GetComponentInParent<EnemyMotor2D>();
+
+                if (other == null) continue;
+
+                Vector2 away =
+                    (Vector2)transform.position -
+                    (Vector2)other.transform.position;
+
+                float distance = Mathf.Max(0.05f, away.magnitude);
+                separation +=
+                    away.normalized *
+                    Mathf.Clamp01(1f - distance / 0.72f);
+            }
+
+            desired += separation * 1.6f;
+            desired = Vector2.ClampMagnitude(
+                desired,
+                moveSpeed * limbFactor);
+
             _rb.linearVelocity = Vector2.MoveTowards(
                 _rb.linearVelocity,
                 desired,
