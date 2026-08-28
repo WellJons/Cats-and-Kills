@@ -1,4 +1,5 @@
 using CatsAndKills.Core;
+using CatsAndKills.Tactical;
 using UnityEngine;
 
 namespace CatsAndKills.Combat
@@ -116,6 +117,16 @@ namespace CatsAndKills.Combat
         private void Update()
         {
             if (Time.timeScale <= 0f) return;
+
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            if (tactical != null &&
+                tactical.IsTacticalCombat &&
+                !tactical.IsPlayerTurn)
+            {
+                return;
+            }
 
             SaveCurrentAmmo();
 
