@@ -75,6 +75,12 @@ namespace CatsAndKills.Damage
             ApplyDamage(BodyPart.Torso, info, 1f);
         }
 
+        public void Heal(float amount)
+        {
+            if (IsDead || amount <= 0f) return;
+            Health = Mathf.Min(maxHealth, Health + amount);
+        }
+
         public void ApplyDamage(BodyPart part, DamageInfo info, float multiplier)
         {
             if (IsDead) return;
