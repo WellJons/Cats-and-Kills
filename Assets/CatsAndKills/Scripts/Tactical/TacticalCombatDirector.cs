@@ -115,6 +115,9 @@ namespace CatsAndKills.Tactical
                 AddParticipant(trigger);
             }
 
+            if (_participants.Count == 0)
+                return;
+
             Phase = TacticalPhase.PlayerTurn;
             RoundIndex = 1;
             PlayerAP = maxPlayerAP;
@@ -174,6 +177,11 @@ namespace CatsAndKills.Tactical
 
         private void StopAllRealtimeEnemyBehaviour()
         {
+            foreach (TacticalEnemyAgent enemy in _enemies)
+            {
+                enemy?.SetRealtimeSuspended(true);
+            }
+
             foreach (TacticalEnemyAgent enemy in _participants)
             {
                 enemy?.SetTacticalParticipation(true);
@@ -295,6 +303,11 @@ namespace CatsAndKills.Tactical
             foreach (TacticalEnemyAgent enemy in _participants)
             {
                 enemy?.SetTacticalParticipation(false);
+            }
+
+            foreach (TacticalEnemyAgent enemy in _enemies)
+            {
+                enemy?.SetRealtimeSuspended(false);
             }
 
             _participants.Clear();
