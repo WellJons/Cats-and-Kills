@@ -124,7 +124,8 @@ namespace CatsAndKills.Combat
 
             _nextShotTime = Time.time + 1f / Mathf.Max(0.01f, definition.fireRate);
             Magazine--;
-            CombatStats.Instance?.RecordShot();
+            CombatStats.Instance?.RecordShot(
+                Mathf.Max(1, definition.pellets));
 
             float movement01 = motor != null ? Mathf.Clamp01(motor.Velocity.magnitude / 7f) : 0f;
             float stability = ownerVitals != null ? ownerVitals.WeaponStabilityMultiplier : 1f;
