@@ -35,6 +35,8 @@ namespace CatsAndKills.Combat
 
         private void Update()
         {
+            if (Time.timeScale <= 0f) return;
+
             SaveCurrentAmmo();
 
             if (CKInput.Slot1Pressed) Equip(0);
