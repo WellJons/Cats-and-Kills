@@ -121,6 +121,7 @@ namespace CatsAndKills.EditorTools
         private static void CreateSystems()
         {
             new GameObject("Combat Director").AddComponent<CombatDirector>();
+            new GameObject("Facility Alarm").AddComponent<FacilityAlarmDirector>();
             new GameObject("Combat Stats").AddComponent<CombatStats>();
             new GameObject("Haptics").AddComponent<HapticsManager>();
             new GameObject("Radio Dialogue").AddComponent<RadioDialogueSystem>();
@@ -177,6 +178,7 @@ namespace CatsAndKills.EditorTools
 
             var motor = root.AddComponent<PlayerMotor2D>();
             root.AddComponent<PlayerInteraction2D>();
+            root.AddComponent<PlayerNoiseEmitter2D>();
             var suppressionFeedback = root.AddComponent<PlayerSuppression2D>();
             suppressionFeedback.Configure(cameraFollow);
             var aim = root.AddComponent<PlayerAim2D>();
