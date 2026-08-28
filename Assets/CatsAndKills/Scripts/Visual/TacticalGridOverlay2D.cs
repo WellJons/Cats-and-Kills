@@ -19,6 +19,11 @@ namespace CatsAndKills.Visual
         private TacticalPhase _lastPhase =
             TacticalPhase.Exploration;
 
+        private Vector2 _lastPlayerPosition =
+            new Vector2(
+                float.PositiveInfinity,
+                float.PositiveInfinity);
+
         public void Configure(
             NavigationGrid2D nav,
             Transform playerTransform,
@@ -56,11 +61,19 @@ namespace CatsAndKills.Visual
                 return;
             }
 
+            bool playerMoved =
+                Vector2.Distance(
+                    _lastPlayerPosition,
+                    player.position) >
+                navigation.CellSize * 0.25f;
+
             if (_lastPhase != tactical.Phase ||
-                _lastAP != tactical.PlayerAP)
+                _lastAP != tactical.PlayerAP ||
+                playerMoved)
             {
                 _lastPhase = tactical.Phase;
                 _lastAP = tactical.PlayerAP;
+                _lastPlayerPosition = player.position;
                 Refresh();
             }
         }
