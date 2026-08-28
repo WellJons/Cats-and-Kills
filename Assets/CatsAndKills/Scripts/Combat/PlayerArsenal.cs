@@ -67,6 +67,11 @@ namespace CatsAndKills.Combat
             if (slots == null || index < 0 || index >= slots.Length || slots[index] == null)
                 return;
 
+            if (weapon != null &&
+                weapon.IsReloading &&
+                index != CurrentSlot)
+                return;
+
             SaveCurrentAmmo();
 
             CurrentSlot = index;
