@@ -192,6 +192,36 @@ namespace CatsAndKills.EditorTools
                         direction);
                     return false;
                 }
+
+                var uniqueWalkFrames =
+                    new System.Collections.Generic.HashSet<Sprite>();
+
+                for (int frame = 0;
+                     frame < 8;
+                     frame++)
+                {
+                    Sprite walk =
+                        set.GetWalkFrame(
+                            direction,
+                            frame);
+
+                    if (walk != null)
+                        uniqueWalkFrames.Add(walk);
+                }
+
+                if (uniqueWalkFrames.Count < 4)
+                {
+                    Debug.LogError(
+                        "Walk cycle generation failed: " +
+                        label +
+                        " / " +
+                        direction +
+                        " has only " +
+                        uniqueWalkFrames.Count +
+                        " unique frames.");
+
+                    return false;
+                }
             }
 
             return true;
