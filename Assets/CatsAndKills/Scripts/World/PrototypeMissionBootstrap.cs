@@ -59,7 +59,7 @@ namespace CatsAndKills.World
             go.transform.localScale = new Vector3(0.8f, 1.1f, 1f);
 
             SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+            sr.sprite = MakeSolidSprite();
             sr.color = new Color(0.12f, 0.75f, 0.72f);
             sr.sortingOrder = 8;
 
@@ -77,7 +77,7 @@ namespace CatsAndKills.World
             go.transform.localScale = Vector3.one * 1.8f;
 
             SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            sr.sprite = MakeSolidSprite();
             sr.color = new Color(0.15f, 0.9f, 0.55f, 0.45f);
             sr.sortingOrder = 1;
 
@@ -89,6 +89,21 @@ namespace CatsAndKills.World
             trigger.Configure(mission, MissionTriggerType.Extraction);
 
             return go;
+        }
+
+        private static Sprite MakeSolidSprite()
+        {
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            texture.name = "Runtime Mission Marker";
+            Color[] pixels = { Color.white, Color.white, Color.white, Color.white };
+            texture.SetPixels(pixels);
+            texture.Apply();
+
+            return Sprite.Create(
+                texture,
+                new Rect(0f, 0f, 2f, 2f),
+                new Vector2(0.5f, 0.5f),
+                2f);
         }
 
         private static void CreateTrigger(
