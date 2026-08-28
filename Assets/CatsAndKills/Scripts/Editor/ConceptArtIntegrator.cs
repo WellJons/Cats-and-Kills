@@ -1089,7 +1089,9 @@ namespace CatsAndKills.EditorTools
                     "walk_01",
                     idle,
                     moveA,
-                    0.36f);
+                    0.56f,
+                    -3,
+                    0);
 
             frames[2] =
                 moveA;
@@ -1098,9 +1100,11 @@ namespace CatsAndKills.EditorTools
                 CreateWalkCompositeSet(
                     id,
                     "walk_03",
-                    idle,
                     moveA,
-                    0.54f);
+                    idle,
+                    0.48f,
+                    2,
+                    1);
 
             frames[4] =
                 idle;
@@ -1111,7 +1115,9 @@ namespace CatsAndKills.EditorTools
                     "walk_05",
                     idle,
                     moveB,
-                    0.36f);
+                    0.56f,
+                    3,
+                    0);
 
             frames[6] =
                 moveB;
@@ -1120,9 +1126,11 @@ namespace CatsAndKills.EditorTools
                 CreateWalkCompositeSet(
                     id,
                     "walk_07",
-                    idle,
                     moveB,
-                    0.54f);
+                    idle,
+                    0.48f,
+                    -2,
+                    1);
 
             return frames;
         }
@@ -1132,7 +1140,9 @@ namespace CatsAndKills.EditorTools
             string frameId,
             Sprite[] upperSet,
             Sprite[] lowerSet,
-            float lowerCutoff01)
+            float lowerCutoff01,
+            int lowerShiftX,
+            int lowerShiftY)
         {
             var result =
                 new Sprite[8];
@@ -1163,7 +1173,9 @@ namespace CatsAndKills.EditorTools
                         frameId +
                         "_" +
                         i,
-                        lowerCutoff01);
+                        lowerCutoff01,
+                        lowerShiftX,
+                        lowerShiftY);
             }
 
             return result;
@@ -1173,7 +1185,9 @@ namespace CatsAndKills.EditorTools
             Sprite upper,
             Sprite lower,
             string relativePath,
-            float lowerCutoff01)
+            float lowerCutoff01,
+            int lowerShiftX,
+            int lowerShiftY)
         {
             if (upper == null)
                 return lower;
@@ -1255,8 +1269,25 @@ namespace CatsAndKills.EditorTools
                     Color32 a =
                         upperPixels[index];
 
+                    int lowerX =
+                        Mathf.Clamp(
+                            x -
+                            lowerShiftX,
+                            0,
+                            width - 1);
+
+                    int lowerY =
+                        Mathf.Clamp(
+                            y -
+                            lowerShiftY,
+                            0,
+                            height - 1);
+
                     Color32 b =
-                        lowerPixels[index];
+                        lowerPixels[
+                            lowerY *
+                            width +
+                            lowerX];
 
                     output[index] =
                         new Color32(
