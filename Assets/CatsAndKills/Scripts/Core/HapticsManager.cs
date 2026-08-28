@@ -39,5 +39,13 @@ namespace CatsAndKills.Core
         {
             Gamepad.current?.SetMotorSpeeds(0f, 0f);
         }
+
+        private void OnDestroy()
+        {
+            Gamepad.current?.SetMotorSpeeds(0f, 0f);
+
+            if (Instance == this)
+                Instance = null;
+        }
     }
 }
