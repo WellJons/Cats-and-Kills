@@ -131,6 +131,10 @@ namespace CatsAndKills.Core
             Keyboard.current != null &&
             Keyboard.current.xKey.wasPressedThisFrame;
 
+        public static bool OverwatchPressed =>
+            Keyboard.current != null &&
+            Keyboard.current.oKey.wasPressedThisFrame;
+
         public static bool EndTurnPressed =>
             (Keyboard.current != null &&
              (Keyboard.current.enterKey.wasPressedThisFrame ||
