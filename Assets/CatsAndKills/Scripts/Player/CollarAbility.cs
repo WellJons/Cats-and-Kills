@@ -28,6 +28,9 @@ namespace CatsAndKills.Player
 
         private void Update()
         {
+            if (Time.timeScale <= 0f)
+                return;
+
             if (CKInput.CollarPressed && !_active && Time.unscaledTime >= _readyAt)
                 StartCoroutine(Activate());
         }
@@ -55,12 +58,26 @@ namespace CatsAndKills.Player
             float elapsed = 0f;
             while (elapsed < duration)
             {
+                if (Time.timeScale <= 0f)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                Time.timeScale = timeScale;
+                Time.fixedDeltaTime = originalFixed * timeScale;
+
                 elapsed += Time.unscaledDeltaTime;
-                PrototypeHUD.Instance?.SetGlitch(0.55f + Mathf.Sin(elapsed * 35f) * 0.22f);
+                PrototypeHUD.Instance?.SetGlitch(
+                    0.55f +
+                    Mathf.Sin(elapsed * 35f) * 0.22f);
+
                 yield return null;
             }
 
-            Time.timeScale = 1f;
+            if (Time.timeScale > 0f)
+                Time.timeScale = 1f;
+
             Time.fixedDeltaTime = originalFixed;
             PrototypeHUD.Instance?.SetGlitch(0f);
             _active = false;
