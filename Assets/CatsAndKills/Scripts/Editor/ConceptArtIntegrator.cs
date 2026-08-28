@@ -1453,16 +1453,31 @@ namespace CatsAndKills.EditorTools
                 }
             }
 
+            bool groundAnchored =
+                relativePath.StartsWith(
+                    "Environment/",
+                    StringComparison.Ordinal);
+
+            float pivotXWorld =
+                groundAnchored
+                    ? main.CenterX
+                    : centerX;
+
+            float pivotYWorld =
+                groundAnchored
+                    ? main.minY
+                    : centerY;
+
             Vector2 pivot =
                 new Vector2(
                     Mathf.Clamp01(
-                        (centerX -
+                        (pivotXWorld -
                          minX) /
                         Mathf.Max(
                             1f,
                             width)),
                     Mathf.Clamp01(
-                        (centerY -
+                        (pivotYWorld -
                          minY) /
                         Mathf.Max(
                             1f,
