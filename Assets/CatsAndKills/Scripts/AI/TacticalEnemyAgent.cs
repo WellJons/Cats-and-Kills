@@ -2,6 +2,7 @@ using System.Collections;
 using CatsAndKills.Damage;
 using CatsAndKills.Player;
 using CatsAndKills.Tactical;
+using CatsAndKills.World;
 using UnityEngine;
 
 namespace CatsAndKills.AI
@@ -19,6 +20,7 @@ namespace CatsAndKills.AI
         [SerializeField] private GrenadeAwareness2D grenadeAwareness;
         [SerializeField] private DemolitionistCharge2D demolitionCharge;
         [SerializeField] private Transform player;
+        [SerializeField] private WorldFactionMember2D factionMember;
 
         private bool _participating;
         private bool _realtimeSuspended;
@@ -27,7 +29,12 @@ namespace CatsAndKills.AI
             vitals == null ||
             !vitals.IsDead;
 
+        public bool IsHostileToPlayer =>
+            factionMember == null ||
+            factionMember.IsHostileToPlayer;
+
         public bool IsAlerted =>
+            IsHostileToPlayer &&
             brain != null &&
             brain.IsAlerted;
 
@@ -59,6 +66,9 @@ namespace CatsAndKills.AI
 
             if (demolitionCharge == null)
                 demolitionCharge = GetComponent<DemolitionistCharge2D>();
+
+            if (factionMember == null)
+                factionMember = GetComponent<WorldFactionMember2D>();
 
             if (player == null)
             {
@@ -133,6 +143,7 @@ namespace CatsAndKills.AI
         {
             if (!_participating ||
                 !IsAlive ||
+                !IsHostileToPlayer ||
                 player == null)
             {
                 yield break;
