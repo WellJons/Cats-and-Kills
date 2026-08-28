@@ -34,10 +34,13 @@ namespace CatsAndKills.EditorTools
                 pack,
                 "generated concept");
 
-            // Use the imported/saved DirectionalSpriteSet assets created by
-            // ConceptArtIntegrator. Runtime Sprite.Create was the source of
-            // intermittent invisible character renderers after rebuilds.
             ConceptVisualPolishBuilder.Apply(pack);
+
+            // The source-atlas renderer is the path that actually renders the
+            // generated characters correctly. Install it AFTER the lighting
+            // polish so no lit-material pass can make the cats disappear.
+            InstallDirectAtlasCharacterVisuals();
+
             ConfigureConceptDoors();
             InstallConceptHUD(pack);
 
@@ -245,11 +248,18 @@ namespace CatsAndKills.EditorTools
             sr.enabled = true;
             sr.sortingOrder = 10;
 
-            Material lit =
-                ConceptVisualPolishBuilder.GetOrCreateLitMaterial();
+            Shader spriteShader =
+                Shader.Find("Sprites/Default");
 
-            if (lit != null)
-                sr.sharedMaterial = lit;
+            if (spriteShader != null)
+            {
+                sr.sharedMaterial =
+                    new Material(spriteShader)
+                    {
+                        hideFlags =
+                            HideFlags.HideAndDontSave
+                    };
+            }
 
             CharacterVitals vitals =
                 root.GetComponent<CharacterVitals>();
