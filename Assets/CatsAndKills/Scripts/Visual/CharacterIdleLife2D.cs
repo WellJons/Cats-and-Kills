@@ -34,8 +34,8 @@ namespace CatsAndKills.Visual
         [SerializeField] private float blinkDuration = 0.105f;
 
         [Header("Idle actions")]
-        [SerializeField] private Vector2 actionDelay = new Vector2(4.2f, 8.5f);
-        [SerializeField] private Vector2 actionDuration = new Vector2(2.4f, 5.6f);
+        [SerializeField] private Vector2 actionDelay = new Vector2(2.0f, 4.8f);
+        [SerializeField] private Vector2 actionDuration = new Vector2(2.2f, 4.8f);
 
         private SpriteRenderer _blinkRenderer;
         private SpriteRenderer _cigaretteRenderer;
