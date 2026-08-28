@@ -19,8 +19,6 @@ namespace CatsAndKills.FX
         private readonly List<float> _base =
             new List<float>();
 
-        private bool _lastAlarm;
-
         private void Awake()
         {
             Cache();
@@ -97,7 +95,6 @@ namespace CatsAndKills.FX
                     multiplier;
             }
 
-            _lastAlarm = alarm;
         }
     }
 }
