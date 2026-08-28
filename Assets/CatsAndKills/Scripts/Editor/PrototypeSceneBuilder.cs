@@ -7,6 +7,7 @@ using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
+using CatsAndKills.Visual;
 using CatsAndKills.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -220,9 +221,6 @@ namespace CatsAndKills.EditorTools
             var vitals = root.AddComponent<CharacterVitals>();
             vitals.Configure(115f, 50f, 58f);
 
-            var torso = root.AddComponent<BodyPartHitbox>();
-            torso.Configure(vitals, BodyPart.Torso, 1f);
-
             Transform bodyRig = CreateModularRig(
                 root,
                 vitals,
@@ -333,6 +331,10 @@ namespace CatsAndKills.EditorTools
             var visualRoot = new GameObject("Body Rig");
             visualRoot.transform.SetParent(root.transform, false);
 
+            // Gameplay roots rotate for aiming, but pseudo-isometric body
+            // hitboxes must stay upright on screen like the rendered cat.
+            visualRoot.AddComponent<WorldUpright2D>();
+
             var limbBindings = new System.Collections.Generic.List<ModularCharacter2D.LimbBinding>();
             var tintTargets = new System.Collections.Generic.List<SpriteRenderer>();
 
@@ -340,10 +342,17 @@ namespace CatsAndKills.EditorTools
                 visualRoot.transform,
                 "Torso",
                 _torsoSprite,
-                Vector2.zero,
-                new Vector2(0.58f, 0.72f),
+                new Vector2(0f, 0.68f),
+                new Vector2(0.70f, 0.84f),
                 tint,
                 10);
+
+            var torsoCollider = torso.AddComponent<BoxCollider2D>();
+            torsoCollider.size = new Vector2(0.90f, 0.98f);
+            torsoCollider.isTrigger = true;
+
+            var torsoHit = torso.AddComponent<BodyPartHitbox>();
+            torsoHit.Configure(vitals, BodyPart.Torso, 1f);
 
             tintTargets.Add(torso.GetComponent<SpriteRenderer>());
 
@@ -351,13 +360,15 @@ namespace CatsAndKills.EditorTools
                 visualRoot.transform,
                 "Head",
                 enemy ? _enemyHead : _catHead,
-                new Vector2(0.44f, 0f),
-                new Vector2(0.56f, 0.56f),
+                new Vector2(0f, 1.34f),
+                new Vector2(0.62f, 0.62f),
                 Color.white,
                 13);
 
             var headCollider = head.AddComponent<CircleCollider2D>();
-            headCollider.radius = 0.48f;
+            headCollider.radius = 0.46f;
+            headCollider.isTrigger = true;
+
             var headHit = head.AddComponent<BodyPartHitbox>();
             headHit.Configure(vitals, BodyPart.Head, 1.10f);
 
@@ -365,8 +376,8 @@ namespace CatsAndKills.EditorTools
                 visualRoot.transform,
                 "Left Arm",
                 _armSprite,
-                new Vector2(0.04f, 0.34f),
-                new Vector2(0.64f, 0.64f),
+                new Vector2(-0.38f, 0.72f),
+                new Vector2(0.60f, 0.68f),
                 tint,
                 11);
 
@@ -374,8 +385,8 @@ namespace CatsAndKills.EditorTools
                 visualRoot.transform,
                 "Right Arm",
                 _armSprite,
-                new Vector2(0.04f, -0.34f),
-                new Vector2(0.64f, 0.64f),
+                new Vector2(0.38f, 0.72f),
+                new Vector2(0.60f, 0.68f),
                 tint,
                 11);
 
@@ -383,8 +394,8 @@ namespace CatsAndKills.EditorTools
                 visualRoot.transform,
                 "Left Leg",
                 _legSprite,
-                new Vector2(-0.43f, 0.18f),
-                new Vector2(0.58f, 0.58f),
+                new Vector2(-0.18f, 0.18f),
+                new Vector2(0.54f, 0.62f),
                 tint * 0.82f,
                 8);
 
@@ -392,8 +403,8 @@ namespace CatsAndKills.EditorTools
                 visualRoot.transform,
                 "Right Leg",
                 _legSprite,
-                new Vector2(-0.43f, -0.18f),
-                new Vector2(0.58f, 0.58f),
+                new Vector2(0.18f, 0.18f),
+                new Vector2(0.54f, 0.62f),
                 tint * 0.82f,
                 8);
 
@@ -441,11 +452,14 @@ namespace CatsAndKills.EditorTools
             BodyPart bodyPart)
         {
             var col = part.AddComponent<BoxCollider2D>();
+
             col.size =
                 bodyPart == BodyPart.LeftArm ||
                 bodyPart == BodyPart.RightArm
-                    ? new Vector2(0.95f, 0.42f)
-                    : new Vector2(0.95f, 0.45f);
+                    ? new Vector2(0.58f, 0.92f)
+                    : new Vector2(0.52f, 0.78f);
+
+            col.isTrigger = true;
 
             var hit = part.AddComponent<BodyPartHitbox>();
             hit.Configure(vitals, bodyPart, 0.90f);
@@ -572,9 +586,6 @@ namespace CatsAndKills.EditorTools
                     morale.Configure(0.74f);
                     break;
             }
-
-            var hit = root.AddComponent<BodyPartHitbox>();
-            hit.Configure(vitals, BodyPart.Torso, 1f);
 
             Transform enemyRig = CreateModularRig(
                 root,
