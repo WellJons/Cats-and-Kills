@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using CatsAndKills.FX;
 using CatsAndKills.Visual;
+using CatsAndKills.World;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -120,6 +121,8 @@ namespace CatsAndKills.EditorTools
                         : string.Empty;
 
                 if (n == "Floor" ||
+                    n.StartsWith("Crate ") ||
+                    n.StartsWith("Fuel Drum ") ||
                     n.Contains("Floor Zone") ||
                     parent.Contains("Floor Zone") ||
                     n.Contains("Hazard //") ||
@@ -244,20 +247,27 @@ namespace CatsAndKills.EditorTools
             sr.drawMode =
                 SpriteDrawMode.Simple;
 
-            sr.color = Color.white;
-            sr.sortingOrder = -1500;
+            sr.color =
+                new Color(
+                    0.78f,
+                    0.82f,
+                    0.94f,
+                    1f);
+
+            sr.sortingOrder =
+                -1500;
 
             Vector2 spriteSize =
                 sr.sprite.bounds.size;
 
             float scaleX =
                 spriteSize.x > 0.001f
-                    ? 46.5f / spriteSize.x
+                    ? 96.5f / spriteSize.x
                     : 1f;
 
             float scaleY =
                 spriteSize.y > 0.001f
-                    ? 28.5f / spriteSize.y
+                    ? 64.5f / spriteSize.y
                     : 1f;
 
             floor.transform.localScale =
@@ -268,17 +278,45 @@ namespace CatsAndKills.EditorTools
 
             CreateFloorTintZone(
                 parent,
-                "Warehouse Tint",
-                new Vector2(0.5f, 1.0f),
-                new Vector2(13.5f, 22.0f),
-                new Color(0.05f, 0.18f, 0.24f, 0.10f));
+                "West Approach Tint",
+                new Vector2(-34f, -10f),
+                new Vector2(25f, 42f),
+                new Color(0.03f, 0.12f, 0.24f, 0.13f));
 
             CreateFloorTintZone(
                 parent,
-                "Administration Tint",
-                new Vector2(16.0f, 1.5f),
-                new Vector2(11.5f, 21.0f),
-                new Color(0.20f, 0.05f, 0.18f, 0.08f));
+                "Central Plaza Tint",
+                new Vector2(0f, -2f),
+                new Vector2(31f, 26f),
+                new Color(0.16f, 0.05f, 0.20f, 0.07f));
+
+            CreateFloorTintZone(
+                parent,
+                "Warehouse Exterior Tint",
+                new Vector2(-24f, 12f),
+                new Vector2(30f, 24f),
+                new Color(0.02f, 0.19f, 0.23f, 0.09f));
+
+            CreateFloorTintZone(
+                parent,
+                "North Service Tint",
+                new Vector2(0f, 24f),
+                new Vector2(33f, 13f),
+                new Color(0.04f, 0.10f, 0.23f, 0.11f));
+
+            CreateFloorTintZone(
+                parent,
+                "Administration Exterior Tint",
+                new Vector2(25f, 11f),
+                new Vector2(29f, 25f),
+                new Color(0.21f, 0.03f, 0.16f, 0.08f));
+
+            CreateFloorTintZone(
+                parent,
+                "Southern District Tint",
+                new Vector2(5f, -20f),
+                new Vector2(67f, 21f),
+                new Color(0.09f, 0.07f, 0.17f, 0.08f));
         }
 
         private static void CreateFloorTintZone(
@@ -321,160 +359,605 @@ namespace CatsAndKills.EditorTools
             ProductionArtPack pack,
             Material lit)
         {
-            Sprite straight =
-                pack.wallStraight;
-
-            Sprite corner =
-                pack.wallCorner != null
-                    ? pack.wallCorner
-                    : pack.wallStraight;
-
-            // START YARD: one readable back wall with a clear exit on the right.
-            CreateWallRun(
+            // The district is now built from semantic buildings. Each building
+            // owns its floor, physical wall segments, actual door gaps and a
+            // roof that hides the interior from outside and fades on entry.
+            CreateBuilding(
                 parent,
-                "Start Yard",
-                straight,
-                new Vector2(-20.4f, -3.15f),
-                5,
-                2.75f,
-                0.72f,
-                lit);
+                "Warehouse 04",
+                new Vector2(-24f, 12f),
+                new Vector2(26f, 18f),
+                pack.floorIndustrial,
+                pack.wallStraight,
+                lit,
+                -4.5f,
+                float.NaN,
+                1.5f,
+                float.NaN,
+                new Color(0.18f, 0.23f, 0.31f, 0.97f));
 
-            CreateStructure(
-                parent,
-                "Start Yard Left Corner",
-                corner,
-                new Vector2(-21.1f, -5.45f),
-                new Vector2(0.72f, 0.72f),
-                0f,
-                false,
-                5000,
-                lit);
-
-            CreateStructure(
-                parent,
-                "Start Yard Exit Corner",
-                corner,
-                new Vector2(-8.45f, -5.45f),
-                new Vector2(0.72f, 0.72f),
-                0f,
-                true,
-                5000,
-                lit);
-
-            // WAREHOUSE: coherent wall line above the playable lanes.
-            CreateWallRun(
-                parent,
-                "Warehouse",
-                straight,
-                new Vector2(-5.7f, 5.55f),
-                5,
-                2.75f,
-                0.70f,
-                lit);
-
-            CreateStructure(
-                parent,
-                "Warehouse Left Corner",
-                corner,
-                new Vector2(-6.35f, 3.35f),
-                new Vector2(0.70f, 0.70f),
-                0f,
-                false,
-                5000,
-                lit);
-
-            CreateStructure(
-                parent,
-                "Warehouse Right Corner",
-                corner,
-                new Vector2(6.1f, 3.35f),
-                new Vector2(0.70f, 0.70f),
-                0f,
-                true,
-                5000,
-                lit);
-
-            // ADMINISTRATION: separate readable zone instead of random walls.
-            CreateWallRun(
+            CreateBuilding(
                 parent,
                 "Administration",
-                straight,
-                new Vector2(10.7f, 7.0f),
-                4,
-                2.75f,
-                0.70f,
-                lit);
-
-            CreateStructure(
-                parent,
-                "Admin Left Corner",
-                corner,
-                new Vector2(10.15f, 4.85f),
-                new Vector2(0.70f, 0.70f),
+                new Vector2(25f, 11f),
+                new Vector2(22f, 20f),
+                pack.floorOffice != null
+                    ? pack.floorOffice
+                    : pack.floorIndustrial,
+                pack.wallStraight,
+                lit,
                 0f,
-                false,
-                5000,
-                lit);
+                float.NaN,
+                -2.5f,
+                float.NaN,
+                new Color(0.20f, 0.18f, 0.28f, 0.97f));
 
-            CreateStructure(
+            CreateBuilding(
                 parent,
-                "Admin Right Corner",
-                corner,
-                new Vector2(19.55f, 4.85f),
-                new Vector2(0.70f, 0.70f),
+                "Barracks",
+                new Vector2(25f, -18f),
+                new Vector2(20f, 14f),
+                pack.floorOffice != null
+                    ? pack.floorOffice
+                    : pack.floorIndustrial,
+                pack.wallStraight,
+                lit,
+                float.NaN,
+                -3f,
+                1f,
+                float.NaN,
+                new Color(0.17f, 0.20f, 0.27f, 0.97f));
+
+            CreateBuilding(
+                parent,
+                "Workshop",
+                new Vector2(-22f, -18f),
+                new Vector2(18f, 14f),
+                pack.floorIndustrial,
+                pack.wallStraight,
+                lit,
+                float.NaN,
+                3f,
+                float.NaN,
                 0f,
-                true,
-                5000,
+                new Color(0.15f, 0.20f, 0.27f, 0.97f));
+
+            CreateBuilding(
+                parent,
+                "North Checkpoint",
+                new Vector2(0f, 20f),
+                new Vector2(14f, 10f),
+                pack.floorOffice != null
+                    ? pack.floorOffice
+                    : pack.floorIndustrial,
+                pack.wallStraight,
+                lit,
+                0f,
+                float.NaN,
+                float.NaN,
+                1.5f,
+                new Color(0.16f, 0.19f, 0.29f, 0.96f));
+
+            // West security gate: this is a wall/gate, not a decorative prop.
+            CreateBuildingWallSegment(
+                parent,
+                "West Gate North Wall",
+                new Vector2(-39.5f, -16.5f),
+                new Vector2(0.65f, 11f),
+                pack.wallStraight,
                 lit);
 
-            if (pack.wallDamaged != null)
-            {
-                CreateStructure(
-                    parent,
-                    "Warehouse Admin Breach",
-                    pack.wallDamaged,
-                    new Vector2(7.7f, 1.7f),
-                    new Vector2(0.66f, 0.66f),
-                    0f,
-                    false,
-                    5000,
-                    lit);
-            }
+            CreateBuildingWallSegment(
+                parent,
+                "West Gate South Wall",
+                new Vector2(-39.5f, -27.0f),
+                new Vector2(0.65f, 5.0f),
+                pack.wallStraight,
+                lit);
+
+            // Low plaza security lines shape the square while leaving four
+            // separate approaches open.
+            CreateBuildingWallSegment(
+                parent,
+                "Plaza North Barrier",
+                new Vector2(0f, 8.5f),
+                new Vector2(9f, 0.55f),
+                pack.wallDamaged != null
+                    ? pack.wallDamaged
+                    : pack.wallStraight,
+                lit);
+
+            CreateBuildingWallSegment(
+                parent,
+                "Plaza South Barrier",
+                new Vector2(0f, -12.0f),
+                new Vector2(8f, 0.55f),
+                pack.wallDamaged != null
+                    ? pack.wallDamaged
+                    : pack.wallStraight,
+                lit);
         }
 
-        private static void CreateWallRun(
+        private static void CreateBuilding(
             Transform parent,
-            string label,
+            string name,
+            Vector2 center,
+            Vector2 size,
+            Sprite interiorSprite,
+            Sprite wallSprite,
+            Material material,
+            float southDoorX,
+            float northDoorX,
+            float westDoorY,
+            float eastDoorY,
+            Color roofColor)
+        {
+            GameObject root =
+                new GameObject(
+                    "Building // " + name);
+
+            root.transform.SetParent(
+                parent,
+                false);
+
+            root.transform.position =
+                center;
+
+            CreateBuildingInteriorFloor(
+                root.transform,
+                interiorSprite,
+                size);
+
+            const float thickness = 0.62f;
+            const float doorWidth = 2.6f;
+
+            CreateHorizontalBuildingSide(
+                root.transform,
+                name + " South",
+                -size.y * 0.5f,
+                size.x,
+                thickness,
+                southDoorX,
+                doorWidth,
+                wallSprite,
+                material);
+
+            CreateHorizontalBuildingSide(
+                root.transform,
+                name + " North",
+                size.y * 0.5f,
+                size.x,
+                thickness,
+                northDoorX,
+                doorWidth,
+                wallSprite,
+                material);
+
+            CreateVerticalBuildingSide(
+                root.transform,
+                name + " West",
+                -size.x * 0.5f,
+                size.y,
+                thickness,
+                westDoorY,
+                doorWidth,
+                wallSprite,
+                material);
+
+            CreateVerticalBuildingSide(
+                root.transform,
+                name + " East",
+                size.x * 0.5f,
+                size.y,
+                thickness,
+                eastDoorY,
+                doorWidth,
+                wallSprite,
+                material);
+
+            GameObject roof =
+                new GameObject(
+                    name + " Roof");
+
+            roof.transform.SetParent(
+                root.transform,
+                false);
+
+            SpriteRenderer roofRenderer =
+                roof.AddComponent<SpriteRenderer>();
+
+            roofRenderer.sprite =
+                interiorSprite != null
+                    ? interiorSprite
+                    : GeneratedArtFactory.Get(
+                        "ui_square");
+
+            roofRenderer.drawMode =
+                SpriteDrawMode.Tiled;
+
+            roofRenderer.size =
+                new Vector2(
+                    Mathf.Max(1f, size.x - 0.2f),
+                    Mathf.Max(1f, size.y - 0.2f));
+
+            roofRenderer.color =
+                roofColor;
+
+            roofRenderer.sortingOrder =
+                9000;
+
+            if (material != null)
+                roofRenderer.sharedMaterial = material;
+
+            GameObject triggerGo =
+                new GameObject(
+                    name + " Interior Trigger");
+
+            triggerGo.transform.SetParent(
+                root.transform,
+                false);
+
+            BoxCollider2D trigger =
+                triggerGo.AddComponent<BoxCollider2D>();
+
+            trigger.isTrigger =
+                true;
+
+            trigger.size =
+                new Vector2(
+                    Mathf.Max(1f, size.x - 1.5f),
+                    Mathf.Max(1f, size.y - 1.5f));
+
+            BuildingRoofFader2D fader =
+                triggerGo.AddComponent<
+                    BuildingRoofFader2D>();
+
+            fader.Configure(
+                new[] { roofRenderer },
+                trigger,
+                0.08f,
+                5.5f);
+        }
+
+        private static void CreateBuildingInteriorFloor(
+            Transform parent,
             Sprite sprite,
-            Vector2 start,
-            int count,
-            float spacing,
-            float scale,
-            Material material)
+            Vector2 size)
         {
             if (sprite == null)
                 return;
 
-            for (int i = 0;
-                 i < count;
-                 i++)
+            GameObject floor =
+                new GameObject(
+                    "Interior Floor");
+
+            floor.transform.SetParent(
+                parent,
+                false);
+
+            SpriteRenderer sr =
+                floor.AddComponent<SpriteRenderer>();
+
+            sr.sprite =
+                sprite;
+
+            sr.drawMode =
+                SpriteDrawMode.Tiled;
+
+            sr.size =
+                new Vector2(
+                    Mathf.Max(1f, size.x - 1.1f),
+                    Mathf.Max(1f, size.y - 1.1f));
+
+            sr.color =
+                new Color(
+                    0.86f,
+                    0.88f,
+                    0.96f,
+                    1f);
+
+            sr.sortingOrder =
+                -1300;
+        }
+
+        private static void CreateHorizontalBuildingSide(
+            Transform parent,
+            string label,
+            float y,
+            float totalLength,
+            float thickness,
+            float doorCenter,
+            float doorWidth,
+            Sprite wallSprite,
+            Material material)
+        {
+            if (float.IsNaN(
+                    doorCenter))
             {
-                CreateStructure(
+                CreateBuildingWallSegment(
                     parent,
-                    label + " Wall " + i,
-                    sprite,
-                    start +
-                    Vector2.right *
-                    spacing *
-                    i,
+                    label,
                     new Vector2(
-                        scale,
-                        scale),
-                    0f,
-                    false,
-                    5000,
+                        0f,
+                        y),
+                    new Vector2(
+                        totalLength,
+                        thickness),
+                    wallSprite,
                     material);
+
+                return;
+            }
+
+            float leftEdge =
+                -totalLength * 0.5f;
+
+            float rightEdge =
+                totalLength * 0.5f;
+
+            float doorLeft =
+                Mathf.Clamp(
+                    doorCenter -
+                    doorWidth * 0.5f,
+                    leftEdge + 0.5f,
+                    rightEdge - 0.5f);
+
+            float doorRight =
+                Mathf.Clamp(
+                    doorCenter +
+                    doorWidth * 0.5f,
+                    leftEdge + 0.5f,
+                    rightEdge - 0.5f);
+
+            float leftLength =
+                doorLeft -
+                leftEdge;
+
+            float rightLength =
+                rightEdge -
+                doorRight;
+
+            if (leftLength > 0.5f)
+            {
+                CreateBuildingWallSegment(
+                    parent,
+                    label + " Left",
+                    new Vector2(
+                        leftEdge +
+                        leftLength * 0.5f,
+                        y),
+                    new Vector2(
+                        leftLength,
+                        thickness),
+                    wallSprite,
+                    material);
+            }
+
+            if (rightLength > 0.5f)
+            {
+                CreateBuildingWallSegment(
+                    parent,
+                    label + " Right",
+                    new Vector2(
+                        doorRight +
+                        rightLength * 0.5f,
+                        y),
+                    new Vector2(
+                        rightLength,
+                        thickness),
+                    wallSprite,
+                    material);
+            }
+        }
+
+        private static void CreateVerticalBuildingSide(
+            Transform parent,
+            string label,
+            float x,
+            float totalLength,
+            float thickness,
+            float doorCenter,
+            float doorWidth,
+            Sprite wallSprite,
+            Material material)
+        {
+            if (float.IsNaN(
+                    doorCenter))
+            {
+                CreateBuildingWallSegment(
+                    parent,
+                    label,
+                    new Vector2(
+                        x,
+                        0f),
+                    new Vector2(
+                        thickness,
+                        totalLength),
+                    wallSprite,
+                    material);
+
+                return;
+            }
+
+            float bottomEdge =
+                -totalLength * 0.5f;
+
+            float topEdge =
+                totalLength * 0.5f;
+
+            float doorBottom =
+                Mathf.Clamp(
+                    doorCenter -
+                    doorWidth * 0.5f,
+                    bottomEdge + 0.5f,
+                    topEdge - 0.5f);
+
+            float doorTop =
+                Mathf.Clamp(
+                    doorCenter +
+                    doorWidth * 0.5f,
+                    bottomEdge + 0.5f,
+                    topEdge - 0.5f);
+
+            float bottomLength =
+                doorBottom -
+                bottomEdge;
+
+            float topLength =
+                topEdge -
+                doorTop;
+
+            if (bottomLength > 0.5f)
+            {
+                CreateBuildingWallSegment(
+                    parent,
+                    label + " Lower",
+                    new Vector2(
+                        x,
+                        bottomEdge +
+                        bottomLength * 0.5f),
+                    new Vector2(
+                        thickness,
+                        bottomLength),
+                    wallSprite,
+                    material);
+            }
+
+            if (topLength > 0.5f)
+            {
+                CreateBuildingWallSegment(
+                    parent,
+                    label + " Upper",
+                    new Vector2(
+                        x,
+                        doorTop +
+                        topLength * 0.5f),
+                    new Vector2(
+                        thickness,
+                        topLength),
+                    wallSprite,
+                    material);
+            }
+        }
+
+        private static void CreateBuildingWallSegment(
+            Transform parent,
+            string name,
+            Vector2 localPosition,
+            Vector2 size,
+            Sprite wallSprite,
+            Material material)
+        {
+            GameObject wall =
+                new GameObject(
+                    name + " Wall");
+
+            wall.transform.SetParent(
+                parent,
+                false);
+
+            wall.transform.localPosition =
+                localPosition;
+
+            int obstacleLayer =
+                LayerMask.NameToLayer(
+                    "Obstacles");
+
+            if (obstacleLayer >= 0)
+                wall.layer = obstacleLayer;
+
+            BoxCollider2D collider =
+                wall.AddComponent<BoxCollider2D>();
+
+            collider.size =
+                size;
+
+            Sprite square =
+                GeneratedArtFactory.Get(
+                    "ui_square");
+
+            SpriteRenderer baseRenderer =
+                wall.AddComponent<SpriteRenderer>();
+
+            baseRenderer.sprite =
+                square;
+
+            baseRenderer.drawMode =
+                SpriteDrawMode.Tiled;
+
+            baseRenderer.size =
+                size;
+
+            baseRenderer.color =
+                new Color(
+                    0.11f,
+                    0.14f,
+                    0.22f,
+                    1f);
+
+            if (material != null)
+                baseRenderer.sharedMaterial = material;
+
+            DepthSortedSprite2D depth =
+                wall.AddComponent<
+                    DepthSortedSprite2D>();
+
+            depth.Configure(
+                new[] { baseRenderer },
+                5000,
+                0f);
+
+            if (wallSprite != null &&
+                size.x >= 2.2f &&
+                size.x > size.y)
+            {
+                GameObject cap =
+                    new GameObject(
+                        "Wall Cap");
+
+                cap.transform.SetParent(
+                    wall.transform,
+                    false);
+
+                cap.transform.localPosition =
+                    new Vector3(
+                        0f,
+                        0.12f,
+                        0f);
+
+                SpriteRenderer capRenderer =
+                    cap.AddComponent<SpriteRenderer>();
+
+                capRenderer.sprite =
+                    wallSprite;
+
+                capRenderer.color =
+                    new Color(
+                        0.88f,
+                        0.92f,
+                        1f,
+                        0.95f);
+
+                float spriteWidth =
+                    Mathf.Max(
+                        0.1f,
+                        wallSprite.bounds.size.x);
+
+                float targetWidth =
+                    Mathf.Min(
+                        size.x,
+                        3.4f);
+
+                cap.transform.localScale =
+                    Vector3.one *
+                    (targetWidth /
+                     spriteWidth);
+
+                capRenderer.sortingOrder =
+                    1;
+
+                if (material != null)
+                    capRenderer.sharedMaterial = material;
             }
         }
 
@@ -498,246 +981,200 @@ namespace CatsAndKills.EditorTools
                     ? pack.barrelStack
                     : pack.fuelDrum;
 
-            // START YARD: cover is arranged around lanes instead of stacked
-            // on top of the wall artwork.
-            CreateProp(
-                parent,
-                "Start Heavy Cover",
-                heavy,
-                new Vector2(-16.6f, -7.0f),
-                0.66f,
-                lit);
+            // WEST APPROACH / WORKSHOP
+            CreateProp(parent, "West Road Barricade A", pack.barricade, new Vector2(-34f, -23f), 0.58f, lit);
+            CreateProp(parent, "West Road Heavy Cover", heavy, new Vector2(-31f, -18f), 0.62f, lit);
+            CreateProp(parent, "Workshop Crate Stack", stack, new Vector2(-25f, -17f), 0.54f, lit);
+            CreateProp(parent, "Workshop Barrel Stack", barrels, new Vector2(-19f, -20f), 0.50f, lit);
+            CreateProp(parent, "Workshop Pipe Rack", pack.pipeCluster, new Vector2(-27f, -13f), 0.52f, lit);
+            CreateProp(parent, "Workshop Terminal", pack.terminal, new Vector2(-17f, -14f), 0.56f, lit);
+            CreateProp(parent, "Workshop Fence", pack.fence, new Vector2(-14f, -24f), 0.54f, lit);
 
-            CreateProp(
-                parent,
-                "Start Crate Stack",
-                stack,
-                new Vector2(-12.7f, -8.25f),
-                0.56f,
-                lit);
+            // CENTRAL PLAZA
+            CreateProp(parent, "Plaza Cover West", heavy, new Vector2(-8f, -4f), 0.56f, lit);
+            CreateProp(parent, "Plaza Cover East", heavy, new Vector2(8f, 3f), 0.56f, lit);
+            CreateProp(parent, "Plaza Barricade North", pack.barricade, new Vector2(-3f, 5f), 0.54f, lit);
+            CreateProp(parent, "Plaza Barricade South", pack.barricade, new Vector2(4f, -8f), 0.54f, lit);
+            CreateProp(parent, "Plaza Ammo Crates", stack, new Vector2(10f, -7f), 0.48f, lit);
+            CreateProp(parent, "Plaza Debris A", pack.debris, new Vector2(-2f, -1f), 0.22f, lit);
+            CreateProp(parent, "Plaza Debris B", pack.debris, new Vector2(5f, 6f), 0.20f, lit);
 
-            CreateProp(
-                parent,
-                "Start Barrel Stack",
-                barrels,
-                new Vector2(-10.1f, -8.5f),
-                0.52f,
-                lit);
+            // WAREHOUSE INTERIOR / APRON
+            CreateProp(parent, "Warehouse Interior Stack A", stack, new Vector2(-28f, 10f), 0.54f, lit);
+            CreateProp(parent, "Warehouse Interior Stack B", heavy, new Vector2(-21f, 14f), 0.58f, lit);
+            CreateProp(parent, "Warehouse Interior Barrels", barrels, new Vector2(-16f, 9f), 0.48f, lit);
+            CreateProp(parent, "Warehouse Loading Barricade", pack.barricade, new Vector2(-14f, 3f), 0.54f, lit);
+            CreateProp(parent, "Warehouse Terminal", pack.terminal, new Vector2(-30f, 17f), 0.52f, lit);
+            CreateProp(parent, "Warehouse Pipe Cluster", pack.pipeCluster, new Vector2(-17f, 17f), 0.48f, lit);
 
-            CreateProp(
-                parent,
-                "Start Barricade",
-                pack.barricade,
-                new Vector2(-15.1f, -10.45f),
-                0.58f,
-                lit);
+            // NORTH SERVICE LANE
+            CreateProp(parent, "North Fence A", pack.fence, new Vector2(-10f, 25f), 0.54f, lit);
+            CreateProp(parent, "North Fence B", pack.fence, new Vector2(10f, 25f), 0.54f, lit);
+            CreateProp(parent, "North Ammo Box", pack.ammoBox, new Vector2(4f, 18f), 0.46f, lit);
+            CreateProp(parent, "North Cable Bundle", pack.cableBundle, new Vector2(-4f, 22f), 0.44f, lit);
 
-            CreateProp(
-                parent,
-                "Start Fuel Drum",
-                pack.fuelDrum,
-                new Vector2(-19.7f, -6.2f),
-                0.56f,
-                lit);
+            // ADMINISTRATION INTERIOR / COURTYARD
+            CreateProp(parent, "Admin Interior Cover A", heavy, new Vector2(20f, 8f), 0.54f, lit);
+            CreateProp(parent, "Admin Interior Cover B", stack, new Vector2(29f, 13f), 0.48f, lit);
+            CreateProp(parent, "Admin Archive Terminal", pack.terminal, new Vector2(31f, 17f), 0.56f, lit);
+            CreateProp(parent, "Admin Medkit Box", pack.medkitBox, new Vector2(20f, 17f), 0.46f, lit);
+            CreateProp(parent, "Admin Courtyard Barricade", pack.barricade, new Vector2(15f, 0f), 0.54f, lit);
+            CreateProp(parent, "Admin Exterior Pipe", pack.pipeCluster, new Vector2(36f, 4f), 0.48f, lit);
 
-            CreateProp(
-                parent,
-                "Start Ammo Box",
-                pack.ammoBox,
-                new Vector2(-17.9f, -9.45f),
-                0.50f,
-                lit);
+            // BARRACKS / SOUTH ROAD
+            CreateProp(parent, "Barracks Crate Stack", stack, new Vector2(22f, -18f), 0.50f, lit);
+            CreateProp(parent, "Barracks Heavy Cover", heavy, new Vector2(29f, -20f), 0.54f, lit);
+            CreateProp(parent, "Barracks Barrel Stack", barrels, new Vector2(31f, -13f), 0.46f, lit);
+            CreateProp(parent, "South Road Barricade", pack.barricade, new Vector2(8f, -23f), 0.56f, lit);
+            CreateProp(parent, "South Road Fuel Drum", pack.fuelDrum, new Vector2(3f, -18f), 0.50f, lit);
 
-            CreateProp(
+            CreateHazardStrip(
                 parent,
-                "Start Medkit Box",
-                pack.medkitBox,
-                new Vector2(-9.4f, -6.8f),
-                0.50f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Start Cable Detail",
-                pack.cableBundle,
-                new Vector2(-18.7f, -4.35f),
-                0.46f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Start Lamp Cyan",
-                pack.lamp,
-                new Vector2(-18.0f, -3.25f),
-                0.44f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Start Lamp Red",
-                pack.lamp,
-                new Vector2(-10.8f, -3.25f),
-                0.44f,
+                "West Gate Marking",
+                new Vector2(-39f, -22f),
+                new Vector2(4.8f, 0.30f),
                 lit);
 
             CreateHazardStrip(
                 parent,
-                "Start Exit Marking",
-                new Vector2(-8.1f, -7.0f),
-                new Vector2(2.4f, 0.28f),
-                lit);
-
-            // WAREHOUSE: shelves/cover form two combat lanes.
-            CreateProp(
-                parent,
-                "Warehouse Heavy Cover",
-                heavy,
-                new Vector2(-3.7f, -0.7f),
-                0.62f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Warehouse Crate Stack",
-                stack,
-                new Vector2(2.2f, 0.3f),
-                0.54f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Warehouse Barrel Stack",
-                barrels,
-                new Vector2(4.9f, -2.6f),
-                0.50f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Warehouse Fence",
-                pack.fence,
-                new Vector2(-5.1f, 1.8f),
-                0.58f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Warehouse Terminal",
-                pack.terminal,
-                new Vector2(4.4f, 4.55f),
-                0.60f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Warehouse Pipe",
-                pack.pipeCluster,
-                new Vector2(-4.8f, 4.65f),
-                0.52f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Warehouse Lamp",
-                pack.lamp,
-                new Vector2(0.1f, 5.2f),
-                0.42f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Warehouse Debris",
-                pack.debris,
-                new Vector2(0.2f, -3.8f),
-                0.24f,
-                lit);
-
-            CreateHazardStrip(
-                parent,
-                "Warehouse Center Marking",
-                new Vector2(0.2f, -1.8f),
-                new Vector2(3.2f, 0.30f),
-                lit);
-
-            // ADMIN: smaller cover pieces and interactable-looking props.
-            CreateProp(
-                parent,
-                "Admin Heavy Cover",
-                heavy,
-                new Vector2(12.0f, 0.0f),
-                0.58f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Crate Stack",
-                stack,
-                new Vector2(17.4f, 0.8f),
-                0.50f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Barricade",
-                pack.barricade,
-                new Vector2(13.1f, -4.0f),
-                0.56f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Terminal",
-                pack.terminal,
-                new Vector2(14.6f, 5.85f),
-                0.56f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Pipe",
-                pack.pipeCluster,
-                new Vector2(18.7f, 5.35f),
-                0.50f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Medkit Box",
-                pack.medkitBox,
-                new Vector2(18.0f, -4.5f),
-                0.48f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Lamp",
-                pack.lamp,
-                new Vector2(12.4f, 6.6f),
-                0.42f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Poster",
-                pack.propagandaPoster,
-                new Vector2(16.8f, 6.6f),
-                0.40f,
-                lit);
-
-            CreateProp(
-                parent,
-                "Admin Debris",
-                pack.debris,
-                new Vector2(15.4f, -1.7f),
-                0.22f,
+                "Plaza Crossing",
+                new Vector2(0f, -10f),
+                new Vector2(7.5f, 0.30f),
                 lit);
 
             CreateHazardStrip(
                 parent,
                 "Admin Entry Marking",
-                new Vector2(9.7f, -0.8f),
-                new Vector2(2.5f, 0.28f),
+                new Vector2(15f, 2f),
+                new Vector2(4.5f, 0.30f),
                 lit);
+
+            CreateStreetLight(parent, "West Gate Lamp A", pack.lamp, new Vector2(-37f, -17f), new Color(0.25f, 0.70f, 1f), lit, true);
+            CreateStreetLight(parent, "West Gate Lamp B", pack.lamp, new Vector2(-28f, -26f), new Color(1f, 0.20f, 0.25f), lit, false);
+            CreateStreetLight(parent, "Plaza Lamp North", pack.lamp, new Vector2(-7f, 7f), new Color(0.34f, 0.72f, 1f), lit, true);
+            CreateStreetLight(parent, "Plaza Lamp South", pack.lamp, new Vector2(7f, -10f), new Color(1f, 0.18f, 0.25f), lit, true);
+            CreateStreetLight(parent, "Warehouse Lamp", pack.lamp, new Vector2(-12f, 9f), new Color(0.25f, 0.80f, 1f), lit, false);
+            CreateStreetLight(parent, "North Alley Lamp", pack.lamp, new Vector2(5f, 27f), new Color(0.34f, 0.66f, 1f), lit, true);
+            CreateStreetLight(parent, "Admin Lamp A", pack.lamp, new Vector2(14f, 9f), new Color(1f, 0.20f, 0.30f), lit, true);
+            CreateStreetLight(parent, "Admin Lamp B", pack.lamp, new Vector2(36f, 14f), new Color(0.34f, 0.70f, 1f), lit, false);
+            CreateStreetLight(parent, "Barracks Lamp", pack.lamp, new Vector2(16f, -20f), new Color(0.28f, 0.65f, 1f), lit, true);
+            CreateStreetLight(parent, "Workshop Lamp", pack.lamp, new Vector2(-13f, -16f), new Color(1f, 0.18f, 0.26f), lit, true);
+        }
+
+        private static void CreateStreetLight(
+            Transform parent,
+            string name,
+            Sprite lampSprite,
+            Vector2 position,
+            Color color,
+            Material material,
+            bool unstable)
+        {
+            if (lampSprite == null)
+                return;
+
+            GameObject root =
+                new GameObject(name);
+
+            root.transform.SetParent(
+                parent,
+                false);
+
+            root.transform.position =
+                position;
+
+            SpriteRenderer lamp =
+                root.AddComponent<SpriteRenderer>();
+
+            lamp.sprite =
+                lampSprite;
+
+            lamp.color =
+                Color.white;
+
+            root.transform.localScale =
+                Vector3.one *
+                0.46f;
+
+            if (material != null)
+                lamp.sharedMaterial = material;
+
+            DepthSortedSprite2D depth =
+                root.AddComponent<
+                    DepthSortedSprite2D>();
+
+            depth.Configure(
+                new[] { lamp },
+                5000,
+                0f);
+
+            GameObject glowGo =
+                new GameObject(
+                    "Light Spill");
+
+            glowGo.transform.SetParent(
+                root.transform,
+                false);
+
+            glowGo.transform.localPosition =
+                new Vector3(
+                    0f,
+                    -0.30f,
+                    0f);
+
+            SpriteRenderer glow =
+                glowGo.AddComponent<SpriteRenderer>();
+
+            glow.sprite =
+                GeneratedArtFactory.Get(
+                    "soft_glow");
+
+            glow.color =
+                new Color(
+                    color.r,
+                    color.g,
+                    color.b,
+                    0.25f);
+
+            glow.sortingOrder =
+                -1;
+
+            glowGo.transform.localScale =
+                new Vector3(
+                    5.8f,
+                    4.5f,
+                    1f);
+
+            Light2D light =
+                glowGo.AddComponent<Light2D>();
+
+            light.lightType =
+                Light2D.LightType.Point;
+
+            light.color =
+                color;
+
+            light.intensity =
+                0.88f;
+
+            light.pointLightOuterRadius =
+                5.2f;
+
+            light.pointLightInnerRadius =
+                1.0f;
+
+            if (unstable)
+            {
+                LightFlicker2D flicker =
+                    glowGo.AddComponent<
+                        LightFlicker2D>();
+
+                flicker.Configure(
+                    light,
+                    glow,
+                    0.88f,
+                    0.34f);
+            }
         }
 
         private static void AddFogPass(
