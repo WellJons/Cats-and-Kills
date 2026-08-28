@@ -15,6 +15,7 @@ namespace CatsAndKills.World
         private NarrativeWorldState _state;
         private string _lastObjective;
         private bool _announcedClear;
+        private bool _securityDispatched;
 
         public void Configure(
             MissionDirector missionDirector)
@@ -75,6 +76,9 @@ namespace CatsAndKills.World
                 if (!_announcedClear)
                 {
                     _announcedClear = true;
+
+                    DispatchSecurityInvestigation();
+
                     SetObjective(
                         "ЦЕЛЬ: вернуться к механику и потребовать объяснений");
                 }
@@ -132,6 +136,88 @@ namespace CatsAndKills.World
                             CharacterVitals>() is
                             CharacterVitals vitals &&
                         !vitals.IsDead);
+        }
+
+        private void DispatchSecurityInvestigation()
+        {
+            if (_securityDispatched)
+                return;
+
+            _securityDispatched = true;
+
+            Vector2 incident =
+                new Vector2(
+                    -22f,
+                    8f);
+
+            CityPatrolRoute2D[] patrols =
+                FindObjectsByType<
+                    CityPatrolRoute2D>(
+                    FindObjectsSortMode.None);
+
+            System.Array.Sort(
+                patrols,
+                (a, b) =>
+                {
+                    float da =
+                        a != null
+                            ? Vector2.SqrMagnitude(
+                                (Vector2)a.transform.position -
+                                incident)
+                            : float.PositiveInfinity;
+
+                    float db =
+                        b != null
+                            ? Vector2.SqrMagnitude(
+                                (Vector2)b.transform.position -
+                                incident)
+                            : float.PositiveInfinity;
+
+                    return da.CompareTo(db);
+                });
+
+            int dispatched = 0;
+
+            for (int i = 0;
+                 i < patrols.Length &&
+                 dispatched < 2;
+                 i++)
+            {
+                CityPatrolRoute2D patrol =
+                    patrols[i];
+
+                if (patrol == null)
+                    continue;
+
+                WorldFactionMember2D faction =
+                    patrol.GetComponent<
+                        WorldFactionMember2D>();
+
+                if (faction == null ||
+                    faction.Faction !=
+                    WorldFaction.Security ||
+                    faction.IsHostileToPlayer)
+                {
+                    continue;
+                }
+
+                patrol.Investigate(
+                    incident +
+                    new Vector2(
+                        dispatched *
+                        1.4f,
+                        0f),
+                    22f);
+
+                dispatched++;
+            }
+
+            if (dispatched > 0)
+            {
+                RadioDialogueSystem.Instance?.ShowTransient(
+                    "ГОРОДСКАЯ СЕТЬ // ПАТРУЛЬ НАПРАВЛЕН В СКЛАДСКОЙ СЕКТОР",
+                    2.2f);
+            }
         }
 
         private void SetObjective(
