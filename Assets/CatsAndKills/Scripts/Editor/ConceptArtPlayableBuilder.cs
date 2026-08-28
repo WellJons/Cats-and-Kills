@@ -292,7 +292,7 @@ namespace CatsAndKills.EditorTools
                 softFog,
                 new Vector2(-12f, 4f),
                 new Vector3(4.5f, 2.2f, 1f),
-                new Color(0.36f, 0.30f, 0.58f, 0.15f),
+                new Color(0.40f, 0.34f, 0.66f, 0.24f),
                 700,
                 new Vector2(0.018f, 0.004f));
 
@@ -302,7 +302,7 @@ namespace CatsAndKills.EditorTools
                 magentaFog,
                 new Vector2(4f, 7f),
                 new Vector3(4.0f, 2.0f, 1f),
-                new Color(0.64f, 0.20f, 0.58f, 0.12f),
+                new Color(0.72f, 0.22f, 0.66f, 0.20f),
                 750,
                 new Vector2(-0.012f, 0.003f));
 
@@ -312,7 +312,7 @@ namespace CatsAndKills.EditorTools
                 softFog,
                 new Vector2(0f, -6f),
                 new Vector3(5.8f, 2.3f, 1f),
-                new Color(0.30f, 0.24f, 0.48f, 0.10f),
+                new Color(0.36f, 0.28f, 0.54f, 0.16f),
                 7600,
                 new Vector2(0.008f, 0.002f));
 
@@ -322,7 +322,7 @@ namespace CatsAndKills.EditorTools
                 cyanGlow,
                 new Vector2(-13f, 6f),
                 new Vector3(2.2f, 1.7f, 1f),
-                new Color(0.18f, 0.78f, 1f, 0.18f),
+                new Color(0.20f, 0.82f, 1f, 0.28f),
                 650);
 
             CreateGlow(
@@ -331,7 +331,7 @@ namespace CatsAndKills.EditorTools
                 redGlow,
                 new Vector2(7f, 5f),
                 new Vector3(2.4f, 2.0f, 1f),
-                new Color(1f, 0.12f, 0.18f, 0.16f),
+                new Color(1f, 0.10f, 0.18f, 0.26f),
                 680);
 
             CreateGlow(
@@ -340,7 +340,7 @@ namespace CatsAndKills.EditorTools
                 redGlow,
                 new Vector2(-18f, 1.5f),
                 new Vector3(1.9f, 1.6f, 1f),
-                new Color(1f, 0.10f, 0.16f, 0.14f),
+                new Color(1f, 0.09f, 0.16f, 0.22f),
                 680);
 
             CreateGlow(
@@ -349,7 +349,7 @@ namespace CatsAndKills.EditorTools
                 cone,
                 new Vector2(-6f, 5f),
                 new Vector3(2.0f, 2.0f, 1f),
-                new Color(0.42f, 0.53f, 1f, 0.13f),
+                new Color(0.46f, 0.58f, 1f, 0.20f),
                 620);
 
             CreateGlow(
@@ -358,7 +358,7 @@ namespace CatsAndKills.EditorTools
                 cone,
                 new Vector2(12f, 3f),
                 new Vector3(1.7f, 1.7f, 1f),
-                new Color(0.75f, 0.20f, 0.72f, 0.11f),
+                new Color(0.80f, 0.20f, 0.76f, 0.18f),
                 620);
         }
 
