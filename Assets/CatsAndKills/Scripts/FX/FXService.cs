@@ -111,7 +111,22 @@ namespace CatsAndKills.FX
                 var sr = flash.AddComponent<SpriteRenderer>();
                 sr.sprite = explosionSprite;
                 sr.sortingOrder = 45;
-                flash.AddComponent<ExpandingFadeFX>().Configure(0.28f, 1.7f, 2.7f);
+
+                flash.AddComponent<ExpandingFadeFX>()
+                    .Configure(
+                        0.28f,
+                        1.7f,
+                        2.7f);
+
+                flash.AddComponent<TransientLight2D>()
+                    .Configure(
+                        new Color(
+                            1f,
+                            0.34f,
+                            0.08f),
+                        2.6f,
+                        5.0f,
+                        0.24f);
             }
 
             if (smokeSprite != null)
