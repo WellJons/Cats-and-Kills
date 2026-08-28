@@ -1,3 +1,4 @@
+using CatsAndKills.Combat;
 using CatsAndKills.Core;
 using UnityEngine;
 
@@ -50,7 +51,14 @@ namespace CatsAndKills.Player
                     new Vector3(screen.x, screen.y, -worldCamera.transform.position.z));
 
                 AimWorldPoint = world;
-                Vector2 delta = AimWorldPoint - (Vector2)aimPivot.position;
+
+                Vector2 visualAimOrigin =
+                    CharacterCombatGeometry2D.AimPoint(
+                        transform);
+
+                Vector2 delta =
+                    AimWorldPoint -
+                    visualAimOrigin;
 
                 if (delta.sqrMagnitude > 0.001f)
                     AimDirection = delta.normalized;
