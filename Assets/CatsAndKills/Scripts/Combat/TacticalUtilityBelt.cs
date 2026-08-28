@@ -141,8 +141,7 @@ namespace CatsAndKills.Combat
             if (fire)
             {
                 FXService.Instance?.ExplosionBurst(
-                    destination,
-                    0.55f);
+                    destination);
 
                 GameObject field =
                     new GameObject(
