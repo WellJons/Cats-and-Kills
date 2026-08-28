@@ -48,6 +48,10 @@ namespace CatsAndKills.EditorTools
             CreateFloor();
             CreateGeometry();
 
+            CreatePickup("Ammo Cache", new Vector2(-6f, 7f), PickupType.Ammo, 45, new Color(0.25f, 0.65f, 0.95f));
+            CreatePickup("Field Medkit", new Vector2(7f, -7f), PickupType.Medkit, 38, new Color(0.25f, 0.9f, 0.45f));
+            CreatePickup("Grenade Box", new Vector2(15f, 7f), PickupType.Grenades, 2, new Color(0.95f, 0.65f, 0.15f));
+
             var navGo = new GameObject("Navigation Grid");
             var nav = navGo.AddComponent<NavigationGrid2D>();
             nav.Configure(new Vector2(46f, 28f), 0.65f, 0.27f, 1 << _obstacleLayer);
@@ -434,6 +438,30 @@ namespace CatsAndKills.EditorTools
 
             go.AddComponent<BoxCollider2D>();
             go.AddComponent<DestructibleCover>().Configure(80f, true);
+        }
+
+        private static void CreatePickup(
+            string name,
+            Vector2 position,
+            PickupType type,
+            int amount,
+            Color color)
+        {
+            var go = new GameObject(name);
+            go.transform.position = position;
+            go.transform.localScale = Vector3.one * 0.52f;
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = _square;
+            sr.color = color;
+            sr.sortingOrder = 8;
+
+            var col = go.AddComponent<CircleCollider2D>();
+            col.isTrigger = true;
+            col.radius = 0.55f;
+
+            var pickup = go.AddComponent<Pickup2D>();
+            pickup.Configure(type, amount);
         }
 
         private static void CreateCoverPoints()
