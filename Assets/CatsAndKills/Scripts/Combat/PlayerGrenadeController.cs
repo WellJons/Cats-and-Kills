@@ -15,8 +15,16 @@ namespace CatsAndKills.Combat
         [SerializeField] private int grenadeCount = 4;
         [SerializeField] private float throwForce = 8.2f;
         [SerializeField] private float returnRadius = 1.45f;
+        [SerializeField] private float baseFuse = 3.15f;
+
+        private bool _cooking;
+        private float _cookStarted;
 
         public int GrenadeCount => grenadeCount;
+        public bool IsCooking => _cooking;
+        public float CookRemaining => _cooking
+            ? Mathf.Max(0f, baseFuse - (Time.time - _cookStarted))
+            : 0f;
 
         public void AddGrenades(int amount)
         {
@@ -37,31 +45,58 @@ namespace CatsAndKills.Combat
 
         private void Update()
         {
-            if (CKInput.GrenadePressed && grenadeCount > 0)
-                ThrowGrenade();
+            if (CKInput.GrenadePressed && grenadeCount > 0 && !_cooking)
+                BeginCook();
+
+            if (_cooking && CKInput.GrenadeReleased)
+                ThrowCooked(false);
+
+            if (_cooking && Time.time - _cookStarted >= baseFuse)
+                ThrowCooked(true);
 
             if (CKInput.InteractPressed)
                 TryReturnGrenade();
         }
 
-        private void ThrowGrenade()
+        private void BeginCook()
         {
-            grenadeCount--;
-            CombatStats.Instance?.RecordGrenade();
+            _cooking = true;
+            _cookStarted = Time.time;
 
             if (pinClip != null)
                 AudioSource.PlayClipAtPoint(pinClip, transform.position, 0.45f);
+        }
+
+        private void ThrowCooked(bool fuseExpired)
+        {
+            if (!_cooking || grenadeCount <= 0) return;
+
+            float cooked = Mathf.Max(0f, Time.time - _cookStarted);
+            float remainingFuse = Mathf.Max(0.05f, baseFuse - cooked);
+
+            _cooking = false;
+            grenadeCount--;
+            CombatStats.Instance?.RecordGrenade();
 
             GameObject go = new GameObject("Player Grenade");
-            go.transform.position = (Vector2)transform.position + aim.AimDirection * 0.6f;
+            go.transform.position = fuseExpired
+                ? (Vector2)transform.position
+                : (Vector2)transform.position + aim.AimDirection * 0.6f;
 
-            var sr = go.AddComponent<SpriteRenderer>();
+            go.AddComponent<SpriteRenderer>();
             var rb = go.AddComponent<Rigidbody2D>();
             go.AddComponent<CircleCollider2D>();
             var grenade = go.AddComponent<Grenade2D>();
 
-            grenade.Configure(grenadeSprite, explosionClip, gameObject, 3.15f);
-            rb.AddForce(aim.AimDirection * throwForce, ForceMode2D.Impulse);
+            grenade.Configure(
+                grenadeSprite,
+                explosionClip,
+                gameObject,
+                remainingFuse);
+
+            if (!fuseExpired)
+                rb.AddForce(aim.AimDirection * throwForce, ForceMode2D.Impulse);
+
             rb.AddTorque(Random.Range(-240f, 240f));
         }
 
