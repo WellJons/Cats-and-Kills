@@ -38,6 +38,7 @@ namespace CatsAndKills.EditorTools
                     NavigationGrid2D>();
 
             ConfigureExistingFactions();
+            ConfigureSecurityPatrolRoutes();
 
             MissionDirector mission =
                 Object.FindAnyObjectByType<
@@ -141,6 +142,117 @@ namespace CatsAndKills.EditorTools
                         : WorldFaction.Security,
                     false);
             }
+        }
+
+        private static void ConfigureSecurityPatrolRoutes()
+        {
+            ConfigurePatrol(
+                "Gate Rifleman 01",
+                new[]
+                {
+                    new Vector2(-36f, -23f),
+                    new Vector2(-33f, -18.5f),
+                    new Vector2(-28f, -20f),
+                    new Vector2(-31f, -25f)
+                });
+
+            ConfigurePatrol(
+                "Gate Rifleman 02",
+                new[]
+                {
+                    new Vector2(-30f, -25f),
+                    new Vector2(-24f, -25f),
+                    new Vector2(-20f, -22f),
+                    new Vector2(-25f, -18f)
+                });
+
+            ConfigurePatrol(
+                "Plaza Rifleman 01",
+                new[]
+                {
+                    new Vector2(-8f, -4f),
+                    new Vector2(-5f, 1f),
+                    new Vector2(2f, 1f),
+                    new Vector2(5f, -4f),
+                    new Vector2(-1f, -7f)
+                });
+
+            ConfigurePatrol(
+                "Plaza Rifleman 02",
+                new[]
+                {
+                    new Vector2(-3f, 2f),
+                    new Vector2(2f, 5f),
+                    new Vector2(7f, 2f),
+                    new Vector2(4f, -3f),
+                    new Vector2(-2f, -2f)
+                });
+
+            ConfigurePatrol(
+                "Admin Rifleman 01",
+                new[]
+                {
+                    new Vector2(19f, 6f),
+                    new Vector2(23f, 4f),
+                    new Vector2(30f, 6f),
+                    new Vector2(31f, 11f),
+                    new Vector2(24f, 10f)
+                });
+
+            ConfigurePatrol(
+                "North Rifleman 01",
+                new[]
+                {
+                    new Vector2(-8f, 22f),
+                    new Vector2(-2f, 24f),
+                    new Vector2(5f, 23f),
+                    new Vector2(10f, 20f),
+                    new Vector2(1f, 18f)
+                });
+        }
+
+        private static void ConfigurePatrol(
+            string objectName,
+            Vector2[] points)
+        {
+            GameObject go =
+                GameObject.Find(
+                    objectName);
+
+            if (go == null)
+                return;
+
+            WorldFactionMember2D faction =
+                go.GetComponent<
+                    WorldFactionMember2D>();
+
+            if (faction == null ||
+                faction.Faction !=
+                WorldFaction.Security)
+            {
+                return;
+            }
+
+            EnemyPatrol2D randomPatrol =
+                go.GetComponent<
+                    EnemyPatrol2D>();
+
+            if (randomPatrol != null)
+                randomPatrol.enabled = false;
+
+            CityPatrolRoute2D route =
+                go.GetComponent<
+                    CityPatrolRoute2D>();
+
+            if (route == null)
+                route =
+                    go.AddComponent<
+                        CityPatrolRoute2D>();
+
+            route.Configure(
+                go.GetComponent<
+                    EnemyMotor2D>(),
+                points);
         }
 
         private static void CreateStoryTrigger(
