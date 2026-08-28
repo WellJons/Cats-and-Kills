@@ -4,6 +4,7 @@ using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
+using CatsAndKills.UI;
 using CatsAndKills.Visual;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -33,6 +34,8 @@ namespace CatsAndKills.EditorTools
                 "generated concept");
 
             InstallDirectAtlasCharacterVisuals();
+            ConceptVisualPolishBuilder.Apply(pack);
+            InstallConceptHUD();
 
             AddAtmosphere();
             ImproveCamera();
@@ -72,6 +75,29 @@ namespace CatsAndKills.EditorTools
             }
 
             CreateWorldBackdrop();
+        }
+
+        private static void InstallConceptHUD()
+        {
+            PrototypeHUD[] oldHud =
+                Object.FindObjectsByType<PrototypeHUD>(
+                    FindObjectsSortMode.None);
+
+            foreach (PrototypeHUD hud in oldHud)
+            {
+                if (hud != null)
+                    hud.enabled = false;
+            }
+
+            ConceptHUD existing =
+                Object.FindAnyObjectByType<ConceptHUD>();
+
+            if (existing == null)
+            {
+                new GameObject(
+                    "Concept HUD")
+                    .AddComponent<ConceptHUD>();
+            }
         }
 
         private static void InstallDirectAtlasCharacterVisuals()
@@ -426,6 +452,25 @@ namespace CatsAndKills.EditorTools
             fx.bulletHoleSprite = pack.bulletHole;
             fx.explosionSprite = pack.explosion;
             fx.smokeSprite = pack.smoke;
+
+            if (pack.muzzleFlash != null)
+            {
+                foreach (MuzzleFlash2D flash in
+                         Object.FindObjectsByType<MuzzleFlash2D>(
+                             FindObjectsSortMode.None))
+                {
+                    SpriteRenderer sr =
+                        flash.GetComponent<SpriteRenderer>();
+
+                    if (sr == null)
+                        sr =
+                            flash.GetComponentInChildren<
+                                SpriteRenderer>();
+
+                    if (sr != null)
+                        sr.sprite = pack.muzzleFlash;
+                }
+            }
 
             EditorUtility.SetDirty(fx);
         }
