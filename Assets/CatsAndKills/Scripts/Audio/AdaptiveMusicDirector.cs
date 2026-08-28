@@ -1,4 +1,5 @@
 using CatsAndKills.Core;
+using CatsAndKills.Tactical;
 using UnityEngine;
 
 namespace CatsAndKills.Audio
@@ -56,6 +57,16 @@ namespace CatsAndKills.Audio
                 CombatDirector.Instance != null
                     ? CombatDirector.Instance.Intensity
                     : CombatIntensity.Calm;
+
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            bool tacticalCombat =
+                tactical != null &&
+                tactical.IsTacticalCombat;
+
+            if (tacticalCombat)
+                intensity = CombatIntensity.Combat;
 
             float ambientTarget = intensity == CombatIntensity.Calm ? 0.62f : 0.20f;
             float alertTarget = intensity == CombatIntensity.Alert ? 0.62f : 0f;
