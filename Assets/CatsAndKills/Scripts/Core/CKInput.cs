@@ -113,6 +113,61 @@ namespace CatsAndKills.Core
             }
         }
 
+        public static bool TacticalMoveClickPressed =>
+            Mouse.current != null &&
+            Mouse.current.leftButton.wasPressedThisFrame;
+
+        public static bool TacticalShootPressed =>
+            (Mouse.current != null &&
+             Mouse.current.rightButton.wasPressedThisFrame) ||
+            (Keyboard.current != null &&
+             Keyboard.current.fKey.wasPressedThisFrame);
+
+        public static bool EndTurnPressed =>
+            (Keyboard.current != null &&
+             (Keyboard.current.enterKey.wasPressedThisFrame ||
+              Keyboard.current.numpadEnterKey.wasPressedThisFrame)) ||
+            (Gamepad.current != null &&
+             Gamepad.current.startButton.wasPressedThisFrame);
+
+        public static Vector2Int TacticalStepPressed
+        {
+            get
+            {
+                Keyboard keyboard =
+                    Keyboard.current;
+
+                if (keyboard == null)
+                    return Vector2Int.zero;
+
+                if (keyboard.wKey.wasPressedThisFrame ||
+                    keyboard.upArrowKey.wasPressedThisFrame)
+                {
+                    return Vector2Int.up;
+                }
+
+                if (keyboard.sKey.wasPressedThisFrame ||
+                    keyboard.downArrowKey.wasPressedThisFrame)
+                {
+                    return Vector2Int.down;
+                }
+
+                if (keyboard.aKey.wasPressedThisFrame ||
+                    keyboard.leftArrowKey.wasPressedThisFrame)
+                {
+                    return Vector2Int.left;
+                }
+
+                if (keyboard.dKey.wasPressedThisFrame ||
+                    keyboard.rightArrowKey.wasPressedThisFrame)
+                {
+                    return Vector2Int.right;
+                }
+
+                return Vector2Int.zero;
+            }
+        }
+
         public static Vector2 MouseScreenPosition =>
             Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
     }
