@@ -135,6 +135,20 @@ namespace CatsAndKills.UI
                 GUI.color = old;
             }
 
+            if (playerVitals != null)
+            {
+                string limbs =
+                    $"LA {(playerVitals.LeftArmDisabled ? "X" : "OK")}  " +
+                    $"RA {(playerVitals.RightArmDisabled ? "X" : "OK")}  " +
+                    $"LL {(playerVitals.LeftLegDisabled ? "X" : "OK")}  " +
+                    $"RL {(playerVitals.RightLegDisabled ? "X" : "OK")}";
+
+                GUI.Label(
+                    new Rect(22, Screen.height - 108, 330, 22),
+                    limbs,
+                    _small);
+            }
+
             if (arsenal != null && arsenal.Weapon != null && arsenal.Current != null)
             {
                 string ammo = $"{arsenal.Weapon.Magazine:00} / {arsenal.Weapon.Reserve:000}";
