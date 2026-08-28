@@ -34,7 +34,9 @@ namespace CatsAndKills.EditorTools
                 pack,
                 "generated concept");
 
-            InstallDirectAtlasCharacterVisuals();
+            // Use the imported/saved DirectionalSpriteSet assets created by
+            // ConceptArtIntegrator. Runtime Sprite.Create was the source of
+            // intermittent invisible character renderers after rebuilds.
             ConceptVisualPolishBuilder.Apply(pack);
             ConfigureConceptDoors();
             InstallConceptHUD(pack);
