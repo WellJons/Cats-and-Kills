@@ -102,8 +102,27 @@ namespace CatsAndKills.World
 
             if (first != null)
             {
-                TacticalCombatDirector.Instance
-                    ?.EnterCombat(first);
+                TacticalCombatDirector tactical =
+                    TacticalCombatDirector.Instance;
+
+                tactical?.EnterCombat(first);
+
+                if (state.HasFlag(
+                        "slice_vendor_asked_patrol") &&
+                    tactical != null &&
+                    tactical.IsPlayerTurn)
+                {
+                    tactical.GrantActionPoints(2);
+
+                    RadioDialogueSystem.Instance?.Say(
+                        "ГГ",
+                        "Торговец предупреждал про склад. Я хотя бы не застигнут врасплох.",
+                        2.8f);
+
+                    RadioDialogueSystem.Instance?.ShowTransient(
+                        "ИНФОРМАЦИЯ ИЗ ДИАЛОГА // +2 AP В ПЕРВОМ РАУНДЕ",
+                        1.8f);
+                }
             }
         }
     }
