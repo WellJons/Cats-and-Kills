@@ -15,6 +15,9 @@ namespace CatsAndKills.EditorTools
         {
             "ui_square",
             "ui_circle",
+            "soft_shadow",
+            "hazard",
+            "floor_panel",
             "cat_head",
             "enemy_head",
             "torso",
@@ -112,6 +115,9 @@ namespace CatsAndKills.EditorTools
             PixelCanvas canvas = id switch
             {
                 "ui_circle" => UiCircle(),
+                "soft_shadow" => SoftShadow(),
+                "hazard" => Hazard(),
+                "floor_panel" => FloorPanel(),
                 "cat_head" => CatHead(false),
                 "enemy_head" => CatHead(true),
                 "torso" => Torso(),
@@ -193,6 +199,80 @@ namespace CatsAndKills.EditorTools
         {
             PixelCanvas c = new PixelCanvas(32, 32);
             c.Circle(16, 16, 15, White);
+            return c;
+        }
+
+        private static PixelCanvas SoftShadow()
+        {
+            PixelCanvas c = new PixelCanvas(64, 40);
+
+            for (int y = 0; y < c.Height; y++)
+            {
+                for (int x = 0; x < c.Width; x++)
+                {
+                    float nx = (x - 31.5f) / 31.5f;
+                    float ny = (y - 19.5f) / 19.5f;
+                    float d = nx * nx + ny * ny;
+
+                    if (d > 1f) continue;
+
+                    byte a = (byte)Mathf.RoundToInt(
+                        Mathf.Pow(1f - d, 1.7f) * 130f);
+
+                    c.Set(x, y, new Color32(3, 5, 10, a));
+                }
+            }
+
+            return c;
+        }
+
+        private static PixelCanvas Hazard()
+        {
+            PixelCanvas c = new PixelCanvas(64, 64);
+            Color32 baseColor = new Color32(38, 41, 48, 255);
+            Color32 stripe = new Color32(226, 164, 39, 255);
+
+            c.Rect(0, 0, 64, 64, baseColor);
+
+            for (int x = -64; x < 128; x += 20)
+            {
+                c.Polygon(
+                    new[]
+                    {
+                        new Vector2Int(x, 0),
+                        new Vector2Int(x + 10, 0),
+                        new Vector2Int(x + 64, 64),
+                        new Vector2Int(x + 54, 64)
+                    },
+                    stripe);
+            }
+
+            c.Rect(0, 0, 64, 3, Outline);
+            c.Rect(0, 61, 64, 3, Outline);
+
+            return c;
+        }
+
+        private static PixelCanvas FloorPanel()
+        {
+            PixelCanvas c = new PixelCanvas(64, 64);
+            Color32 baseColor = new Color32(34, 40, 54, 255);
+            Color32 seam = new Color32(19, 23, 34, 255);
+            Color32 edge = new Color32(59, 67, 84, 255);
+
+            c.Rect(0, 0, 64, 64, baseColor);
+            c.Rect(0, 0, 64, 2, seam);
+            c.Rect(0, 62, 64, 2, seam);
+            c.Rect(0, 0, 2, 64, seam);
+            c.Rect(62, 0, 2, 64, seam);
+
+            c.Rect(6, 6, 52, 2, edge);
+            c.Rect(6, 56, 52, 2, new Color32(28, 33, 45, 255));
+            c.Circle(8, 8, 2, Grey);
+            c.Circle(56, 8, 2, Grey);
+            c.Circle(8, 56, 2, Grey);
+            c.Circle(56, 56, 2, Grey);
+
             return c;
         }
 
