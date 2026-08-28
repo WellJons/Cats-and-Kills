@@ -1,6 +1,7 @@
 using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.UI;
+using CatsAndKills.World;
 using UnityEngine;
 
 namespace CatsAndKills.AI
@@ -11,6 +12,7 @@ namespace CatsAndKills.AI
         [SerializeField] private CharacterVitals vitals;
         [SerializeField] private float triggerDistance = 1.65f;
         [SerializeField] private float fuse = 0.72f;
+        [SerializeField] private WorldFactionMember2D factionMember;
 
         private bool _armed;
         private float _detonateAt;
@@ -29,12 +31,24 @@ namespace CatsAndKills.AI
         {
             if (vitals == null)
                 vitals = GetComponent<CharacterVitals>();
+
+            if (factionMember == null)
+                factionMember = GetComponent<WorldFactionMember2D>();
         }
 
         private void Update()
         {
             if (vitals != null && vitals.IsDead)
                 return;
+
+            if (factionMember == null)
+                factionMember = GetComponent<WorldFactionMember2D>();
+
+            if (factionMember != null &&
+                !factionMember.IsHostileToPlayer)
+            {
+                return;
+            }
 
             if (!_armed)
             {
