@@ -17,6 +17,9 @@ namespace CatsAndKills.World
 
         private int _index;
         private float _moveAt;
+        private bool _investigating;
+        private Vector2 _investigationTarget;
+        private float _investigationUntil;
 
         public void Configure(
             EnemyMotor2D routeMotor,
@@ -27,6 +30,22 @@ namespace CatsAndKills.World
 
             FindClosestWaypoint();
             Schedule();
+        }
+
+        public void Investigate(
+            Vector2 target,
+            float duration = 16f)
+        {
+            _investigating = true;
+            _investigationTarget = target;
+            _investigationUntil =
+                Time.time +
+                Mathf.Max(
+                    4f,
+                    duration);
+
+            motor?.Stop();
+            _moveAt = Time.time;
         }
 
         private void Awake()
@@ -78,6 +97,36 @@ namespace CatsAndKills.World
             if (faction != null &&
                 faction.IsHostileToPlayer)
             {
+                return;
+            }
+
+            if (_investigating)
+            {
+                if (Time.time >=
+                    _investigationUntil)
+                {
+                    _investigating = false;
+                    FindClosestWaypoint();
+                    Schedule();
+                    return;
+                }
+
+                if (Vector2.Distance(
+                        transform.position,
+                        _investigationTarget) >
+                    1.2f)
+                {
+                    if (!motor.HasDestination)
+                    {
+                        motor.MoveTo(
+                            _investigationTarget);
+                    }
+                }
+                else
+                {
+                    motor.Stop();
+                }
+
                 return;
             }
 
