@@ -24,6 +24,10 @@ namespace CatsAndKills.EditorTools
         private static int _obstacleLayer;
         private static Sprite _square;
         private static Sprite _circle;
+        private static Sprite _softShadowSprite;
+        private static Sprite _softGlowSprite;
+        private static Sprite _hazardSprite;
+        private static Sprite _floorPanelSprite;
         private static Sprite _catHead;
         private static Sprite _enemyHead;
         private static Sprite _torsoSprite;
@@ -58,6 +62,10 @@ namespace CatsAndKills.EditorTools
 
             _square = GeneratedArtFactory.Get("ui_square");
             _circle = GeneratedArtFactory.Get("ui_circle");
+            _softShadowSprite = GeneratedArtFactory.Get("soft_shadow");
+            _softGlowSprite = GeneratedArtFactory.Get("soft_glow");
+            _hazardSprite = GeneratedArtFactory.Get("hazard");
+            _floorPanelSprite = GeneratedArtFactory.Get("floor_panel");
             _catHead = GeneratedArtFactory.Get("cat_head");
             _enemyHead = GeneratedArtFactory.Get("enemy_head");
             _torsoSprite = GeneratedArtFactory.Get("torso");
@@ -220,6 +228,8 @@ namespace CatsAndKills.EditorTools
                 vitals,
                 false,
                 new Color(0.90f, 0.92f, 0.97f));
+
+            CreateActorShadow(root.transform, new Vector2(1.05f, 0.62f), 6);
 
             var motor = root.AddComponent<PlayerMotor2D>();
             root.AddComponent<PlayerInteraction2D>();
@@ -572,6 +582,13 @@ namespace CatsAndKills.EditorTools
                 true,
                 enemyTint);
 
+            CreateActorShadow(
+                root.transform,
+                archetype == EnemyArchetype.MachineGunner
+                    ? new Vector2(1.18f, 0.72f)
+                    : new Vector2(1.00f, 0.58f),
+                6);
+
             if (archetype == EnemyArchetype.MachineGunner)
                 enemyRig.localScale = Vector3.one * 1.12f;
 
@@ -680,6 +697,60 @@ namespace CatsAndKills.EditorTools
             sr.size = new Vector2(46f, 28f);
             sr.color = Color.white;
             sr.sortingOrder = -100;
+
+            CreateFloorZone(
+                "Outer Yard",
+                new Vector2(-15.5f, -1.0f),
+                new Vector2(13.0f, 23.0f),
+                new Color(0.72f, 0.77f, 0.90f));
+
+            CreateFloorZone(
+                "Warehouse",
+                new Vector2(0.5f, 1.0f),
+                new Vector2(13.5f, 22.0f),
+                new Color(0.66f, 0.76f, 0.82f));
+
+            CreateFloorZone(
+                "Administration",
+                new Vector2(16.0f, 1.5f),
+                new Vector2(11.5f, 21.0f),
+                new Color(0.76f, 0.71f, 0.80f));
+
+            CreateHazardStrip(
+                "Warehouse Threshold",
+                new Vector2(-7.0f, -7.5f),
+                new Vector2(1.1f, 4.2f),
+                90f);
+
+            CreateHazardStrip(
+                "Admin Threshold",
+                new Vector2(9.35f, 0f),
+                new Vector2(1.2f, 3.6f),
+                90f);
+
+            CreateHazardStrip(
+                "Extraction Marking",
+                new Vector2(18.5f, -10.0f),
+                new Vector2(4.8f, 0.75f),
+                0f);
+
+            CreateLightPool(
+                "Cold Yard Lamp",
+                new Vector2(-13f, 5f),
+                new Vector2(7f, 7f),
+                new Color(0.28f, 0.52f, 0.92f, 0.23f));
+
+            CreateLightPool(
+                "Warehouse Lamp",
+                new Vector2(1.0f, 2.0f),
+                new Vector2(8f, 8f),
+                new Color(0.22f, 0.68f, 0.72f, 0.20f));
+
+            CreateLightPool(
+                "Admin Emergency Lamp",
+                new Vector2(15.0f, 4.0f),
+                new Vector2(6.5f, 6.5f),
+                new Color(0.88f, 0.20f, 0.25f, 0.18f));
         }
 
         private static void CreateGeometry()
@@ -706,6 +777,92 @@ namespace CatsAndKills.EditorTools
             CreateExplosiveProp("Fuel Drum A", new Vector2(-1f, 5.5f));
             CreateExplosiveProp("Fuel Drum B", new Vector2(6.5f, -2.5f));
             CreateExplosiveProp("Fuel Drum C", new Vector2(15.5f, 5.0f));
+        }
+
+        private static void CreateFloorZone(
+            string name,
+            Vector2 position,
+            Vector2 size,
+            Color tint)
+        {
+            var go = new GameObject("Floor Zone // " + name);
+            go.transform.position = position;
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = _floorPanelSprite;
+            sr.drawMode = SpriteDrawMode.Tiled;
+            sr.size = size;
+            sr.color = tint;
+            sr.sortingOrder = -92;
+        }
+
+        private static void CreateHazardStrip(
+            string name,
+            Vector2 position,
+            Vector2 size,
+            float rotation)
+        {
+            var go = new GameObject("Hazard // " + name);
+            go.transform.position = position;
+            go.transform.rotation = Quaternion.Euler(0f, 0f, rotation);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = _hazardSprite;
+            sr.drawMode = SpriteDrawMode.Tiled;
+            sr.size = size;
+            sr.color = new Color(0.86f, 0.86f, 0.86f, 0.92f);
+            sr.sortingOrder = -78;
+        }
+
+        private static void CreateLightPool(
+            string name,
+            Vector2 position,
+            Vector2 scale,
+            Color color)
+        {
+            var go = new GameObject("Light Pool // " + name);
+            go.transform.position = position;
+            go.transform.localScale = new Vector3(scale.x, scale.y, 1f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = _softGlowSprite;
+            sr.color = color;
+            sr.sortingOrder = -70;
+        }
+
+        private static void CreateActorShadow(
+            Transform parent,
+            Vector2 scale,
+            int sortingOrder)
+        {
+            if (_softShadowSprite == null) return;
+
+            var shadow = new GameObject("Actor Shadow");
+            shadow.transform.SetParent(parent, false);
+            shadow.transform.localPosition = new Vector3(-0.06f, -0.12f, 0f);
+            shadow.transform.localScale = new Vector3(scale.x, scale.y, 1f);
+
+            var sr = shadow.AddComponent<SpriteRenderer>();
+            sr.sprite = _softShadowSprite;
+            sr.color = new Color(0f, 0f, 0f, 0.72f);
+            sr.sortingOrder = sortingOrder;
+        }
+
+        private static void CreatePropShadow(
+            Transform parent,
+            Vector2 scale)
+        {
+            if (_softShadowSprite == null) return;
+
+            var shadow = new GameObject("Prop Shadow");
+            shadow.transform.SetParent(parent, false);
+            shadow.transform.localPosition = new Vector3(0.12f, -0.16f, 0f);
+            shadow.transform.localScale = new Vector3(scale.x, scale.y, 1f);
+
+            var sr = shadow.AddComponent<SpriteRenderer>();
+            sr.sprite = _softShadowSprite;
+            sr.color = new Color(0f, 0f, 0f, 0.62f);
+            sr.sortingOrder = 1;
         }
 
         private static Door2D CreateDoor(
@@ -742,12 +899,35 @@ namespace CatsAndKills.EditorTools
             go.transform.position = position;
             go.layer = _obstacleLayer;
 
-            var sr = go.AddComponent<SpriteRenderer>();
+            var shadow = new GameObject("Wall Shadow");
+            shadow.transform.SetParent(go.transform, false);
+            shadow.transform.localPosition = new Vector3(0.16f, -0.18f, 0f);
+            var shadowRenderer = shadow.AddComponent<SpriteRenderer>();
+            shadowRenderer.sprite = _square;
+            shadowRenderer.drawMode = SpriteDrawMode.Tiled;
+            shadowRenderer.size = size + new Vector2(0.14f, 0.14f);
+            shadowRenderer.color = new Color(0.015f, 0.018f, 0.028f, 0.62f);
+            shadowRenderer.sortingOrder = 0;
+
+            var side = new GameObject("Wall Side");
+            side.transform.SetParent(go.transform, false);
+            side.transform.localPosition = new Vector3(0f, -0.12f, 0f);
+            var sideRenderer = side.AddComponent<SpriteRenderer>();
+            sideRenderer.sprite = _wallSprite;
+            sideRenderer.drawMode = SpriteDrawMode.Tiled;
+            sideRenderer.size = size;
+            sideRenderer.color = new Color(0.48f, 0.52f, 0.62f, 1f);
+            sideRenderer.sortingOrder = 1;
+
+            var top = new GameObject("Wall Top");
+            top.transform.SetParent(go.transform, false);
+            top.transform.localPosition = new Vector3(-0.03f, 0.07f, 0f);
+            var sr = top.AddComponent<SpriteRenderer>();
             sr.sprite = _wallSprite;
             sr.drawMode = SpriteDrawMode.Tiled;
             sr.size = size;
-            sr.color = Color.white;
-            sr.sortingOrder = 2;
+            sr.color = new Color(0.94f, 0.97f, 1f, 1f);
+            sr.sortingOrder = 3;
 
             var col = go.AddComponent<BoxCollider2D>();
             col.size = size;
@@ -759,6 +939,8 @@ namespace CatsAndKills.EditorTools
             var go = new GameObject(name);
             go.transform.position = position;
             go.transform.localScale = new Vector3(0.72f, 1.05f, 1f);
+
+            CreatePropShadow(go.transform, new Vector2(0.95f, 0.50f));
 
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = _barrelSprite;
@@ -781,6 +963,8 @@ namespace CatsAndKills.EditorTools
             go.transform.position = position;
             go.transform.localScale = Vector3.one * 1.25f;
             go.layer = _obstacleLayer;
+
+            CreatePropShadow(go.transform, new Vector2(1.05f, 0.58f));
 
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = _crateSprite;
