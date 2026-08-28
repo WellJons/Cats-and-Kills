@@ -75,6 +75,10 @@ namespace CatsAndKills.EditorTools
                 root.transform,
                 lit);
 
+            AddFogPass(
+                root.transform,
+                pack);
+
             if (root.GetComponent<AlarmLighting2D>() == null)
                 root.AddComponent<AlarmLighting2D>();
 
@@ -341,6 +345,108 @@ namespace CatsAndKills.EditorTools
                     0.32f + i % 2 * 0.08f,
                     lit);
             }
+        }
+
+        private static void AddFogPass(
+            Transform parent,
+            ProductionArtPack pack)
+        {
+            Sprite smoke =
+                pack.smoke != null
+                    ? pack.smoke
+                    : GeneratedArtFactory.Get("smoke");
+
+            if (smoke == null)
+                return;
+
+            CreateFogPatch(
+                parent,
+                "Start Low Fog",
+                smoke,
+                new Vector2(-15.5f, -6.5f),
+                new Vector3(2.4f, 1.2f, 1f),
+                new Color(0.34f, 0.28f, 0.58f, 0.16f),
+                780,
+                new Vector2(0.010f, 0.002f));
+
+            CreateFogPatch(
+                parent,
+                "Start Neon Fog",
+                smoke,
+                new Vector2(-10.0f, -3.8f),
+                new Vector3(1.8f, 1.0f, 1f),
+                new Color(0.68f, 0.18f, 0.60f, 0.12f),
+                790,
+                new Vector2(-0.008f, 0.003f));
+
+            CreateFogPatch(
+                parent,
+                "Warehouse Fog",
+                smoke,
+                new Vector2(0.0f, 1.5f),
+                new Vector3(2.8f, 1.35f, 1f),
+                new Color(0.28f, 0.46f, 0.70f, 0.13f),
+                800,
+                new Vector2(0.006f, 0.002f));
+
+            CreateFogPatch(
+                parent,
+                "Admin Fog",
+                smoke,
+                new Vector2(14.0f, 2.8f),
+                new Vector3(2.5f, 1.3f, 1f),
+                new Color(0.62f, 0.18f, 0.48f, 0.12f),
+                810,
+                new Vector2(-0.006f, 0.003f));
+
+            CreateFogPatch(
+                parent,
+                "Foreground Rolling Fog",
+                smoke,
+                new Vector2(-2.0f, -7.0f),
+                new Vector3(3.8f, 1.8f, 1f),
+                new Color(0.34f, 0.28f, 0.54f, 0.10f),
+                7600,
+                new Vector2(0.004f, 0.001f));
+        }
+
+        private static void CreateFogPatch(
+            Transform parent,
+            string name,
+            Sprite sprite,
+            Vector2 position,
+            Vector3 scale,
+            Color color,
+            int order,
+            Vector2 drift)
+        {
+            GameObject go =
+                new GameObject(name);
+
+            go.transform.SetParent(
+                parent,
+                false);
+
+            go.transform.position =
+                position;
+
+            go.transform.localScale =
+                scale;
+
+            SpriteRenderer sr =
+                go.AddComponent<SpriteRenderer>();
+
+            sr.sprite = sprite;
+            sr.color = color;
+            sr.sortingOrder = order;
+
+            FogDrift2D fog =
+                go.AddComponent<FogDrift2D>();
+
+            fog.Configure(
+                drift,
+                0.12f,
+                0.025f);
         }
 
         private static void AddLightingPass(
