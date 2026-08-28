@@ -519,7 +519,7 @@ namespace CatsAndKills.Visual
                 return source;
 
             string key =
-                source.GetInstanceID() +
+                source.GetEntityId() +
                 ":" +
                 mask +
                 ":" +
