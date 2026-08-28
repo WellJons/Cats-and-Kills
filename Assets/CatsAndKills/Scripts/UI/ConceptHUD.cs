@@ -16,6 +16,11 @@ namespace CatsAndKills.UI
         private MissionDirector _mission;
         private PlayerSuppression2D _suppression;
 
+        [SerializeField] private Sprite portraitSprite;
+        [SerializeField] private Sprite objectiveIconSprite;
+        [SerializeField] private Sprite grenadeIconSprite;
+        [SerializeField] private Sprite medkitIconSprite;
+
         private GUIStyle _title;
         private GUIStyle _small;
         private GUIStyle _ammo;
@@ -64,6 +69,18 @@ namespace CatsAndKills.UI
                     _damageFlash,
                     0f,
                     Time.unscaledDeltaTime * 2.2f);
+        }
+
+        public void ConfigureSkin(
+            Sprite portrait,
+            Sprite objectiveIcon,
+            Sprite grenadeIcon,
+            Sprite medkitIcon)
+        {
+            portraitSprite = portrait;
+            objectiveIconSprite = objectiveIcon;
+            grenadeIconSprite = grenadeIcon;
+            medkitIconSprite = medkitIcon;
         }
 
         private void Bind()
@@ -219,11 +236,29 @@ namespace CatsAndKills.UI
             if (_vitals == null)
                 return;
 
+            float contentX =
+                x + 18f;
+
+            if (portraitSprite != null &&
+                portraitSprite.texture != null)
+            {
+                DrawSpriteTexture(
+                    new Rect(
+                        x + 12f,
+                        y + 12f,
+                        86f,
+                        86f),
+                    portraitSprite);
+
+                contentX =
+                    x + 108f;
+            }
+
             GUI.Label(
                 new Rect(
-                    x + 18f,
+                    contentX,
                     y + 10f,
-                    180f,
+                    170f,
                     28f),
                 "CK // VETERAN",
                 _title);
@@ -244,9 +279,9 @@ namespace CatsAndKills.UI
 
             DrawBar(
                 new Rect(
-                    x + 18f,
+                    contentX,
                     y + 43f,
-                    347f,
+                    x + w - 24f - contentX,
                     16f),
                 hp /
                 Mathf.Max(
@@ -262,9 +297,9 @@ namespace CatsAndKills.UI
 
             GUI.Label(
                 new Rect(
-                    x + 18f,
+                    contentX,
                     y + 66f,
-                    347f,
+                    x + w - 24f - contentX,
                     22f),
                 limbs,
                 _small);
@@ -280,9 +315,9 @@ namespace CatsAndKills.UI
 
             GUI.Label(
                 new Rect(
-                    x + 18f,
+                    contentX,
                     y + 92f,
-                    347f,
+                    x + w - 24f - contentX,
                     21f),
                 collar,
                 _small);
@@ -297,9 +332,9 @@ namespace CatsAndKills.UI
 
                 DrawBar(
                     new Rect(
-                        x + 18f,
+                        contentX,
                         y + 115f,
-                        347f,
+                        x + w - 24f - contentX,
                         7f),
                     ready,
                     Cyan);
@@ -356,11 +391,29 @@ namespace CatsAndKills.UI
                         ? $"GRENADE  {_grenades.CookRemaining:0.0}s"
                         : $"GRENADES  {_grenades.GrenadeCount}";
 
+            float grenadeTextX =
+                x + 16f;
+
+            if (grenadeIconSprite != null &&
+                grenadeIconSprite.texture != null)
+            {
+                DrawSpriteTexture(
+                    new Rect(
+                        x + 14f,
+                        y + 72f,
+                        30f,
+                        30f),
+                    grenadeIconSprite);
+
+                grenadeTextX =
+                    x + 50f;
+            }
+
             GUI.Label(
                 new Rect(
-                    x + 16f,
+                    grenadeTextX,
                     y + 78f,
-                    250f,
+                    220f,
                     22f),
                 grenades,
                 _small);
@@ -391,11 +444,29 @@ namespace CatsAndKills.UI
                     0.18f,
                     0.92f));
 
+            float textX =
+                x + 14f;
+
+            if (objectiveIconSprite != null &&
+                objectiveIconSprite.texture != null)
+            {
+                DrawSpriteTexture(
+                    new Rect(
+                        x + 16f,
+                        y + 22f,
+                        56f,
+                        56f),
+                    objectiveIconSprite);
+
+                textX =
+                    x + 84f;
+            }
+
             GUI.Label(
                 new Rect(
-                    x + 14f,
+                    textX,
                     y + 12f,
-                    w - 28f,
+                    x + w - 18f - textX,
                     h - 24f),
                 _mission.CurrentObjective,
                 _objective);
@@ -462,6 +533,30 @@ namespace CatsAndKills.UI
                     w,
                     h),
                 Texture2D.whiteTexture);
+
+            GUI.color = old;
+        }
+
+        private static void DrawSpriteTexture(
+            Rect rect,
+            Sprite sprite)
+        {
+            if (sprite == null ||
+                sprite.texture == null)
+            {
+                return;
+            }
+
+            Color old =
+                GUI.color;
+
+            GUI.color = Color.white;
+
+            GUI.DrawTexture(
+                rect,
+                sprite.texture,
+                ScaleMode.ScaleToFit,
+                true);
 
             GUI.color = old;
         }
