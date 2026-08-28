@@ -1,6 +1,7 @@
 using System.Collections;
 using CatsAndKills.Core;
 using CatsAndKills.Damage;
+using CatsAndKills.Tactical;
 using UnityEngine;
 
 namespace CatsAndKills.Player
@@ -52,6 +53,17 @@ namespace CatsAndKills.Player
             if (Time.timeScale <= 0f) return;
             if (vitals != null && vitals.IsDead) return;
 
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            if (tactical != null &&
+                tactical.IsTacticalCombat)
+            {
+                _dashing = false;
+                _desiredVelocity = Vector2.zero;
+                return;
+            }
+
             if (CKInput.DashPressed && Time.time >= _nextDash && CKInput.Move.sqrMagnitude > 0.05f)
                 StartCoroutine(DashRoutine());
 
@@ -72,6 +84,20 @@ namespace CatsAndKills.Player
 
         private void FixedUpdate()
         {
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            if (tactical != null &&
+                tactical.IsTacticalCombat)
+            {
+                _desiredVelocity = Vector2.zero;
+
+                if (_rb != null)
+                    _rb.linearVelocity = Vector2.zero;
+
+                return;
+            }
+
             if (vitals != null && vitals.IsDead)
             {
                 _desiredVelocity = Vector2.zero;
