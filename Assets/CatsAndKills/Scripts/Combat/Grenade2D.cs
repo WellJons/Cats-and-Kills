@@ -170,6 +170,18 @@ namespace CatsAndKills.Combat
                     Mathf.Clamp01(1f - distance / radius);
 
                 Vector2 point = body.transform.position;
+
+                int obstacleMask = LayerMask.GetMask("Obstacles");
+                if (obstacleMask != 0)
+                {
+                    RaycastHit2D obstruction = Physics2D.Linecast(
+                        transform.position,
+                        point,
+                        obstacleMask);
+
+                    if (obstruction.collider != null)
+                        falloff *= 0.18f;
+                }
                 Vector2 direction =
                     (point - (Vector2)transform.position).normalized;
 
