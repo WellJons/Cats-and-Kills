@@ -85,9 +85,17 @@ namespace CatsAndKills.EditorTools
                 props, "Environment/crate_light",
                 869, 182, 200, 226, 96f);
 
+            Sprite crateStack = Crop(
+                props, "Environment/crate_stack",
+                1127, 95, 298, 308, 96f);
+
             Sprite fuelDrum = Crop(
                 props, "Environment/fuel_drum",
                 45, 527, 113, 190, 96f);
+
+            Sprite barrelStack = Crop(
+                props, "Environment/barrel_stack",
+                207, 449, 241, 272, 96f);
 
             Sprite terminal = Crop(
                 props, "Environment/terminal",
@@ -104,6 +112,26 @@ namespace CatsAndKills.EditorTools
             Sprite fence = Crop(
                 props, "Environment/fence",
                 1122, 420, 314, 334, 96f);
+
+            Sprite barricade = Crop(
+                props, "Environment/barricade",
+                248, 736, 314, 210, 96f);
+
+            Sprite cableBundle = Crop(
+                props, "Environment/cable_bundle",
+                991, 741, 277, 143, 96f);
+
+            Sprite ammoBox = Crop(
+                props, "Environment/ammo_box",
+                768, 925, 171, 139, 96f);
+
+            Sprite medkitBox = Crop(
+                props, "Environment/medkit_box",
+                1004, 916, 172, 143, 96f);
+
+            Sprite burningBarrel = Crop(
+                props, "Environment/burning_barrel",
+                1274, 822, 149, 244, 96f);
 
             Sprite propagandaPoster = Crop(
                 props, "Environment/propaganda_poster",
@@ -253,11 +281,18 @@ namespace CatsAndKills.EditorTools
             pack.reinforcedDoor = reinforcedDoor;
             pack.crateLight = crateLight;
             pack.crateHeavy = crateHeavy;
+            pack.crateStack = crateStack;
             pack.fuelDrum = fuelDrum;
+            pack.barrelStack = barrelStack;
             pack.terminal = terminal;
             pack.fence = fence;
+            pack.barricade = barricade;
             pack.pipeCluster = pipeCluster;
             pack.lamp = lamp;
+            pack.cableBundle = cableBundle;
+            pack.ammoBox = ammoBox;
+            pack.medkitBox = medkitBox;
+            pack.burningBarrel = burningBarrel;
             pack.debris = debris;
             pack.propagandaPoster = propagandaPoster;
 
