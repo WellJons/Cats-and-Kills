@@ -47,12 +47,11 @@ namespace CatsAndKills.EditorTools
             RebuildConceptCoverPoints();
             RebuildConceptNavigation();
 
-            // Use one character presentation pipeline only.
-            // BuildWithPack already installs the stable DirectionalSpriteSet
-            // visuals. The runtime bootstrap only verifies/recreates that path.
-            // Installing the direct-atlas visual here caused a second visual
-            // implementation to be destroyed and replaced on the first Play frame.
-            InstallRuntimeCharacterBootstrap();
+            // BuildWithPack creates the only character visual pipeline.
+            // A runtime bootstrap could recreate/replace that visual after
+            // Play starts, which is exactly how duplicate weapon/body layers
+            // kept reappearing.
+            RemoveRuntimeCharacterBootstrap();
 
             ConfigureConceptDoors();
             InstallConceptHUD(pack);
@@ -275,12 +274,12 @@ namespace CatsAndKills.EditorTools
                         new Vector2(
                             Mathf.Clamp(
                                 raw.x,
-                                -21.7f,
-                                21.7f),
+                                -46.0f,
+                                46.0f),
                             Mathf.Clamp(
                                 raw.y,
-                                -12.7f,
-                                12.7f));
+                                -30.0f,
+                                30.0f));
 
                     if (obstacleMask != 0 &&
                         Physics2D.OverlapCircle(
@@ -378,42 +377,17 @@ namespace CatsAndKills.EditorTools
             }
         }
 
-        private static void InstallRuntimeCharacterBootstrap()
+        private static void RemoveRuntimeCharacterBootstrap()
         {
-            RuntimeCharacterVisualBootstrap bootstrap =
-                Object.FindAnyObjectByType<
-                    RuntimeCharacterVisualBootstrap>();
-
-            if (bootstrap == null)
+            foreach (RuntimeCharacterVisualBootstrap bootstrap in
+                     Object.FindObjectsByType<RuntimeCharacterVisualBootstrap>(
+                         FindObjectsInactive.Include,
+                         FindObjectsSortMode.None))
             {
-                GameObject go =
-                    new GameObject(
-                        "Runtime Character Visual Bootstrap");
-
-                bootstrap =
-                    go.AddComponent<
-                        RuntimeCharacterVisualBootstrap>();
+                if (bootstrap != null)
+                    Object.DestroyImmediate(
+                        bootstrap.gameObject);
             }
-
-            ProductionArtPack pack =
-                AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
-                    ConceptArtIntegrator.PackPath);
-
-            if (pack == null)
-            {
-                Debug.LogError(
-                    "Runtime character bootstrap cannot find ProductionArtPack.");
-                return;
-            }
-
-            bootstrap.Configure(
-                pack.player,
-                pack.pistolier,
-                pack.rifleman,
-                pack.machineGunner,
-                pack.demolitionist);
-
-            EditorUtility.SetDirty(bootstrap);
         }
 
         private static void CreateWorldBackdrop()
