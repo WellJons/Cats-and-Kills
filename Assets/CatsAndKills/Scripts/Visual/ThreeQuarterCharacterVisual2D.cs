@@ -30,7 +30,11 @@ namespace CatsAndKills.Visual
         [SerializeField] private float walkSway = 0.009f;
         [SerializeField] private float recoilKick = 0.060f;
         [SerializeField] private float hurtKick = 0.045f;
+        [SerializeField] private float frameBlendTime = 0.065f;
 
+        private SpriteRenderer _transitionRenderer;
+        private float _transitionUntil;
+        private bool _subscribed;
         private float _fireUntil;
         private float _recoil;
         private float _hurtImpulse;
@@ -63,6 +67,8 @@ namespace CatsAndKills.Visual
             playerAim = aim;
             playerWeapon = weapon;
             lookTarget = target;
+
+            TrySubscribe();
         }
 
         private void Awake()
@@ -90,10 +96,49 @@ namespace CatsAndKills.Visual
             _visualOffset = Vector3.zero;
             _smoothedFacing = _facing;
             _phase = Random.Range(0f, Mathf.PI * 2f);
+
+            GameObject blend =
+                new GameObject("Frame Blend");
+
+            blend.transform.SetParent(
+                transform,
+                false);
+
+            _transitionRenderer =
+                blend.AddComponent<SpriteRenderer>();
+
+            _transitionRenderer.enabled = false;
+
+            if (bodyRenderer != null)
+            {
+                _transitionRenderer.sortingLayerID =
+                    bodyRenderer.sortingLayerID;
+
+                _transitionRenderer.sortingOrder =
+                    bodyRenderer.sortingOrder + 1;
+            }
         }
 
         private void OnEnable()
         {
+            TrySubscribe();
+        }
+
+        private void Start()
+        {
+            TrySubscribe();
+        }
+
+        private void OnDisable()
+        {
+            Unsubscribe();
+        }
+
+        private void TrySubscribe()
+        {
+            if (_subscribed)
+                return;
+
             if (vitals != null)
                 vitals.Damaged += OnDamaged;
 
@@ -102,10 +147,15 @@ namespace CatsAndKills.Visual
 
             if (enemyWeapon != null)
                 enemyWeapon.Fired += OnWeaponFired;
+
+            _subscribed = true;
         }
 
-        private void OnDisable()
+        private void Unsubscribe()
         {
+            if (!_subscribed)
+                return;
+
             if (vitals != null)
                 vitals.Damaged -= OnDamaged;
 
@@ -114,6 +164,8 @@ namespace CatsAndKills.Visual
 
             if (enemyWeapon != null)
                 enemyWeapon.Fired -= OnWeaponFired;
+
+            _subscribed = false;
         }
 
         private void LateUpdate()
@@ -137,6 +189,7 @@ namespace CatsAndKills.Visual
 
             UpdateFacing();
             UpdateSprite();
+            UpdateFrameBlend();
             AnimatePresentation();
         }
 
@@ -261,8 +314,31 @@ namespace CatsAndKills.Visual
                 next = sprites.GetIdle(_direction);
             }
 
+            bool nextFlip =
+                sprites.ShouldFlipX(_direction);
+
             if (next != null)
             {
+                if (bodyRenderer.sprite != null &&
+                    bodyRenderer.sprite != next &&
+                    _transitionRenderer != null)
+                {
+                    _transitionRenderer.sprite =
+                        bodyRenderer.sprite;
+
+                    _transitionRenderer.flipX =
+                        bodyRenderer.flipX;
+
+                    _transitionRenderer.color =
+                        bodyRenderer.color;
+
+                    _transitionRenderer.enabled = true;
+
+                    _transitionUntil =
+                        Time.unscaledTime +
+                        frameBlendTime;
+                }
+
                 bodyRenderer.sprite = next;
                 bodyRenderer.enabled = true;
                 bodyRenderer.color =
@@ -273,8 +349,38 @@ namespace CatsAndKills.Visual
                             : Color.white;
             }
 
-            bodyRenderer.flipX =
-                sprites.ShouldFlipX(_direction);
+            bodyRenderer.flipX = nextFlip;
+        }
+
+        private void UpdateFrameBlend()
+        {
+            if (_transitionRenderer == null ||
+                !_transitionRenderer.enabled)
+            {
+                return;
+            }
+
+            float remaining =
+                _transitionUntil -
+                Time.unscaledTime;
+
+            if (remaining <= 0f ||
+                frameBlendTime <= 0.001f)
+            {
+                _transitionRenderer.enabled = false;
+                return;
+            }
+
+            float alpha =
+                Mathf.Clamp01(
+                    remaining /
+                    frameBlendTime);
+
+            Color c =
+                _transitionRenderer.color;
+
+            c.a = alpha * 0.55f;
+            _transitionRenderer.color = c;
         }
 
         private void AnimatePresentation()
