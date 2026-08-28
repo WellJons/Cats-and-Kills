@@ -139,37 +139,86 @@ namespace CatsAndKills.Damage
 
             Damaged?.Invoke(info);
 
-            bool explosionDismember =
-                info.Type == DamageType.Explosion &&
-                info.DismemberPower >= 0.55f &&
-                part != BodyPart.Head &&
-                part != BodyPart.Torso;
+            TryDismemberLimb(
+                part,
+                info,
+                damage);
 
-            if (explosionDismember && !_dismembered.Contains(part))
+            if (Health <= 0f ||
+                (part == BodyPart.Head &&
+                 damage >= 70f))
             {
-                _dismembered.Add(part);
+                Die();
+            }
+        }
 
-                switch (part)
-                {
-                    case BodyPart.LeftArm:
-                        LeftArm = 0f;
-                        break;
-                    case BodyPart.RightArm:
-                        RightArm = 0f;
-                        break;
-                    case BodyPart.LeftLeg:
-                        LeftLeg = 0f;
-                        break;
-                    case BodyPart.RightLeg:
-                        RightLeg = 0f;
-                        break;
-                }
-
-                Dismembered?.Invoke(part, info);
+        private void TryDismemberLimb(
+            BodyPart part,
+            DamageInfo info,
+            float appliedDamage)
+        {
+            if (part == BodyPart.Head ||
+                part == BodyPart.Torso ||
+                _dismembered.Contains(part))
+            {
+                return;
             }
 
-            if (Health <= 0f || (part == BodyPart.Head && damage >= 70f))
-                Die();
+            bool disabled =
+                part == BodyPart.LeftArm
+                    ? LeftArm <= 0f
+                    : part == BodyPart.RightArm
+                        ? RightArm <= 0f
+                        : part == BodyPart.LeftLeg
+                            ? LeftLeg <= 0f
+                            : RightLeg <= 0f;
+
+            float capacity =
+                part == BodyPart.LeftArm ||
+                part == BodyPart.RightArm
+                    ? armCapacity
+                    : legCapacity;
+
+            bool blastSever =
+                info.Type == DamageType.Explosion &&
+                info.DismemberPower >= 0.45f;
+
+            bool ballisticSever =
+                disabled &&
+                info.DismemberPower >= 0.16f &&
+                appliedDamage >=
+                capacity * 0.28f;
+
+            if (!blastSever &&
+                !ballisticSever)
+            {
+                return;
+            }
+
+            _dismembered.Add(part);
+
+            switch (part)
+            {
+                case BodyPart.LeftArm:
+                    LeftArm = 0f;
+                    break;
+
+                case BodyPart.RightArm:
+                    RightArm = 0f;
+                    break;
+
+                case BodyPart.LeftLeg:
+                    LeftLeg = 0f;
+                    break;
+
+                case BodyPart.RightLeg:
+                    RightLeg = 0f;
+                    break;
+            }
+
+            Dismembered?.Invoke(
+                part,
+                info);
         }
 
         private float UpdateLimb(
