@@ -238,7 +238,8 @@ namespace CatsAndKills.EditorTools
                          true))
             {
                 if (obstacle == null ||
-                    !obstacle.enabled)
+                    !obstacle.enabled ||
+                    obstacle.isTrigger)
                 {
                     continue;
                 }
