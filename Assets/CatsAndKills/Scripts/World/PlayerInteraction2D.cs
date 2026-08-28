@@ -1,4 +1,5 @@
 using CatsAndKills.Core;
+using CatsAndKills.Narrative;
 using CatsAndKills.UI;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace CatsAndKills.World
         private void Update()
         {
             if (Time.timeScale <= 0f) return;
+            if (NarrativeDialogueSystem.IsDialogueOpen) return;
             if (!CKInput.InteractPressed) return;
             if (InputConsumption.InteractConsumed) return;
 
@@ -35,7 +37,13 @@ namespace CatsAndKills.World
             if (closest != null)
             {
                 closest.Interact();
-                RadioDialogueSystem.Instance?.ShowTransient(closest.InteractionPrompt, 0.65f);
+
+                if (!NarrativeDialogueSystem.IsDialogueOpen)
+                {
+                    RadioDialogueSystem.Instance?.ShowTransient(
+                        closest.InteractionPrompt,
+                        0.65f);
+                }
             }
         }
     }
