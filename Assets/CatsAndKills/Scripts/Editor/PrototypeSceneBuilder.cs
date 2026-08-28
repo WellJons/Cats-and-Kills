@@ -643,6 +643,15 @@ namespace CatsAndKills.EditorTools
             var brain = root.AddComponent<EnemyBrain>();
             brain.Configure(player, motor, perception, enemyWeapon, grenadeThrower, squad, coverManager, vitals, archetype);
 
+            if (archetype != EnemyArchetype.MachineGunner)
+            {
+                var patrol = root.AddComponent<EnemyPatrol2D>();
+                patrol.Configure(
+                    motor,
+                    brain,
+                    archetype == EnemyArchetype.Pistolier ? 2.2f : 3.2f);
+            }
+
             if (archetype == EnemyArchetype.Demolitionist)
             {
                 var charge = root.AddComponent<DemolitionistCharge2D>();
