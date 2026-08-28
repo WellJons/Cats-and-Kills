@@ -3,6 +3,7 @@ using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
+using CatsAndKills.Tactical;
 using UnityEngine;
 
 namespace CatsAndKills.AI
@@ -157,6 +158,16 @@ namespace CatsAndKills.AI
 
         private void Update()
         {
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            if (tactical != null &&
+                tactical.IsTacticalCombat)
+            {
+                _triggerHeld = false;
+                return;
+            }
+
             if (!_triggerHeld)
                 return;
 
@@ -218,6 +229,30 @@ namespace CatsAndKills.AI
                 Mathf.Max(
                     0.1f,
                     fireRate);
+        }
+
+        public bool TryTacticalFire()
+        {
+            CacheRuntimeReferences();
+
+            if (target == null)
+                return false;
+
+            if (_ownerVitals != null &&
+                (!_ownerVitals.CanUsePrimaryWeapon ||
+                 _ownerVitals.IsDead))
+            {
+                return false;
+            }
+
+            if (!CanFireSafely())
+                return false;
+
+            _suppressing = false;
+            Fire();
+            _shotsRemaining = 0;
+
+            return true;
         }
 
         private bool CanFireSafely()
