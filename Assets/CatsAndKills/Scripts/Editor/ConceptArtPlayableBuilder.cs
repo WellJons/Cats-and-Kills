@@ -44,6 +44,15 @@ namespace CatsAndKills.EditorTools
 
             ApplyConceptWeaponSprites(pack);
             ConceptVisualPolishBuilder.Apply(pack);
+
+            if (!ValidateGeneratedLevel())
+            {
+                Debug.LogError(
+                    "Concept level validation failed. " +
+                    "The scene was not accepted as a valid build.");
+                return;
+            }
+
             RebuildConceptCoverPoints();
             RebuildConceptNavigation();
 
@@ -72,6 +81,72 @@ namespace CatsAndKills.EditorTools
                 "Cats and Kills concept-art version built. " +
                 "This scene now uses the generated character, environment, " +
                 "weapon and atmosphere assets.");
+        }
+
+        private static bool ValidateGeneratedLevel()
+        {
+            BuildingRoofFader2D[] buildings =
+                Object.FindObjectsByType<BuildingRoofFader2D>(
+                    FindObjectsSortMode.None);
+
+            GameObject polish =
+                GameObject.Find(
+                    "Concept Visual Polish");
+
+            int solidColliders = 0;
+
+            if (polish != null)
+            {
+                foreach (BoxCollider2D collider in
+                         polish.GetComponentsInChildren<BoxCollider2D>(
+                             true))
+                {
+                    if (collider != null &&
+                        collider.enabled &&
+                        !collider.isTrigger)
+                    {
+                        solidColliders++;
+                    }
+                }
+            }
+
+            bool legacyFloorPresent =
+                GameObject.Find("Floor") != null;
+
+            bool legacyBootstrapPresent =
+                Object.FindAnyObjectByType<
+                    RuntimeCharacterVisualBootstrap>() != null;
+
+            bool valid =
+                polish != null &&
+                buildings.Length >= 8 &&
+                solidColliders >= 28 &&
+                !legacyFloorPresent &&
+                !legacyBootstrapPresent;
+
+            if (!valid)
+            {
+                Debug.LogError(
+                    "Generated level validation: buildings=" +
+                    buildings.Length +
+                    ", solidColliders=" +
+                    solidColliders +
+                    ", legacyFloor=" +
+                    legacyFloorPresent +
+                    ", runtimeBootstrap=" +
+                    legacyBootstrapPresent);
+
+                return false;
+            }
+
+            Debug.Log(
+                "Generated level validated: " +
+                buildings.Length +
+                " buildings, " +
+                solidColliders +
+                " solid environment colliders.");
+
+            return true;
         }
 
         private static bool ValidateCharacterArt(
