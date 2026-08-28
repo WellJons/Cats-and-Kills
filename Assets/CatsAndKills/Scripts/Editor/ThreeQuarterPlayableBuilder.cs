@@ -113,7 +113,9 @@ namespace CatsAndKills.EditorTools
                     aim,
                     weapon,
                     null,
-                    1.18f);
+                    1.18f,
+                    pack.grenade,
+                    pack.smoke);
 
             ReplaceShadow(
                 root.transform,
@@ -151,7 +153,9 @@ namespace CatsAndKills.EditorTools
                     null,
                     null,
                     player,
-                    scale);
+                    scale,
+                    pack.grenade,
+                    pack.smoke);
 
             if (visual != null)
                 visual.transform.localPosition =
@@ -174,7 +178,9 @@ namespace CatsAndKills.EditorTools
             PlayerAim2D aim,
             HitscanWeapon2D weapon,
             Transform lookTarget,
-            float scale)
+            float scale,
+            Sprite grenadeSprite,
+            Sprite smokeSprite)
         {
             if (set == null)
                 return null;
@@ -243,6 +249,25 @@ namespace CatsAndKills.EditorTools
                     5000,
                     -0.58f);
             }
+
+            WeaponVisualRecoil2D weaponVisual =
+                weapon != null
+                    ? weapon.GetComponent<WeaponVisualRecoil2D>()
+                    : null;
+
+            CharacterIdleLife2D idleLife =
+                go.AddComponent<CharacterIdleLife2D>();
+
+            idleLife.Configure(
+                visual,
+                sr,
+                body,
+                vitals,
+                weaponVisual,
+                root.GetComponent<EnemyBrain>(),
+                GeneratedArtFactory.Get("ui_square"),
+                grenadeSprite,
+                smokeSprite);
 
             return go;
         }
@@ -354,7 +379,7 @@ namespace CatsAndKills.EditorTools
                 {
                     sr.sprite = pack.floorIndustrial;
                     sr.drawMode = SpriteDrawMode.Tiled;
-                    sr.size = new Vector2(46f, 28f);
+                    sr.size = new Vector2(96f, 64f);
                     sr.color = new Color(
                         0.86f,
                         0.90f,
