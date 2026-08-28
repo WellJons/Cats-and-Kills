@@ -45,6 +45,8 @@ namespace CatsAndKills.Damage
             }
         }
 
+        private GameObject _lastDamageSource;
+
         public event Action<DamageInfo> Damaged;
         public event Action Died;
         public event Action<BodyPart, DamageInfo> LimbDisabled;
@@ -89,6 +91,7 @@ namespace CatsAndKills.Damage
             if (part == BodyPart.Head) damage *= 1.65f;
 
             Health -= damage;
+            _lastDamageSource = info.Source;
 
             switch (part)
             {
@@ -126,6 +129,14 @@ namespace CatsAndKills.Damage
         {
             if (IsDead) return;
             IsDead = true;
+
+            if (!CompareTag("Player") &&
+                _lastDamageSource != null &&
+                _lastDamageSource.transform.root.CompareTag("Player"))
+            {
+                CatsAndKills.Core.CombatStats.Instance?.RecordKill();
+            }
+
             Died?.Invoke();
         }
     }
