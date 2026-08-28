@@ -118,7 +118,7 @@ namespace CatsAndKills.EditorTools
             ReplaceShadow(
                 root.transform,
                 pack.softShadow,
-                new Vector3(1.5f, 0.72f, 1f));
+                new Vector3(1.18f, 0.52f, 1f));
 
             if (visual != null)
                 visual.transform.localPosition =
@@ -161,8 +161,8 @@ namespace CatsAndKills.EditorTools
                 root.transform,
                 pack.softShadow,
                 brain.Archetype == EnemyArchetype.MachineGunner
-                    ? new Vector3(1.7f, 0.82f, 1f)
-                    : new Vector3(1.42f, 0.68f, 1f));
+                    ? new Vector3(1.32f, 0.58f, 1f)
+                    : new Vector3(1.12f, 0.48f, 1f));
         }
 
         private static GameObject CreateCharacterVisual(
@@ -285,9 +285,17 @@ namespace CatsAndKills.EditorTools
                 sr = go.AddComponent<SpriteRenderer>();
 
             sr.sprite = shadowSprite;
-            sr.color = new Color(0f, 0f, 0f, 0.72f);
+            sr.color = new Color(0f, 0f, 0f, 0.58f);
             sr.sortingOrder = -5;
             sr.enabled = true;
+
+            WorldUpright2D upright =
+                go.GetComponent<WorldUpright2D>();
+
+            if (upright == null)
+                upright = go.AddComponent<WorldUpright2D>();
+
+            upright.Configure();
         }
 
         private static DirectionalSpriteSet GetEnemySet(
