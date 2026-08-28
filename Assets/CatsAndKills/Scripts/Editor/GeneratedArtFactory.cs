@@ -166,7 +166,6 @@ namespace CatsAndKills.EditorTools
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
             importer.spritePixelsPerUnit = 64f;
-            importer.spriteMeshType = SpriteMeshType.FullRect;
             importer.filterMode = FilterMode.Point;
             importer.textureCompression =
                 TextureImporterCompression.Uncompressed;
@@ -174,6 +173,12 @@ namespace CatsAndKills.EditorTools
             importer.mipmapEnabled = false;
             importer.alphaIsTransparency = true;
             importer.wrapMode = TextureWrapMode.Repeat;
+
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            settings.spriteMeshType = SpriteMeshType.FullRect;
+            importer.SetTextureSettings(settings);
+
             importer.SaveAndReimport();
         }
 
