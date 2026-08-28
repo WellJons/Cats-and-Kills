@@ -288,6 +288,23 @@ namespace CatsAndKills.Combat
                 return false;
             }
 
+            Vector2 tacticalOrigin =
+                CharacterCombatGeometry2D.AimPoint(
+                    ownerVitals != null
+                        ? ownerVitals.transform
+                        : transform.root);
+
+            if (TacticalSmokeField2D.IsLineObscured(
+                    tacticalOrigin,
+                    worldPoint))
+            {
+                RadioDialogueSystem.Instance?.ShowTransient(
+                    "ЛИНИЯ ОГНЯ ЗАКРЫТА ДЫМОМ",
+                    0.8f);
+
+                return false;
+            }
+
             aim.SetTacticalAimPoint(
                 worldPoint);
 
