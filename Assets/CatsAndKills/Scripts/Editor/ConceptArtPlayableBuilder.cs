@@ -18,6 +18,12 @@ namespace CatsAndKills.EditorTools
 {
     public static class ConceptArtPlayableBuilder
     {
+        [MenuItem("Tools/Cats and Kills/Build Playable Vertical Slice")]
+        public static void BuildVerticalSlice()
+        {
+            Build();
+        }
+
         [MenuItem("Tools/Cats and Kills/Build Playable Concept-Art Version")]
         public static void Build()
         {
@@ -60,6 +66,14 @@ namespace CatsAndKills.EditorTools
             DistrictVerticalSliceBuilder.Apply(
                 pack);
 
+            if (!ValidateDistrictVerticalSlice())
+            {
+                Debug.LogError(
+                    "District vertical slice validation failed. " +
+                    "The scene was not saved as a playable build.");
+                return;
+            }
+
             // BuildWithPack creates the only character visual pipeline.
             // A runtime bootstrap could recreate/replace that visual after
             // Play starts, which is exactly how duplicate weapon/body layers
@@ -85,6 +99,88 @@ namespace CatsAndKills.EditorTools
                 "Cats and Kills concept-art version built. " +
                 "This scene now uses the generated character, environment, " +
                 "weapon and atmosphere assets.");
+        }
+
+        private static bool ValidateDistrictVerticalSlice()
+        {
+            Narrative.NarrativeWorldState state =
+                Object.FindAnyObjectByType<
+                    Narrative.NarrativeWorldState>();
+
+            Narrative.NarrativeDialogueSystem dialogue =
+                Object.FindAnyObjectByType<
+                    Narrative.NarrativeDialogueSystem>();
+
+            DistrictVerticalSliceDirector district =
+                Object.FindAnyObjectByType<
+                    DistrictVerticalSliceDirector>();
+
+            MissionDirector mission =
+                Object.FindAnyObjectByType<
+                    MissionDirector>();
+
+            CityCivilian2D[] civilians =
+                Object.FindObjectsByType<
+                    CityCivilian2D>(
+                    FindObjectsSortMode.None);
+
+            PropagandaPoster2D[] posters =
+                Object.FindObjectsByType<
+                    PropagandaPoster2D>(
+                    FindObjectsSortMode.None);
+
+            Narrative.DialogueInteractable2D[] talkers =
+                Object.FindObjectsByType<
+                    Narrative.DialogueInteractable2D>(
+                    FindObjectsSortMode.None);
+
+            TacticalUtilityBelt belt =
+                Object.FindAnyObjectByType<
+                    TacticalUtilityBelt>();
+
+            bool valid =
+                state != null &&
+                dialogue != null &&
+                district != null &&
+                mission != null &&
+                civilians.Length >= 10 &&
+                posters.Length >= 3 &&
+                talkers.Length >= 3 &&
+                belt != null;
+
+            if (!valid)
+            {
+                Debug.LogError(
+                    "Vertical slice validation: state=" +
+                    (state != null) +
+                    ", dialogue=" +
+                    (dialogue != null) +
+                    ", district=" +
+                    (district != null) +
+                    ", mission=" +
+                    (mission != null) +
+                    ", civilians=" +
+                    civilians.Length +
+                    ", posters=" +
+                    posters.Length +
+                    ", talkers=" +
+                    talkers.Length +
+                    ", utilityBelt=" +
+                    (belt != null));
+            }
+            else
+            {
+                Debug.Log(
+                    "Vertical slice validated: " +
+                    civilians.Length +
+                    " civilians, " +
+                    posters.Length +
+                    " propaganda posters, " +
+                    talkers.Length +
+                    " dialogue NPCs.");
+            }
+
+            return valid;
         }
 
         private static bool ValidateGeneratedLevel()
