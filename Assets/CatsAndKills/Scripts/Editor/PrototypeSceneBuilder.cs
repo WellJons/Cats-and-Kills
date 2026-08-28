@@ -199,6 +199,18 @@ namespace CatsAndKills.EditorTools
             PlayerGrenadeController playerGrenades =
                 player.GetComponent<PlayerGrenadeController>();
 
+            TacticalUtilityBelt utilityBelt =
+                player.GetComponent<TacticalUtilityBelt>();
+
+            if (utilityBelt == null)
+                utilityBelt =
+                    player.AddComponent<TacticalUtilityBelt>();
+
+            utilityBelt.Configure(
+                nav,
+                _grenadeSprite,
+                _smokeSprite);
+
             PlayerAim2D playerAim =
                 player.GetComponent<PlayerAim2D>();
 
@@ -214,6 +226,7 @@ namespace CatsAndKills.EditorTools
                 tactical,
                 playerWeapon,
                 playerGrenades,
+                utilityBelt,
                 playerAim,
                 camera);
 
