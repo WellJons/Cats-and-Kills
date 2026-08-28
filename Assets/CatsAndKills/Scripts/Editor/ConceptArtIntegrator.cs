@@ -19,9 +19,9 @@ namespace CatsAndKills.EditorTools
         public const string PackPath =
             GeneratedRoot + "/ConceptProductionArtPack.asset";
 
-        private static readonly Dictionary<int, List<AlphaComponentInfo>>
+        private static readonly Dictionary<Texture2D, List<AlphaComponentInfo>>
             AlphaComponentCache =
-                new Dictionary<int, List<AlphaComponentInfo>>();
+                new Dictionary<Texture2D, List<AlphaComponentInfo>>();
 
         private static readonly string[] RequiredAtlases =
         {
@@ -943,8 +943,8 @@ namespace CatsAndKills.EditorTools
             if (source == null)
                 return result;
 
-            int cacheKey =
-                source.GetEntityId();
+            Texture2D cacheKey =
+                source;
 
             if (alphaThreshold == 18 &&
                 AlphaComponentCache.TryGetValue(
