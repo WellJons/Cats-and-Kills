@@ -33,6 +33,7 @@ namespace CatsAndKills.Visual
         [SerializeField] private float frameBlendTime = 0.018f;
 
         private SpriteRenderer _transitionRenderer;
+        private CharacterCombatAnchor2D _combatAnchor;
         private float _transitionUntil;
         private bool _subscribed;
         private float _fireUntil;
@@ -68,6 +69,7 @@ namespace CatsAndKills.Visual
             playerWeapon = weapon;
             lookTarget = target;
 
+            EnsureCombatAnchor();
             TrySubscribe();
         }
 
@@ -96,6 +98,8 @@ namespace CatsAndKills.Visual
             _visualOffset = Vector3.zero;
             _smoothedFacing = _facing;
             _phase = Random.Range(0f, Mathf.PI * 2f);
+
+            EnsureCombatAnchor();
 
             GameObject blend =
                 new GameObject("Frame Blend");
@@ -191,6 +195,69 @@ namespace CatsAndKills.Visual
             UpdateSprite();
             UpdateFrameBlend();
             AnimatePresentation();
+            RefreshCombatAnchor();
+        }
+
+        private void EnsureCombatAnchor()
+        {
+            GameObject root =
+                vitals != null
+                    ? vitals.gameObject
+                    : body != null
+                        ? body.gameObject
+                        : transform.root.gameObject;
+
+            _combatAnchor =
+                root.GetComponent<CharacterCombatAnchor2D>();
+
+            if (_combatAnchor == null)
+                _combatAnchor =
+                    root.AddComponent<CharacterCombatAnchor2D>();
+        }
+
+        private void RefreshCombatAnchor()
+        {
+            if (_combatAnchor == null)
+                EnsureCombatAnchor();
+
+            if (_combatAnchor == null ||
+                bodyRenderer == null ||
+                bodyRenderer.sprite == null ||
+                sprites == null)
+            {
+                _combatAnchor?.Clear();
+                return;
+            }
+
+            Bounds bounds =
+                bodyRenderer.bounds;
+
+            Vector2 muzzle01 =
+                sprites.GetMuzzleAnchor01(
+                    _direction);
+
+            Vector2 aimPoint =
+                new Vector2(
+                    bounds.center.x,
+                    Mathf.Lerp(
+                        bounds.min.y,
+                        bounds.max.y,
+                        sprites.AimHeight01));
+
+            Vector2 muzzlePoint =
+                new Vector2(
+                    Mathf.Lerp(
+                        bounds.min.x,
+                        bounds.max.x,
+                        muzzle01.x),
+                    Mathf.Lerp(
+                        bounds.min.y,
+                        bounds.max.y,
+                        muzzle01.y));
+
+            _combatAnchor.SetWorldPoints(
+                aimPoint,
+                muzzlePoint);
         }
 
         private void UpdateFacing()
