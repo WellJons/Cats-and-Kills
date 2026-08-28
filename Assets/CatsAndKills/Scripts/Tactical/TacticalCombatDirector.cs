@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using CatsAndKills.AI;
+using CatsAndKills.Core;
 using CatsAndKills.Player;
 using UnityEngine;
 
@@ -137,6 +138,8 @@ namespace CatsAndKills.Tactical
             PlayerAP = maxPlayerAP;
 
             StopAllRealtimeEnemyBehaviour();
+
+            CombatDirector.Instance?.ReportCombat();
 
             PhaseChanged?.Invoke();
             ActionPointsChanged?.Invoke();
