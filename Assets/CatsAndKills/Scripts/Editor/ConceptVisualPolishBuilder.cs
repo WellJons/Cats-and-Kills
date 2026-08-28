@@ -61,6 +61,10 @@ namespace CatsAndKills.EditorTools
             Material lit =
                 GetOrCreateLitMaterial();
 
+            CreateConceptFloor(
+                root.transform,
+                pack);
+
             AddStructuralPass(
                 root.transform,
                 pack,
@@ -111,12 +115,113 @@ namespace CatsAndKills.EditorTools
                     n == "Wall Side" ||
                     n == "Wall Shadow" ||
                     n == "Prop Shadow" ||
+                    n == "Floor" ||
+                    n.Contains("Floor Zone") ||
+                    parent.Contains("Floor Zone") ||
                     n.Contains("Hazard //") ||
                     parent.Contains("Hazard //"))
                 {
                     sr.enabled = false;
                 }
             }
+        }
+
+        private static void CreateConceptFloor(
+            Transform parent,
+            ProductionArtPack pack)
+        {
+            if (pack.floorIndustrial == null)
+                return;
+
+            GameObject floor =
+                new GameObject("Concept Floor");
+
+            floor.transform.SetParent(
+                parent,
+                false);
+
+            floor.transform.position =
+                Vector3.zero;
+
+            SpriteRenderer sr =
+                floor.AddComponent<SpriteRenderer>();
+
+            sr.sprite =
+                pack.floorIndustrial;
+
+            sr.drawMode =
+                SpriteDrawMode.Simple;
+
+            sr.color = Color.white;
+            sr.sortingOrder = -1500;
+
+            Vector2 spriteSize =
+                sr.sprite.bounds.size;
+
+            float scaleX =
+                spriteSize.x > 0.001f
+                    ? 46.5f / spriteSize.x
+                    : 1f;
+
+            float scaleY =
+                spriteSize.y > 0.001f
+                    ? 28.5f / spriteSize.y
+                    : 1f;
+
+            floor.transform.localScale =
+                new Vector3(
+                    scaleX,
+                    scaleY,
+                    1f);
+
+            CreateFloorTintZone(
+                parent,
+                "Warehouse Tint",
+                new Vector2(0.5f, 1.0f),
+                new Vector2(13.5f, 22.0f),
+                new Color(0.05f, 0.18f, 0.24f, 0.10f));
+
+            CreateFloorTintZone(
+                parent,
+                "Administration Tint",
+                new Vector2(16.0f, 1.5f),
+                new Vector2(11.5f, 21.0f),
+                new Color(0.20f, 0.05f, 0.18f, 0.08f));
+        }
+
+        private static void CreateFloorTintZone(
+            Transform parent,
+            string name,
+            Vector2 position,
+            Vector2 size,
+            Color color)
+        {
+            Sprite square =
+                GeneratedArtFactory.Get("ui_square");
+
+            if (square == null)
+                return;
+
+            GameObject go =
+                new GameObject(name);
+
+            go.transform.SetParent(
+                parent,
+                false);
+
+            go.transform.position =
+                position;
+
+            SpriteRenderer sr =
+                go.AddComponent<SpriteRenderer>();
+
+            sr.sprite = square;
+            sr.drawMode =
+                SpriteDrawMode.Tiled;
+
+            sr.size = size;
+            sr.color = color;
+            sr.sortingOrder = -1490;
         }
 
         private static void AddStructuralPass(
@@ -933,6 +1038,17 @@ namespace CatsAndKills.EditorTools
                 bool conceptRuntime =
                     sr.gameObject.name.Contains(
                         "Concept Atlas Visual");
+
+                bool stableCharacter =
+                    sr.GetComponent<ThreeQuarterCharacterVisual2D>() != null ||
+                    sr.GetComponentInParent<ThreeQuarterCharacterVisual2D>() != null ||
+                    sr.gameObject.name.Contains("3-4 Visual");
+
+                bool stableFloor =
+                    sr.gameObject.name == "Concept Floor";
+
+                if (stableCharacter || stableFloor)
+                    continue;
 
                 bool conceptPolish =
                     polishTransform != null &&
