@@ -2,6 +2,7 @@ using System.Linq;
 using CatsAndKills.AI;
 using CatsAndKills.Damage;
 using CatsAndKills.Narrative;
+using CatsAndKills.Player;
 using CatsAndKills.UI;
 using UnityEngine;
 
@@ -50,6 +51,8 @@ namespace CatsAndKills.World
 
             if (_state == null)
                 return;
+
+            ApplyRelationshipRewards();
 
             if (_state.HasFlag(
                     "slice_ambush_started"))
@@ -136,6 +139,39 @@ namespace CatsAndKills.World
                             CharacterVitals>() is
                             CharacterVitals vitals &&
                         !vitals.IsDead);
+        }
+
+        private void ApplyRelationshipRewards()
+        {
+            if (!_state.HasFlag(
+                    "slice_mechanic_medical_help") ||
+                _state.HasFlag(
+                    "slice_mechanic_medical_used"))
+            {
+                return;
+            }
+
+            PlayerMotor2D player =
+                FindAnyObjectByType<
+                    PlayerMotor2D>();
+
+            CharacterVitals vitals =
+                player != null
+                    ? player.GetComponent<
+                        CharacterVitals>()
+                    : null;
+
+            if (vitals == null)
+                return;
+
+            vitals.Heal(36f);
+
+            _state.SetFlag(
+                "slice_mechanic_medical_used");
+
+            RadioDialogueSystem.Instance?.ShowTransient(
+                "МЕХАНИК // РАНЫ ОБРАБОТАНЫ",
+                1.8f);
         }
 
         private void DispatchSecurityInvestigation()
