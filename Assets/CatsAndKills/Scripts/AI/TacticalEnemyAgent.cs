@@ -1,5 +1,6 @@
 using System.Collections;
 using CatsAndKills.Damage;
+using CatsAndKills.Player;
 using CatsAndKills.Tactical;
 using UnityEngine;
 
@@ -15,6 +16,8 @@ namespace CatsAndKills.AI
         [SerializeField] private EnemyGrenadeThrower grenades;
         [SerializeField] private CharacterVitals vitals;
         [SerializeField] private EnemyPatrol2D patrol;
+        [SerializeField] private GrenadeAwareness2D grenadeAwareness;
+        [SerializeField] private DemolitionistCharge2D demolitionCharge;
         [SerializeField] private Transform player;
 
         private bool _participating;
@@ -50,10 +53,16 @@ namespace CatsAndKills.AI
             if (patrol == null)
                 patrol = GetComponent<EnemyPatrol2D>();
 
+            if (grenadeAwareness == null)
+                grenadeAwareness = GetComponent<GrenadeAwareness2D>();
+
+            if (demolitionCharge == null)
+                demolitionCharge = GetComponent<DemolitionistCharge2D>();
+
             if (player == null)
             {
-                Player.PlayerMotor2D playerMotor =
-                    FindAnyObjectByType<Player.PlayerMotor2D>();
+                PlayerMotor2D playerMotor =
+                    FindAnyObjectByType<PlayerMotor2D>();
 
                 if (playerMotor != null)
                     player = playerMotor.transform;
@@ -87,11 +96,23 @@ namespace CatsAndKills.AI
 
                 if (patrol != null)
                     patrol.enabled = false;
+
+                if (grenadeAwareness != null)
+                    grenadeAwareness.enabled = false;
+
+                if (demolitionCharge != null)
+                    demolitionCharge.enabled = false;
             }
-            else if (patrol != null &&
-                     IsAlive)
+            else if (IsAlive)
             {
-                patrol.enabled = true;
+                if (patrol != null)
+                    patrol.enabled = true;
+
+                if (grenadeAwareness != null)
+                    grenadeAwareness.enabled = true;
+
+                if (demolitionCharge != null)
+                    demolitionCharge.enabled = true;
             }
         }
 
