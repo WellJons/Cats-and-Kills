@@ -13,6 +13,16 @@ namespace CatsAndKills.Visual
             Apply();
         }
 
+        private void FixedUpdate()
+        {
+            Apply();
+        }
+
+        private void Update()
+        {
+            Apply();
+        }
+
         private void LateUpdate()
         {
             Apply();
