@@ -213,6 +213,12 @@ namespace CatsAndKills.EditorTools
             sr.enabled = true;
             sr.sortingOrder = 10;
 
+            Material lit =
+                ConceptVisualPolishBuilder.GetOrCreateLitMaterial();
+
+            if (lit != null)
+                sr.sharedMaterial = lit;
+
             CharacterVitals vitals =
                 root.GetComponent<CharacterVitals>();
 
