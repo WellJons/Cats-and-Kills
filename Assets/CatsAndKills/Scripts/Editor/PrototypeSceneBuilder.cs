@@ -22,6 +22,27 @@ namespace CatsAndKills.EditorTools
         private static int _obstacleLayer;
         private static Sprite _square;
         private static Sprite _circle;
+        private static Sprite _catHead;
+        private static Sprite _enemyHead;
+        private static Sprite _torsoSprite;
+        private static Sprite _armSprite;
+        private static Sprite _legSprite;
+        private static Sprite _rifleSprite;
+        private static Sprite _pistolSprite;
+        private static Sprite _shotgunSprite;
+        private static Sprite _machineGunSprite;
+        private static Sprite _grenadeSprite;
+        private static Sprite _floorSprite;
+        private static Sprite _wallSprite;
+        private static Sprite _crateSprite;
+        private static Sprite _barrelSprite;
+        private static Sprite _muzzleSprite;
+        private static Sprite _bloodSprite;
+        private static Sprite _sparkSprite;
+        private static Sprite _casingSprite;
+        private static Sprite _bulletHoleSprite;
+        private static Sprite _smokeSprite;
+        private static Sprite _explosionSprite;
 
         [MenuItem("Tools/Cats and Kills/Build Playable v0.1 Sandbox")]
         public static void Build()
@@ -30,8 +51,31 @@ namespace CatsAndKills.EditorTools
             EnsureFolder(DataFolder);
             _obstacleLayer = EnsureLayer(ObstacleLayerName);
 
-            _square = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-            _circle = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            GeneratedArtFactory.RegenerateAll();
+
+            _square = GeneratedArtFactory.Get("ui_square");
+            _circle = GeneratedArtFactory.Get("ui_circle");
+            _catHead = GeneratedArtFactory.Get("cat_head");
+            _enemyHead = GeneratedArtFactory.Get("enemy_head");
+            _torsoSprite = GeneratedArtFactory.Get("torso");
+            _armSprite = GeneratedArtFactory.Get("arm");
+            _legSprite = GeneratedArtFactory.Get("leg");
+            _rifleSprite = GeneratedArtFactory.Get("rifle");
+            _pistolSprite = GeneratedArtFactory.Get("pistol");
+            _shotgunSprite = GeneratedArtFactory.Get("shotgun");
+            _machineGunSprite = GeneratedArtFactory.Get("machinegun");
+            _grenadeSprite = GeneratedArtFactory.Get("grenade");
+            _floorSprite = GeneratedArtFactory.Get("floor");
+            _wallSprite = GeneratedArtFactory.Get("wall");
+            _crateSprite = GeneratedArtFactory.Get("crate");
+            _barrelSprite = GeneratedArtFactory.Get("barrel");
+            _muzzleSprite = GeneratedArtFactory.Get("muzzle");
+            _bloodSprite = GeneratedArtFactory.Get("blood");
+            _sparkSprite = GeneratedArtFactory.Get("spark");
+            _casingSprite = GeneratedArtFactory.Get("casing");
+            _bulletHoleSprite = GeneratedArtFactory.Get("bullet_hole");
+            _smokeSprite = GeneratedArtFactory.Get("smoke");
+            _explosionSprite = GeneratedArtFactory.Get("explosion");
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -130,12 +174,12 @@ namespace CatsAndKills.EditorTools
 
             var fxGo = new GameObject("FX Service");
             var fx = fxGo.AddComponent<FXService>();
-            fx.bloodSprite = _circle;
-            fx.sparkSprite = _circle;
-            fx.casingSprite = _square;
-            fx.bulletHoleSprite = _circle;
-            fx.explosionSprite = _circle;
-            fx.smokeSprite = _circle;
+            fx.bloodSprite = _bloodSprite;
+            fx.sparkSprite = _sparkSprite;
+            fx.casingSprite = _casingSprite;
+            fx.bulletHoleSprite = _bulletHoleSprite;
+            fx.explosionSprite = _explosionSprite;
+            fx.smokeSprite = _smokeSprite;
 
             var musicGo = new GameObject("Adaptive Music");
             var music = musicGo.AddComponent<AdaptiveMusicDirector>();
@@ -188,27 +232,27 @@ namespace CatsAndKills.EditorTools
 
             var weaponGo = new GameObject("Weapon");
             weaponGo.transform.SetParent(aimPivot.transform, false);
-            weaponGo.transform.localPosition = new Vector3(0.75f, 0f, 0f);
-            weaponGo.transform.localScale = new Vector3(1.5f, 0.22f, 1f);
+            weaponGo.transform.localPosition = new Vector3(0.72f, 0f, 0f);
+            weaponGo.transform.localScale = Vector3.one * 0.58f;
 
             var weaponRenderer = weaponGo.AddComponent<SpriteRenderer>();
-            weaponRenderer.sprite = _square;
-            weaponRenderer.color = new Color(0.13f, 0.15f, 0.18f);
+            weaponRenderer.sprite = _rifleSprite;
+            weaponRenderer.color = Color.white;
             weaponRenderer.sortingOrder = 20;
 
             var visualRecoil = weaponGo.AddComponent<WeaponVisualRecoil2D>();
 
             var muzzle = new GameObject("Muzzle");
             muzzle.transform.SetParent(weaponGo.transform, false);
-            muzzle.transform.localPosition = new Vector3(0.65f, 0f, 0f);
+            muzzle.transform.localPosition = new Vector3(1.02f, 0f, 0f);
 
             var flashGo = new GameObject("Muzzle Flash");
             flashGo.transform.SetParent(muzzle.transform, false);
             var flashRenderer = flashGo.AddComponent<SpriteRenderer>();
-            flashRenderer.sprite = _circle;
-            flashRenderer.color = new Color(1f, 0.62f, 0.12f);
+            flashRenderer.sprite = _muzzleSprite;
+            flashRenderer.color = Color.white;
             flashRenderer.sortingOrder = 30;
-            flashGo.transform.localScale = Vector3.one * 0.38f;
+            flashGo.transform.localScale = Vector3.one * 0.62f;
             var flash = flashGo.AddComponent<MuzzleFlash2D>();
             flash.Configure(flashRenderer);
 
@@ -239,7 +283,7 @@ namespace CatsAndKills.EditorTools
             var grenadeController = root.AddComponent<PlayerGrenadeController>();
             grenadeController.Configure(
                 aim,
-                _circle,
+                _grenadeSprite,
                 null,
                 null);
 
@@ -276,7 +320,7 @@ namespace CatsAndKills.EditorTools
             GameObject torso = CreateBodyPart(
                 visualRoot.transform,
                 "Torso",
-                _square,
+                _torsoSprite,
                 Vector2.zero,
                 new Vector2(0.58f, 0.72f),
                 tint,
@@ -287,10 +331,10 @@ namespace CatsAndKills.EditorTools
             GameObject head = CreateBodyPart(
                 visualRoot.transform,
                 "Head",
-                _circle,
+                enemy ? _enemyHead : _catHead,
                 new Vector2(0.44f, 0f),
-                new Vector2(0.43f, 0.43f),
-                enemy ? new Color(0.72f, 0.74f, 0.78f) : Color.white,
+                new Vector2(0.56f, 0.56f),
+                Color.white,
                 13);
 
             var headCollider = head.AddComponent<CircleCollider2D>();
@@ -301,36 +345,36 @@ namespace CatsAndKills.EditorTools
             GameObject leftArm = CreateBodyPart(
                 visualRoot.transform,
                 "Left Arm",
-                _square,
-                new Vector2(0.05f, 0.39f),
-                new Vector2(0.62f, 0.18f),
+                _armSprite,
+                new Vector2(0.04f, 0.34f),
+                new Vector2(0.64f, 0.64f),
                 tint,
                 11);
 
             GameObject rightArm = CreateBodyPart(
                 visualRoot.transform,
                 "Right Arm",
-                _square,
-                new Vector2(0.05f, -0.39f),
-                new Vector2(0.62f, 0.18f),
+                _armSprite,
+                new Vector2(0.04f, -0.34f),
+                new Vector2(0.64f, 0.64f),
                 tint,
                 11);
 
             GameObject leftLeg = CreateBodyPart(
                 visualRoot.transform,
                 "Left Leg",
-                _square,
-                new Vector2(-0.43f, 0.20f),
-                new Vector2(0.55f, 0.19f),
+                _legSprite,
+                new Vector2(-0.43f, 0.18f),
+                new Vector2(0.58f, 0.58f),
                 tint * 0.82f,
                 8);
 
             GameObject rightLeg = CreateBodyPart(
                 visualRoot.transform,
                 "Right Leg",
-                _square,
-                new Vector2(-0.43f, -0.20f),
-                new Vector2(0.55f, 0.19f),
+                _legSprite,
+                new Vector2(-0.43f, -0.18f),
+                new Vector2(0.58f, 0.58f),
                 tint * 0.82f,
                 8);
 
@@ -415,7 +459,14 @@ namespace CatsAndKills.EditorTools
             }
 
             def.weaponName = name;
-            def.weaponSprite = _square;
+
+            string lowerName = name.ToLowerInvariant();
+            def.weaponSprite =
+                lowerName.Contains("pistol")
+                    ? _pistolSprite
+                    : lowerName.Contains("ks-12")
+                        ? _shotgunSprite
+                        : _rifleSprite;
             def.automatic = automatic;
             def.damage = damage;
             def.range = pellets > 1 ? 15f : 28f;
@@ -521,24 +572,29 @@ namespace CatsAndKills.EditorTools
 
             var gun = new GameObject("Gun");
             gun.transform.SetParent(root.transform, false);
-            gun.transform.localPosition = new Vector3(0.72f, 0f, 0f);
-            gun.transform.localScale = new Vector3(1.3f, 0.20f, 1f);
+            gun.transform.localPosition = new Vector3(0.70f, 0f, 0f);
+            gun.transform.localScale = Vector3.one * 0.52f;
             var gunRenderer = gun.AddComponent<SpriteRenderer>();
-            gunRenderer.sprite = _square;
-            gunRenderer.color = new Color(0.1f, 0.11f, 0.13f);
+            gunRenderer.sprite = archetype switch
+            {
+                EnemyArchetype.Pistolier => _pistolSprite,
+                EnemyArchetype.MachineGunner => _machineGunSprite,
+                _ => _rifleSprite
+            };
+            gunRenderer.color = Color.white;
             gunRenderer.sortingOrder = 20;
 
             var muzzle = new GameObject("Muzzle");
             muzzle.transform.SetParent(gun.transform, false);
-            muzzle.transform.localPosition = new Vector3(0.6f, 0f, 0f);
+            muzzle.transform.localPosition = new Vector3(1.02f, 0f, 0f);
 
             var flashGo = new GameObject("Muzzle Flash");
             flashGo.transform.SetParent(muzzle.transform, false);
             var flashRenderer = flashGo.AddComponent<SpriteRenderer>();
-            flashRenderer.sprite = _circle;
-            flashRenderer.color = new Color(1f, 0.55f, 0.08f);
+            flashRenderer.sprite = _muzzleSprite;
+            flashRenderer.color = Color.white;
             flashRenderer.sortingOrder = 30;
-            flashGo.transform.localScale = Vector3.one * 0.3f;
+            flashGo.transform.localScale = Vector3.one * 0.52f;
             var flash = flashGo.AddComponent<MuzzleFlash2D>();
             flash.Configure(flashRenderer);
 
@@ -576,7 +632,7 @@ namespace CatsAndKills.EditorTools
                                archetype == EnemyArchetype.Pistolier ? 1 : 0;
             grenadeThrower.Configure(
                 player,
-                _circle,
+                _grenadeSprite,
                 null,
                 grenadeCount);
 
@@ -598,8 +654,8 @@ namespace CatsAndKills.EditorTools
             floor.transform.position = Vector3.zero;
             floor.transform.localScale = new Vector3(46f, 28f, 1f);
             var sr = floor.AddComponent<SpriteRenderer>();
-            sr.sprite = _square;
-            sr.color = new Color(0.10f, 0.12f, 0.17f);
+            sr.sprite = _floorSprite;
+            sr.color = Color.white;
             sr.sortingOrder = -100;
         }
 
@@ -635,8 +691,8 @@ namespace CatsAndKills.EditorTools
             go.layer = _obstacleLayer;
 
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = _square;
-            sr.color = new Color(0.25f, 0.29f, 0.38f);
+            sr.sprite = _wallSprite;
+            sr.color = Color.white;
             sr.sortingOrder = 2;
 
             var col = go.AddComponent<BoxCollider2D>();
@@ -651,8 +707,8 @@ namespace CatsAndKills.EditorTools
             go.transform.localScale = new Vector3(0.72f, 1.05f, 1f);
 
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = _circle;
-            sr.color = new Color(0.62f, 0.13f, 0.10f);
+            sr.sprite = _barrelSprite;
+            sr.color = Color.white;
             sr.sortingOrder = 5;
 
             var col = go.AddComponent<CircleCollider2D>();
@@ -661,7 +717,7 @@ namespace CatsAndKills.EditorTools
             var prop = go.AddComponent<ExplosiveProp2D>();
             prop.Configure(
                 42f,
-                _circle,
+                _grenadeSprite,
                 null);
         }
 
@@ -673,8 +729,8 @@ namespace CatsAndKills.EditorTools
             go.layer = _obstacleLayer;
 
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = _square;
-            sr.color = new Color(0.42f, 0.30f, 0.22f);
+            sr.sprite = _crateSprite;
+            sr.color = Color.white;
             sr.sortingOrder = 3;
 
             go.AddComponent<BoxCollider2D>();
