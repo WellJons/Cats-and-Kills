@@ -1,4 +1,5 @@
 using System.Collections;
+using CatsAndKills.Audio;
 using CatsAndKills.Core;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
@@ -163,17 +164,22 @@ namespace CatsAndKills.Combat
                     casingPort.position,
                     (Vector2)transform.up + Random.insideUnitCircle * 0.35f);
 
-            if (definition.shotClip != null)
+            AudioClip shotClip =
+                definition.shotClip != null
+                    ? definition.shotClip
+                    : ProceduralAudioFactory.GetWeaponClip(definition.weaponName);
+
+            if (shotClip != null)
             {
                 if (audioSource != null)
                 {
                     audioSource.pitch = Random.Range(0.96f, 1.04f);
-                    audioSource.PlayOneShot(definition.shotClip, definition.shotVolume);
+                    audioSource.PlayOneShot(shotClip, definition.shotVolume);
                 }
                 else
                 {
                     AudioSource.PlayClipAtPoint(
-                        definition.shotClip,
+                        shotClip,
                         transform.position,
                         definition.shotVolume);
                 }
@@ -274,8 +280,13 @@ namespace CatsAndKills.Combat
         {
             _reloading = true;
 
-            if (definition.reloadClip != null && audioSource != null)
-                audioSource.PlayOneShot(definition.reloadClip, 0.5f);
+            AudioClip reloadClip =
+                definition.reloadClip != null
+                    ? definition.reloadClip
+                    : ProceduralAudioFactory.Reload;
+
+            if (reloadClip != null && audioSource != null)
+                audioSource.PlayOneShot(reloadClip, 0.5f);
 
             yield return new WaitForSeconds(definition.reloadTime);
 
