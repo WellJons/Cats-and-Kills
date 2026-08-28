@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CatsAndKills.Audio;
 using CatsAndKills.Core;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
@@ -83,9 +84,14 @@ namespace CatsAndKills.Combat
             if (_exploded) return;
             _exploded = true;
 
-            if (explosionClip != null)
+            AudioClip resolvedExplosion =
+                explosionClip != null
+                    ? explosionClip
+                    : ProceduralAudioFactory.Explosion;
+
+            if (resolvedExplosion != null)
                 AudioSource.PlayClipAtPoint(
-                    explosionClip,
+                    resolvedExplosion,
                     transform.position,
                     0.95f);
 
