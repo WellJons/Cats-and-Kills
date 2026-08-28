@@ -741,6 +741,17 @@ namespace CatsAndKills.EditorTools
                             pivotPixelY);
                     }
 
+                    if (id == "player")
+                    {
+                        StripPlayerBakedWeaponExtension(
+                            output,
+                            canvasW,
+                            canvasH,
+                            pivotPixelX,
+                            pivotPixelY,
+                            col);
+                    }
+
                     sourceRows[row][col] =
                         SaveGeneratedSprite(
                             output,
@@ -841,6 +852,185 @@ namespace CatsAndKills.EditorTools
             EditorUtility.SetDirty(set);
 
             return set;
+        }
+
+        private static void StripPlayerBakedWeaponExtension(
+            Color32[] pixels,
+            int width,
+            int height,
+            int pivotX,
+            int pivotY,
+            int sourceColumn)
+        {
+            if (pixels == null ||
+                pixels.Length != width * height)
+            {
+                return;
+            }
+
+            Vector2 forward =
+                SourceColumnForward(
+                    sourceColumn);
+
+            if (forward.sqrMagnitude <
+                0.5f)
+            {
+                return;
+            }
+
+            forward.Normalize();
+
+            Vector2 perpendicular =
+                new Vector2(
+                    -forward.y,
+                    forward.x);
+
+            float bodyHeight =
+                Mathf.Max(
+                    1f,
+                    height - pivotY);
+
+            Vector2 aim =
+                new Vector2(
+                    pivotX,
+                    pivotY +
+                    bodyHeight * 0.48f);
+
+            float bodyHalfWidth =
+                width * 0.18f;
+
+            float bodyMinY =
+                pivotY -
+                height * 0.02f;
+
+            float bodyMaxY =
+                pivotY +
+                bodyHeight * 0.82f;
+
+            float corridorHalfWidth =
+                Mathf.Max(
+                    5f,
+                    height * 0.075f);
+
+            float minimumForward =
+                Mathf.Max(
+                    4f,
+                    width * 0.055f);
+
+            float protectLowY =
+                pivotY +
+                bodyHeight * 0.18f;
+
+            for (int y = 0;
+                 y < height;
+                 y++)
+            {
+                if (y < protectLowY)
+                    continue;
+
+                for (int x = 0;
+                     x < width;
+                     x++)
+                {
+                    int index =
+                        y *
+                        width +
+                        x;
+
+                    if (pixels[index].a <= 18)
+                        continue;
+
+                    bool bodyCore =
+                        Mathf.Abs(
+                            x - pivotX) <=
+                        bodyHalfWidth &&
+                        y >= bodyMinY &&
+                        y <= bodyMaxY;
+
+                    if (bodyCore)
+                        continue;
+
+                    Vector2 relative =
+                        new Vector2(
+                            x,
+                            y) -
+                        aim;
+
+                    float along =
+                        Vector2.Dot(
+                            relative,
+                            forward);
+
+                    if (along <=
+                        minimumForward)
+                    {
+                        continue;
+                    }
+
+                    float side =
+                        Mathf.Abs(
+                            Vector2.Dot(
+                                relative,
+                                perpendicular));
+
+                    if (side >
+                        corridorHalfWidth)
+                    {
+                        continue;
+                    }
+
+                    // The generated concept character already contains a rifle.
+                    // Remove only the protruding weapon/muzzle corridor outside
+                    // the protected body core. The separate weapon renderer can
+                    // then show CK74/pistol/shotgun without drawing two guns.
+                    pixels[index] =
+                        new Color32(
+                            0,
+                            0,
+                            0,
+                            0);
+                }
+            }
+        }
+
+        private static Vector2 SourceColumnForward(
+            int sourceColumn)
+        {
+            const float diagonal =
+                0.70710678f;
+
+            switch (sourceColumn)
+            {
+                case 0:
+                    return Vector2.right;
+
+                case 1:
+                    return new Vector2(
+                        diagonal,
+                        -diagonal);
+
+                case 2:
+                    return Vector2.up;
+
+                case 3:
+                    return new Vector2(
+                        diagonal,
+                        diagonal);
+
+                case 4:
+                    return Vector2.left;
+
+                case 5:
+                    return Vector2.down;
+
+                case 6:
+                    return new Vector2(
+                        -diagonal,
+                        -diagonal);
+
+                default:
+                    return Vector2.zero;
+            }
         }
 
         private static List<AlphaComponentInfo>
