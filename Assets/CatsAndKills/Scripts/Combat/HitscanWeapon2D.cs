@@ -4,6 +4,7 @@ using CatsAndKills.Core;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
+using CatsAndKills.UI;
 using UnityEngine;
 
 namespace CatsAndKills.Combat
@@ -221,7 +222,10 @@ namespace CatsAndKills.Combat
                 if (receiver == null)
                     receiver = hit.collider.GetComponentInParent<IDamageReceiver>();
 
-                if (receiver != null)
+                CharacterVitals hitVitals =
+                    hit.collider.GetComponentInParent<CharacterVitals>();
+
+                if (receiver != null && hitVitals != null)
                     CombatStats.Instance?.RecordHit();
 
                 receiver?.ReceiveDamage(new DamageInfo(
@@ -232,6 +236,12 @@ namespace CatsAndKills.Combat
                     gameObject,
                     damageType,
                     definition.dismemberPower));
+
+                if (hitVitals != null &&
+                    hitVitals.transform.root != transform.root)
+                {
+                    CrosshairUI.Instance?.FlashHit(hitVitals.IsDead);
+                }
 
                 if (receiver == null)
                 {
