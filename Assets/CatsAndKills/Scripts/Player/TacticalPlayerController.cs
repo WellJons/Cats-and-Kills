@@ -26,6 +26,7 @@ namespace CatsAndKills.Player
         [SerializeField] private HitscanWeapon2D weapon;
         [SerializeField] private PlayerGrenadeController grenades;
         [SerializeField] private TacticalUtilityBelt utilityBelt;
+        [SerializeField] private TacticalOverwatchController overwatch;
         [SerializeField] private PlayerAim2D aim;
         [SerializeField] private Camera worldCamera;
         [SerializeField] private Rigidbody2D body;
@@ -39,6 +40,7 @@ namespace CatsAndKills.Player
         public bool MolotovTargeting => _targetMode == TargetMode.Molotov;
         public bool SmokeTargeting => _targetMode == TargetMode.Smoke;
         public TacticalUtilityBelt UtilityBelt => utilityBelt;
+        public TacticalOverwatchController Overwatch => overwatch;
 
         public void Configure(
             NavigationGrid2D nav,
@@ -46,6 +48,7 @@ namespace CatsAndKills.Player
             HitscanWeapon2D playerWeapon,
             PlayerGrenadeController grenadeController,
             TacticalUtilityBelt belt,
+            TacticalOverwatchController overwatchController,
             PlayerAim2D playerAim,
             Camera cameraRef)
         {
@@ -54,6 +57,7 @@ namespace CatsAndKills.Player
             weapon = playerWeapon;
             grenades = grenadeController;
             utilityBelt = belt;
+            overwatch = overwatchController;
             aim = playerAim;
             worldCamera = cameraRef;
         }
@@ -80,6 +84,9 @@ namespace CatsAndKills.Player
 
             if (utilityBelt == null)
                 utilityBelt = GetComponent<TacticalUtilityBelt>();
+
+            if (overwatch == null)
+                overwatch = GetComponent<TacticalOverwatchController>();
 
             if (aim == null)
                 aim = GetComponent<PlayerAim2D>();
@@ -131,6 +138,27 @@ namespace CatsAndKills.Player
                     _targetMode == TargetMode.Smoke
                         ? TargetMode.Move
                         : TargetMode.Smoke;
+
+                return;
+            }
+
+            if (CKInput.OverwatchPressed)
+            {
+                if (tactical.TrySpendAP(3))
+                {
+                    if (overwatch == null ||
+                        !overwatch.Arm())
+                    {
+                        tactical.RefundAP(3);
+                    }
+                    else
+                    {
+                        _targetMode =
+                            TargetMode.Move;
+
+                        tactical.EndPlayerTurn();
+                    }
+                }
 
                 return;
             }
