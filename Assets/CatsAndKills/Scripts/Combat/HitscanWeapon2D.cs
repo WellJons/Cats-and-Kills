@@ -5,6 +5,7 @@ using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
+using CatsAndKills.Tactical;
 using UnityEngine;
 
 namespace CatsAndKills.Combat
@@ -118,6 +119,15 @@ namespace CatsAndKills.Combat
             if (definition == null || aim == null) return;
 
             RecoverRecoil();
+
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            if (tactical != null &&
+                tactical.IsTacticalCombat)
+            {
+                return;
+            }
 
             if (CKInput.ReloadPressed)
                 TryReload();
@@ -254,6 +264,87 @@ namespace CatsAndKills.Combat
 
             NoiseSystem.Report(transform.position, 18f, gameObject);
             CombatDirector.Instance?.ReportCombat();
+
+            TacticalCombatDirector.Instance
+                ?.EnterCombat();
+        }
+
+        public bool TacticalFireAt(
+            Vector2 worldPoint)
+        {
+            if (definition == null ||
+                aim == null ||
+                _reloading ||
+                Magazine <= 0)
+            {
+                return false;
+            }
+
+            if (ownerVitals != null &&
+                !ownerVitals.CanUsePrimaryWeapon)
+            {
+                return false;
+            }
+
+            aim.SetTacticalAimPoint(
+                worldPoint);
+
+            int before =
+                Magazine;
+
+            _nextShotTime = 0f;
+            TryFire();
+
+            bool fired =
+                Magazine < before;
+
+            if (fired)
+            {
+                TacticalCombatDirector.Instance
+                    ?.EnterCombat();
+            }
+
+            return fired;
+        }
+
+        public bool TacticalReloadInstant()
+        {
+            if (_reloading ||
+                definition == null ||
+                Magazine >= definition.magazineSize ||
+                Reserve <= 0)
+            {
+                return false;
+            }
+
+            int needed =
+                definition.magazineSize -
+                Magazine;
+
+            int moved =
+                Mathf.Min(
+                    needed,
+                    Reserve);
+
+            Magazine += moved;
+            Reserve -= moved;
+
+            AudioClip reloadClip =
+                definition.reloadClip != null
+                    ? definition.reloadClip
+                    : ProceduralAudioFactory.Reload;
+
+            if (reloadClip != null &&
+                audioSource != null)
+            {
+                audioSource.PlayOneShot(
+                    reloadClip,
+                    0.5f);
+            }
+
+            visualRecoil?.SetReloading(false);
+
+            return moved > 0;
         }
 
         private void FireRay(Vector2 direction, DamageType damageType)
