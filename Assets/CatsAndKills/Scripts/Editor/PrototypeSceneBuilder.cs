@@ -223,6 +223,10 @@ namespace CatsAndKills.EditorTools
             root.AddComponent<PlayerNoiseEmitter2D>();
             var suppressionFeedback = root.AddComponent<PlayerSuppression2D>();
             suppressionFeedback.Configure(cameraFollow);
+
+            var damageFeedback = root.AddComponent<PlayerDamageFeedback2D>();
+            damageFeedback.Configure(vitals, cameraFollow);
+
             var aim = root.AddComponent<PlayerAim2D>();
             var death = root.AddComponent<PlayerDeathController>();
             death.Configure(vitals);
