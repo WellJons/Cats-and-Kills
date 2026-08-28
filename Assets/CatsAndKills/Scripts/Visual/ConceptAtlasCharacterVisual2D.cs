@@ -256,15 +256,30 @@ namespace CatsAndKills.Visual
                                 1f)
                             : Color.white;
 
+                bool crawling =
+                    !dead &&
+                    vitals != null &&
+                    vitals.LeftLegDisabled &&
+                    vitals.RightLegDisabled;
+
+                bool reloading =
+                    !dead &&
+                    playerWeapon != null &&
+                    playerWeapon.IsReloading;
+
                 ApplyProceduralAnimation(
                     row,
-                    dead);
+                    dead,
+                    crawling,
+                    reloading);
             }
         }
 
         private void ApplyProceduralAnimation(
             int row,
-            bool dead)
+            bool dead,
+            bool crawling,
+            bool reloading)
         {
             if (transform.parent == null)
                 return;
@@ -281,11 +296,53 @@ namespace CatsAndKills.Visual
             if (dead)
             {
                 world +=
-                    Vector3.down * 0.10f;
+                    Vector3.down * 0.12f;
 
                 scale = new Vector3(
-                    _baseLocalScale.x * 1.04f,
-                    _baseLocalScale.y * 0.78f,
+                    _baseLocalScale.x * 1.08f,
+                    _baseLocalScale.y * 0.74f,
+                    _baseLocalScale.z);
+            }
+            else if (crawling)
+            {
+                float crawl =
+                    Mathf.Sin(
+                        t * 7.5f +
+                        _phase);
+
+                world +=
+                    Vector3.down * 0.17f +
+                    Vector3.right *
+                    crawl *
+                    0.018f;
+
+                scale = new Vector3(
+                    _baseLocalScale.x * 1.10f,
+                    _baseLocalScale.y * 0.60f,
+                    _baseLocalScale.z);
+            }
+            else if (reloading)
+            {
+                float reloadPulse =
+                    Mathf.Sin(
+                        t * 7.0f +
+                        _phase);
+
+                world +=
+                    Vector3.up *
+                    Mathf.Abs(reloadPulse) *
+                    0.022f;
+
+                world +=
+                    Vector3.right *
+                    reloadPulse *
+                    0.010f;
+
+                scale = new Vector3(
+                    _baseLocalScale.x *
+                    (1f - reloadPulse * 0.010f),
+                    _baseLocalScale.y *
+                    (1f + reloadPulse * 0.014f),
                     _baseLocalScale.z);
             }
             else if (row == 1 || row == 2)
@@ -415,6 +472,13 @@ namespace CatsAndKills.Visual
         {
             if (vitals != null && vitals.IsDead)
                 return 4;
+
+            if (vitals != null &&
+                vitals.LeftLegDisabled &&
+                vitals.RightLegDisabled)
+            {
+                return 4;
+            }
 
             if (Time.unscaledTime < _hurtUntil)
                 return 4;
