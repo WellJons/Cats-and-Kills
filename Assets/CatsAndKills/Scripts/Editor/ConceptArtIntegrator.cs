@@ -1924,140 +1924,461 @@ namespace CatsAndKills.EditorTools
                     sampleTopY -
                     sampleHeight,
                     0,
-                    source.height - sampleHeight);
+                    source.height -
+                    sampleHeight);
 
             Color32[] sourcePixels =
-                source.GetPixels32();
+                source.GetPixels32(0);
+
+            Color32[] sample =
+                new Color32[
+                    sampleWidth *
+                    sampleHeight];
 
             long sumR = 0;
             long sumG = 0;
             long sumB = 0;
-            int count = 0;
+            int opaqueCount = 0;
 
-            for (int yy = 0; yy < sampleHeight; yy++)
+            for (int y = 0;
+                 y < sampleHeight;
+                 y++)
             {
-                for (int xx = 0; xx < sampleWidth; xx++)
+                for (int x = 0;
+                     x < sampleWidth;
+                     x++)
                 {
                     int sx =
                         Mathf.Clamp(
-                            sampleX + xx,
+                            sampleX + x,
                             0,
                             source.width - 1);
 
                     int sy =
                         Mathf.Clamp(
-                            sampleY + yy,
+                            sampleY + y,
                             0,
                             source.height - 1);
 
                     Color32 px =
                         sourcePixels[
-                            sy * source.width +
+                            sy *
+                            source.width +
                             sx];
 
-                    if (px.a < 160)
+                    sample[
+                        y *
+                        sampleWidth +
+                        x] =
+                        px;
+
+                    if (px.a <= 24)
                         continue;
 
                     sumR += px.r;
                     sumG += px.g;
                     sumB += px.b;
-                    count++;
+                    opaqueCount++;
                 }
             }
 
             Color32 average =
-                count > 0
+                opaqueCount > 0
                     ? new Color32(
-                        (byte)(sumR / count),
-                        (byte)(sumG / count),
-                        (byte)(sumB / count),
+                        (byte)(sumR / opaqueCount),
+                        (byte)(sumG / opaqueCount),
+                        (byte)(sumB / opaqueCount),
                         255)
-                    : new Color32(48, 52, 76, 255);
+                    : new Color32(
+                        44,
+                        48,
+                        72,
+                        255);
 
-            float tintR = tint.r / 100f;
-            float tintG = tint.g / 100f;
-            float tintB = tint.b / 100f;
+            // Generated floor tiles are often diamond-shaped with transparent
+            // corners. Fill those corners from nearby real texels instead of
+            // throwing the entire tile away and replacing it with flat purple.
+            Color32[] filledSample =
+                new Color32[
+                    sample.Length];
+
+            for (int y = 0;
+                 y < sampleHeight;
+                 y++)
+            {
+                for (int x = 0;
+                     x < sampleWidth;
+                     x++)
+                {
+                    int index =
+                        y *
+                        sampleWidth +
+                        x;
+
+                    Color32 px =
+                        sample[index];
+
+                    if (px.a > 24)
+                    {
+                        px.a = 255;
+                        filledSample[index] = px;
+                        continue;
+                    }
+
+                    Color32 nearest =
+                        average;
+
+                    int bestDistance =
+                        int.MaxValue;
+
+                    const int searchRadius = 14;
+
+                    for (int oy = -searchRadius;
+                         oy <= searchRadius;
+                         oy++)
+                    {
+                        for (int ox = -searchRadius;
+                             ox <= searchRadius;
+                             ox++)
+                        {
+                            int nx = x + ox;
+                            int ny = y + oy;
+
+                            if (nx < 0 ||
+                                ny < 0 ||
+                                nx >= sampleWidth ||
+                                ny >= sampleHeight)
+                            {
+                                continue;
+                            }
+
+                            Color32 candidate =
+                                sample[
+                                    ny *
+                                    sampleWidth +
+                                    nx];
+
+                            if (candidate.a <= 24)
+                                continue;
+
+                            int distance =
+                                ox * ox +
+                                oy * oy;
+
+                            if (distance >=
+                                bestDistance)
+                            {
+                                continue;
+                            }
+
+                            bestDistance =
+                                distance;
+
+                            nearest =
+                                new Color32(
+                                    candidate.r,
+                                    candidate.g,
+                                    candidate.b,
+                                    255);
+                        }
+                    }
+
+                    filledSample[index] =
+                        nearest;
+                }
+            }
+
+            float tintR =
+                tint.r /
+                100f;
+
+            float tintG =
+                tint.g /
+                100f;
+
+            float tintB =
+                tint.b /
+                100f;
 
             Color32[] pixels =
-                new Color32[outW * outH];
+                new Color32[
+                    outW *
+                    outH];
 
-            for (int y = 0; y < outH; y++)
+            const int macroW = 224;
+            const int macroH = 168;
+
+            for (int y = 0;
+                 y < outH;
+                 y++)
             {
-                float lowY =
-                    Mathf.Sin(
-                        y * 0.0105f +
-                        seed * 0.17f) *
-                    2.5f;
-
-                for (int x = 0; x < outW; x++)
+                for (int x = 0;
+                     x < outW;
+                     x++)
                 {
+                    int macroX =
+                        x /
+                        macroW;
+
+                    int macroY =
+                        y /
+                        macroH;
+
                     unchecked
                     {
-                        int hash =
-                            x * 73856093 ^
-                            y * 19349663 ^
-                            seed * 83492791;
+                        int macroHash =
+                            macroX *
+                            92837111 ^
+                            macroY *
+                            689287499 ^
+                            seed *
+                            283923481;
 
-                        float grain =
-                            ((hash & 255) - 127) /
-                            127f;
+                        bool mirrorX =
+                            (macroHash &
+                             1) != 0;
 
-                        float low =
-                            Mathf.Sin(
-                                x * 0.0065f +
-                                y * 0.0042f +
-                                seed * 0.7f) *
-                            3.6f +
-                            lowY;
+                        bool mirrorY =
+                            (macroHash &
+                             2) != 0;
+
+                        int localX =
+                            x %
+                            macroW;
+
+                        int localY =
+                            y %
+                            macroH;
+
+                        float u =
+                            localX /
+                            (float)Mathf.Max(
+                                1,
+                                macroW - 1);
+
+                        float v =
+                            localY /
+                            (float)Mathf.Max(
+                                1,
+                                macroH - 1);
+
+                        if (mirrorX)
+                            u = 1f - u;
+
+                        if (mirrorY)
+                            v = 1f - v;
+
+                        int sx =
+                            Mathf.Clamp(
+                                Mathf.RoundToInt(
+                                    u *
+                                    (sampleWidth - 1)),
+                                0,
+                                sampleWidth - 1);
+
+                        int sy =
+                            Mathf.Clamp(
+                                Mathf.RoundToInt(
+                                    v *
+                                    (sampleHeight - 1)),
+                                0,
+                                sampleHeight - 1);
+
+                        Color32 primary =
+                            filledSample[
+                                sy *
+                                sampleWidth +
+                                sx];
+
+                        int detailX =
+                            Mathf.Abs(
+                                x / 3 +
+                                seed * 17 +
+                                y / 11) %
+                            sampleWidth;
+
+                        int detailY =
+                            Mathf.Abs(
+                                y / 3 +
+                                seed * 29 -
+                                x / 13) %
+                            sampleHeight;
+
+                        Color32 secondary =
+                            filledSample[
+                                detailY *
+                                sampleWidth +
+                                detailX];
+
+                        float macroTone =
+                            (((macroHash >> 8) &
+                              31) -
+                             15) /
+                            255f;
 
                         float broad =
                             Mathf.Sin(
-                                x * 0.0018f -
-                                y * 0.0022f +
-                                seed * 0.31f) *
-                            4.4f;
+                                x * 0.0032f +
+                                y * 0.0021f +
+                                seed * 0.41f) *
+                            0.035f;
 
-                        int r =
-                            Mathf.RoundToInt(
-                                average.r * tintR +
-                                grain * 2.6f +
-                                low +
-                                broad);
+                        float grime =
+                            Mathf.Sin(
+                                x * 0.011f -
+                                y * 0.008f +
+                                seed) *
+                            0.018f;
 
-                        int g =
-                            Mathf.RoundToInt(
-                                average.g * tintG +
-                                grain * 3.0f +
-                                low +
-                                broad);
+                        float r =
+                            Mathf.Lerp(
+                                primary.r,
+                                secondary.r,
+                                0.18f) *
+                            tintR;
 
-                        int b =
-                            Mathf.RoundToInt(
-                                average.b * tintB +
-                                grain * 3.8f +
-                                low * 1.10f +
-                                broad * 1.18f);
+                        float g =
+                            Mathf.Lerp(
+                                primary.g,
+                                secondary.g,
+                                0.18f) *
+                            tintG;
 
-                        pixels[y * outW + x] =
+                        float b =
+                            Mathf.Lerp(
+                                primary.b,
+                                secondary.b,
+                                0.18f) *
+                            tintB;
+
+                        float multiplier =
+                            1f +
+                            macroTone +
+                            broad +
+                            grime;
+
+                        pixels[
+                            y *
+                            outW +
+                            x] =
                             new Color32(
-                                (byte)Mathf.Clamp(r, 0, 255),
-                                (byte)Mathf.Clamp(g, 0, 255),
-                                (byte)Mathf.Clamp(b, 0, 255),
+                                (byte)Mathf.Clamp(
+                                    Mathf.RoundToInt(
+                                        r *
+                                        multiplier),
+                                    0,
+                                    255),
+                                (byte)Mathf.Clamp(
+                                    Mathf.RoundToInt(
+                                        g *
+                                        multiplier),
+                                    0,
+                                    255),
+                                (byte)Mathf.Clamp(
+                                    Mathf.RoundToInt(
+                                        b *
+                                        multiplier),
+                                    0,
+                                    255),
                                 255);
                     }
                 }
             }
 
             var random =
-                new System.Random(seed);
+                new System.Random(
+                    seed);
 
-            // Soft, irregular industrial wear. No repeating panel grid.
-            for (int i = 0; i < 26; i++)
+            // Large irregular plate seams. They are deliberately sparse and
+            // offset, unlike the old checkerboard/grid.
+            for (int i = 0;
+                 i < 11;
+                 i++)
             {
-                int cx = random.Next(40, outW - 40);
-                int cy = random.Next(40, outH - 40);
-                int rx = random.Next(24, 110);
-                int ry = random.Next(10, 48);
+                int x0 =
+                    random.Next(
+                        40,
+                        outW - 260);
+
+                int y0 =
+                    random.Next(
+                        30,
+                        outH - 100);
+
+                int length =
+                    random.Next(
+                        150,
+                        420);
+
+                int rise =
+                    random.Next(
+                        -30,
+                        31);
+
+                DrawFloorLine(
+                    pixels,
+                    outW,
+                    outH,
+                    x0,
+                    y0,
+                    Mathf.Min(
+                        outW - 30,
+                        x0 + length),
+                    Mathf.Clamp(
+                        y0 + rise,
+                        20,
+                        outH - 20),
+                    new Color32(
+                        21,
+                        24,
+                        38,
+                        92),
+                    1);
+
+                DrawFloorLine(
+                    pixels,
+                    outW,
+                    outH,
+                    x0,
+                    y0 + 2,
+                    Mathf.Min(
+                        outW - 30,
+                        x0 + length),
+                    Mathf.Clamp(
+                        y0 + rise + 2,
+                        20,
+                        outH - 20),
+                    new Color32(
+                        104,
+                        89,
+                        122,
+                        36),
+                    0);
+            }
+
+            for (int i = 0;
+                 i < 34;
+                 i++)
+            {
+                int cx =
+                    random.Next(
+                        32,
+                        outW - 32);
+
+                int cy =
+                    random.Next(
+                        32,
+                        outH - 32);
+
+                int rx =
+                    random.Next(
+                        18,
+                        92);
+
+                int ry =
+                    random.Next(
+                        8,
+                        34);
 
                 DarkenFloorEllipse(
                     pixels,
@@ -2067,16 +2388,34 @@ namespace CatsAndKills.EditorTools
                     cy,
                     rx,
                     ry,
-                    random.Next(3, 10));
+                    random.Next(
+                        3,
+                        12));
             }
 
-            // Sparse short scratches only.
-            for (int i = 0; i < 34; i++)
+            for (int i = 0;
+                 i < 48;
+                 i++)
             {
-                int x0 = random.Next(20, outW - 80);
-                int y0 = random.Next(20, outH - 40);
-                int len = random.Next(12, 58);
-                int rise = random.Next(-5, 6);
+                int x0 =
+                    random.Next(
+                        20,
+                        outW - 90);
+
+                int y0 =
+                    random.Next(
+                        20,
+                        outH - 40);
+
+                int length =
+                    random.Next(
+                        8,
+                        48);
+
+                int rise =
+                    random.Next(
+                        -6,
+                        7);
 
                 DrawFloorLine(
                     pixels,
@@ -2084,33 +2423,16 @@ namespace CatsAndKills.EditorTools
                     outH,
                     x0,
                     y0,
-                    x0 + len,
+                    x0 + length,
                     y0 + rise,
                     new Color32(
-                        26,
-                        29,
-                        42,
-                        (byte)random.Next(45, 95)),
+                        18,
+                        21,
+                        34,
+                        (byte)random.Next(
+                            28,
+                            70)),
                     0);
-            }
-
-            // Rare tiny bolts/details, deliberately non-periodic.
-            for (int i = 0; i < 22; i++)
-            {
-                int x = random.Next(14, outW - 14);
-                int y = random.Next(14, outH - 14);
-
-                DrawFloorDot(
-                    pixels,
-                    outW,
-                    outH,
-                    x,
-                    y,
-                    new Color32(
-                        83,
-                        70,
-                        96,
-                        110));
             }
 
             Texture2D output =
@@ -2120,7 +2442,9 @@ namespace CatsAndKills.EditorTools
                     TextureFormat.RGBA32,
                     false);
 
-            output.SetPixels32(pixels);
+            output.SetPixels32(
+                pixels);
+
             output.Apply();
 
             string path =
@@ -2139,19 +2463,25 @@ namespace CatsAndKills.EditorTools
                 path,
                 output.EncodeToPNG());
 
-            UnityEngine.Object.DestroyImmediate(output);
+            UnityEngine.Object.DestroyImmediate(
+                output);
 
             AssetDatabase.ImportAsset(
                 path,
-                ImportAssetOptions.ForceSynchronousImport);
+                ImportAssetOptions
+                    .ForceSynchronousImport);
 
             ConfigureGeneratedSprite(
                 path,
                 ppu,
-                new Vector2(0.5f, 0.5f));
+                new Vector2(
+                    0.5f,
+                    0.5f));
 
-            return AssetDatabase.LoadAssetAtPath<Sprite>(
-                path);
+            return
+                AssetDatabase.LoadAssetAtPath<
+                    Sprite>(
+                    path);
         }
 
         private static void DrawFloorLine(
