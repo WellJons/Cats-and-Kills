@@ -285,10 +285,37 @@ namespace CatsAndKills.Visual
             DepthSortedSprite2D depth =
                 go.AddComponent<DepthSortedSprite2D>();
 
-            depth.Configure(
-                new[] { sr },
-                5000,
-                0f);
+            SpriteRenderer weaponRenderer =
+                playerGun != null
+                    ? playerGun.GetComponent<SpriteRenderer>()
+                    : null;
+
+            if (weaponRenderer != null)
+            {
+                weaponRenderer.enabled = true;
+                weaponRenderer.forceRenderingOff = false;
+
+                WeaponVisualRecoil2D recoil =
+                    playerGun.GetComponent<WeaponVisualRecoil2D>();
+
+                recoil?.ConfigureAnchor(
+                    root.transform,
+                    aim,
+                    weaponRenderer,
+                    playerGun);
+
+                depth.Configure(
+                    new[] { sr, weaponRenderer },
+                    5000,
+                    0f);
+            }
+            else
+            {
+                depth.Configure(
+                    new[] { sr },
+                    5000,
+                    0f);
+            }
 
             if (isPlayer && aim != null)
                 aim.SetBodyRotationEnabled(false);
