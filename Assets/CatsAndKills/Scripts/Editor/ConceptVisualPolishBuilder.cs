@@ -200,17 +200,6 @@ namespace CatsAndKills.EditorTools
                     lit);
             }
 
-            CreateStructure(
-                parent,
-                "Security Door Visual",
-                pack.reinforcedDoor,
-                new Vector2(9.95f, 0.35f),
-                new Vector2(0.88f, 0.88f),
-                0f,
-                false,
-                3520,
-                lit);
-
             if (pack.wallDamaged != null)
             {
                 CreateStructure(
