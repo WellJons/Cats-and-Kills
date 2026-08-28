@@ -58,6 +58,7 @@ namespace CatsAndKills.AI
         private CoverPoint _cover;
         private float _stateUntil;
         private float _lastCommand;
+        private float _fireReadyAt;
         private float _lastKnowledgeAt = -999f;
         private float _nextSearchMove;
         private int _searchStep;
@@ -103,24 +104,24 @@ namespace CatsAndKills.AI
                     aggression = Random.Range(0.25f, 0.48f);
                     courage = Random.Range(0.28f, 0.55f);
                     teamwork = Random.Range(0.35f, 0.62f);
-                    preferredRange = 5.5f;
-                    firingRange = 10.5f;
+                    preferredRange = 4.5f;
+                    firingRange = 8.0f;
                     break;
 
                 case EnemyArchetype.Rifleman:
                     aggression = Random.Range(0.48f, 0.72f);
                     courage = Random.Range(0.56f, 0.78f);
                     teamwork = Random.Range(0.65f, 0.9f);
-                    preferredRange = 7f;
-                    firingRange = 14f;
+                    preferredRange = 6f;
+                    firingRange = 9.5f;
                     break;
 
                 case EnemyArchetype.MachineGunner:
                     aggression = 0.42f;
                     courage = 0.88f;
                     teamwork = 0.9f;
-                    preferredRange = 9f;
-                    firingRange = 16f;
+                    preferredRange = 7.5f;
+                    firingRange = 11.0f;
                     role = SquadRole.Suppress;
                     break;
 
@@ -128,8 +129,8 @@ namespace CatsAndKills.AI
                     aggression = 0.92f;
                     courage = 0.94f;
                     teamwork = 0.35f;
-                    preferredRange = 5f;
-                    firingRange = 11f;
+                    preferredRange = 4.8f;
+                    firingRange = 8.8f;
                     break;
             }
         }
@@ -203,7 +204,15 @@ namespace CatsAndKills.AI
                 squad?.ReportPlayer(this, _knownPlayerPos);
 
                 if (!_hadVisual)
+                {
+                    _fireReadyAt =
+                        Time.time +
+                        Random.Range(
+                            0.28f,
+                            0.62f);
+
                     Callout("КОНТАКТ!");
+                }
             }
             else if (!_hasKnowledge && perception != null && perception.HasRecentNoise)
             {
@@ -231,6 +240,7 @@ namespace CatsAndKills.AI
 
             bool shouldFire =
                 sees &&
+                Time.time >= _fireReadyAt &&
                 distance <= firingRange &&
                 combatState;
 
