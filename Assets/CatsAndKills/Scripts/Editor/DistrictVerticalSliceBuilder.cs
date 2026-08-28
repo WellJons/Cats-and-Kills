@@ -111,6 +111,7 @@ namespace CatsAndKills.EditorTools
             foreach (TacticalEnemyAgent agent in
                      Object.FindObjectsByType<
                          TacticalEnemyAgent>(
+                         FindObjectsInactive.Include,
                          FindObjectsSortMode.None))
             {
                 if (agent == null)
