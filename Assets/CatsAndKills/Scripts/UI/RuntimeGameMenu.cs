@@ -36,10 +36,12 @@ namespace CatsAndKills.UI
             {
                 _page = Page.Playing;
                 Time.timeScale = 1f;
+                SetGameplayCursor(true);
             }
             else
             {
                 Time.timeScale = 0f;
+                SetGameplayCursor(false);
             }
         }
 
@@ -52,6 +54,7 @@ namespace CatsAndKills.UI
             {
                 _page = Page.Complete;
                 Time.timeScale = 0f;
+                SetGameplayCursor(false);
             }
 
             bool pause =
@@ -64,6 +67,7 @@ namespace CatsAndKills.UI
             {
                 _page = Page.Pause;
                 Time.timeScale = 0f;
+                SetGameplayCursor(false);
             }
             else if (_page == Page.Pause)
             {
@@ -252,18 +256,30 @@ namespace CatsAndKills.UI
         {
             _page = Page.Playing;
             Time.timeScale = 1f;
+            SetGameplayCursor(true);
         }
 
         private void Resume()
         {
             _page = Page.Playing;
             Time.timeScale = 1f;
+            SetGameplayCursor(true);
+        }
+
+        private static void SetGameplayCursor(bool gameplay)
+        {
+            Cursor.visible = !gameplay;
+            Cursor.lockState = gameplay
+                ? CursorLockMode.Confined
+                : CursorLockMode.None;
         }
 
         private void OnDisable()
         {
             if (Time.timeScale == 0f)
                 Time.timeScale = 1f;
+
+            SetGameplayCursor(false);
         }
     }
 }
