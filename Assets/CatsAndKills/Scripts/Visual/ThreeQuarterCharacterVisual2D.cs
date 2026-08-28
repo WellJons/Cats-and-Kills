@@ -203,9 +203,16 @@ namespace CatsAndKills.Visual
             }
             else if (lookTarget != null)
             {
+                Transform root =
+                    transform.parent != null
+                        ? transform.parent
+                        : transform;
+
                 desired =
-                    (Vector2)lookTarget.position -
-                    (Vector2)transform.position;
+                    CharacterCombatGeometry2D.AimPoint(
+                        lookTarget) -
+                    CharacterCombatGeometry2D.AimPoint(
+                        root);
             }
             else if (body != null && body.linearVelocity.sqrMagnitude > 0.02f)
             {
