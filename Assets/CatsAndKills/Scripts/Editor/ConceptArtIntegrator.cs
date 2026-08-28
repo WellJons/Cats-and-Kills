@@ -468,13 +468,10 @@ namespace CatsAndKills.EditorTools
             const int outH = 896;
 
             int sampleY =
-                source.height -
-                sampleTopY -
-                sampleHeight;
-
-            sampleY =
                 Mathf.Clamp(
-                    sampleY,
+                    source.height -
+                    sampleTopY -
+                    sampleHeight,
                     0,
                     source.height - sampleHeight);
 
@@ -524,11 +521,7 @@ namespace CatsAndKills.EditorTools
                         (byte)(sumG / count),
                         (byte)(sumB / count),
                         255)
-                    : new Color32(
-                        52,
-                        57,
-                        82,
-                        255);
+                    : new Color32(48, 52, 76, 255);
 
             float tintR = tint.r / 100f;
             float tintG = tint.g / 100f;
@@ -539,11 +532,11 @@ namespace CatsAndKills.EditorTools
 
             for (int y = 0; y < outH; y++)
             {
-                float broadY =
+                float lowY =
                     Mathf.Sin(
-                        y * 0.021f +
-                        seed * 0.13f) *
-                    2.8f;
+                        y * 0.0105f +
+                        seed * 0.17f) *
+                    2.5f;
 
                 for (int x = 0; x < outW; x++)
                 {
@@ -558,34 +551,41 @@ namespace CatsAndKills.EditorTools
                             ((hash & 255) - 127) /
                             127f;
 
+                        float low =
+                            Mathf.Sin(
+                                x * 0.0065f +
+                                y * 0.0042f +
+                                seed * 0.7f) *
+                            3.6f +
+                            lowY;
+
                         float broad =
                             Mathf.Sin(
-                                x * 0.014f +
-                                y * 0.008f +
-                                seed) *
-                            2.2f +
-                            broadY;
+                                x * 0.0018f -
+                                y * 0.0022f +
+                                seed * 0.31f) *
+                            4.4f;
 
                         int r =
                             Mathf.RoundToInt(
-                                average.r *
-                                tintR +
-                                grain * 3.8f +
+                                average.r * tintR +
+                                grain * 2.6f +
+                                low +
                                 broad);
 
                         int g =
                             Mathf.RoundToInt(
-                                average.g *
-                                tintG +
-                                grain * 4.2f +
+                                average.g * tintG +
+                                grain * 3.0f +
+                                low +
                                 broad);
 
                         int b =
                             Mathf.RoundToInt(
-                                average.b *
-                                tintB +
-                                grain * 5.0f +
-                                broad * 1.25f);
+                                average.b * tintB +
+                                grain * 3.8f +
+                                low * 1.10f +
+                                broad * 1.18f);
 
                         pixels[y * outW + x] =
                             new Color32(
@@ -597,98 +597,35 @@ namespace CatsAndKills.EditorTools
                 }
             }
 
-            // Large staggered panels: visible enough to describe an industrial
-            // floor, but sparse enough to avoid the old checker/grid look.
-            const int panelW = 256;
-            const int panelH = 160;
-
-            for (int y = panelH; y < outH; y += panelH)
-            {
-                DrawFloorLine(
-                    pixels,
-                    outW,
-                    outH,
-                    0,
-                    y,
-                    outW - 1,
-                    y,
-                    new Color32(30, 34, 50, 255),
-                    2);
-
-                DrawFloorLine(
-                    pixels,
-                    outW,
-                    outH,
-                    0,
-                    y + 2,
-                    outW - 1,
-                    y + 2,
-                    new Color32(68, 72, 96, 255),
-                    1);
-            }
-
-            int row = 0;
-
-            for (int y = 0; y < outH; y += panelH, row++)
-            {
-                int offset =
-                    row % 2 == 0
-                        ? 0
-                        : panelW / 2;
-
-                for (int x = offset; x < outW; x += panelW)
-                {
-                    DrawFloorLine(
-                        pixels,
-                        outW,
-                        outH,
-                        x,
-                        y,
-                        x,
-                        Mathf.Min(
-                            outH - 1,
-                            y + panelH),
-                        new Color32(31, 35, 51, 255),
-                        2);
-
-                    if ((x / panelW + row) % 3 == 0)
-                    {
-                        DrawFloorDot(
-                            pixels,
-                            outW,
-                            outH,
-                            x + 10,
-                            y + 10,
-                            new Color32(89, 70, 96, 255));
-                    }
-                }
-            }
-
-            // Non-repeating wear, scratches and oil stains.
             var random =
                 new System.Random(seed);
 
-            for (int i = 0; i < 72; i++)
+            // Soft, irregular industrial wear. No repeating panel grid.
+            for (int i = 0; i < 26; i++)
             {
-                int x0 =
-                    random.Next(
-                        16,
-                        outW - 48);
+                int cx = random.Next(40, outW - 40);
+                int cy = random.Next(40, outH - 40);
+                int rx = random.Next(24, 110);
+                int ry = random.Next(10, 48);
 
-                int y0 =
-                    random.Next(
-                        16,
-                        outH - 32);
+                DarkenFloorEllipse(
+                    pixels,
+                    outW,
+                    outH,
+                    cx,
+                    cy,
+                    rx,
+                    ry,
+                    random.Next(3, 10));
+            }
 
-                int len =
-                    random.Next(
-                        10,
-                        52);
-
-                int rise =
-                    random.Next(
-                        -8,
-                        9);
+            // Sparse short scratches only.
+            for (int i = 0; i < 34; i++)
+            {
+                int x0 = random.Next(20, outW - 80);
+                int y0 = random.Next(20, outH - 40);
+                int len = random.Next(12, 58);
+                int rise = random.Next(-5, 6);
 
                 DrawFloorLine(
                     pixels,
@@ -699,44 +636,30 @@ namespace CatsAndKills.EditorTools
                     x0 + len,
                     y0 + rise,
                     new Color32(
-                        27,
+                        26,
                         29,
                         42,
-                        (byte)random.Next(95, 150)),
-                    1);
+                        (byte)random.Next(45, 95)),
+                    0);
             }
 
-            for (int i = 0; i < 18; i++)
+            // Rare tiny bolts/details, deliberately non-periodic.
+            for (int i = 0; i < 22; i++)
             {
-                int cx =
-                    random.Next(
-                        40,
-                        outW - 40);
+                int x = random.Next(14, outW - 14);
+                int y = random.Next(14, outH - 14);
 
-                int cy =
-                    random.Next(
-                        40,
-                        outH - 40);
-
-                int rx =
-                    random.Next(
-                        16,
-                        52);
-
-                int ry =
-                    random.Next(
-                        8,
-                        28);
-
-                DarkenFloorEllipse(
+                DrawFloorDot(
                     pixels,
                     outW,
                     outH,
-                    cx,
-                    cy,
-                    rx,
-                    ry,
-                    random.Next(5, 13));
+                    x,
+                    y,
+                    new Color32(
+                        83,
+                        70,
+                        96,
+                        110));
             }
 
             Texture2D output =
