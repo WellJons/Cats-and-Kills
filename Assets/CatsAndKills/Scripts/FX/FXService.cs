@@ -118,6 +118,20 @@ namespace CatsAndKills.FX
             }
         }
 
+        public void Tracer(
+            Vector2 start,
+            Vector2 end,
+            Color color,
+            float width = 0.035f)
+        {
+            GameObject go = new GameObject("Tracer");
+            go.AddComponent<TracerFX2D>().Configure(
+                start,
+                end,
+                color,
+                width);
+        }
+
         public void EjectCasing(Vector2 position, Vector2 direction)
         {
             GameObject go = new GameObject("Casing");
