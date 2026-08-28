@@ -452,6 +452,18 @@ namespace CatsAndKills.EditorTools
                     nav,
                     motor,
                     wanderRadius);
+
+                if (Random.value < 0.58f)
+                {
+                    CityAmbientChatter2D chatter =
+                        root.AddComponent<
+                            CityAmbientChatter2D>();
+
+                    chatter.Configure(
+                        AmbientCivilianLines(),
+                        9f,
+                        22f);
+                }
             }
 
             if (dialogue != null &&
@@ -528,6 +540,43 @@ namespace CatsAndKills.EditorTools
                 {
                     id = "start",
                     speaker = "ТОРГОВЕЦ",
+                    requiredFlag =
+                        "slice_ambush_cleared",
+                    text =
+                        "Слышал стрельбу со стороны склада. Полквартала уже обсуждает, кто там выжил. Я бы на твоём месте возле патруля оружием не размахивал.",
+                    choices =
+                        new[]
+                        {
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Ты знал, что там будет засада?",
+                                nextNodeId =
+                                    "postfight_truth",
+                                requiredFlag =
+                                    "slice_vendor_asked_patrol"
+                            },
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Что теперь говорит улица?",
+                                nextNodeId =
+                                    "postfight_rumor"
+                            },
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Мне сейчас не до разговоров.",
+                                closeDialogue = true
+                            }
+                        }
+                },
+                new DialogueNodeData
+                {
+                    id = "start",
+                    speaker = "ТОРГОВЕЦ",
+                    forbiddenFlag =
+                        "slice_ambush_cleared",
                     text =
                         "С таким ошейником я бы под камерой долго не стоял. Патруль сегодня проверяет документы у каждого второго.",
                     choices =
@@ -600,6 +649,44 @@ namespace CatsAndKills.EditorTools
                     speaker = "ТОРГОВЕЦ",
                     text =
                         "За мастерской стоит механик. Обычно чинит генераторы и чужие проблемы. Скажи, что тебя отправили с улицы — имя моё лучше не называй."
+                },
+                new DialogueNodeData
+                {
+                    id = "postfight_truth",
+                    speaker = "ТОРГОВЕЦ",
+                    text =
+                        "Я знал только, что склад давно не пустой. Если бы знал, что ждут именно тебя, разговор был бы другим.",
+                    choices =
+                        new[]
+                        {
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Допустим, верю.",
+                                closeDialogue = true,
+                                valueKey =
+                                    "city_civilian_trust",
+                                valueDelta = 1
+                            },
+                            new DialogueChoiceData
+                            {
+                                text =
+                                    "Ещё раз что-то скроешь — пожалеешь.",
+                                closeDialogue = true,
+                                setFlag =
+                                    "slice_vendor_threatened_afterfight",
+                                valueKey =
+                                    "city_civilian_trust",
+                                valueDelta = -2
+                            }
+                        }
+                },
+                new DialogueNodeData
+                {
+                    id = "postfight_rumor",
+                    speaker = "ТОРГОВЕЦ",
+                    text =
+                        "Кто-то говорит — банда. Кто-то — люди администрации без формы. Все сходятся только в одном: слишком быстро приехали машины городской службы."
                 }
             };
         }
@@ -735,6 +822,23 @@ namespace CatsAndKills.EditorTools
                             }
                         }
                 }
+            };
+        }
+
+        private static string[] AmbientCivilianLines()
+        {
+            return new[]
+            {
+                "Опять свет моргает...",
+                "До комендантского часа недолго.",
+                "Топливо снова по талонам.",
+                "Патруль сегодня злой.",
+                "Говорят, склад закрыли ещё ночью.",
+                "Тише. Здесь микрофон.",
+                "Цены опять подняли.",
+                "Я домой. Хватит на сегодня.",
+                "Не стой под камерой.",
+                "Городская сеть опять врёт."
             };
         }
 
