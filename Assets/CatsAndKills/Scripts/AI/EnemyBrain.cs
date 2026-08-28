@@ -42,6 +42,8 @@ namespace CatsAndKills.AI
         [SerializeField] private float flankDistance = 5f;
         [SerializeField] private float suppressionHold = 1.8f;
         [SerializeField] private float firingRange = 13f;
+        [SerializeField] private float localMemoryDuration = 10f;
+        [SerializeField] private float searchRadius = 4.5f;
 
         [Header("Personality")]
         [Range(0f, 1f)] [SerializeField] private float aggression = 0.55f;
@@ -56,6 +58,9 @@ namespace CatsAndKills.AI
         private CoverPoint _cover;
         private float _stateUntil;
         private float _lastCommand;
+        private float _lastKnowledgeAt = -999f;
+        private float _nextSearchMove;
+        private int _searchStep;
 
         public EnemyArchetype Archetype => archetype;
         public SquadRole Role => role;
@@ -192,6 +197,8 @@ namespace CatsAndKills.AI
             {
                 _knownPlayerPos = player.position;
                 _hasKnowledge = true;
+                _lastKnowledgeAt = Time.time;
+                _searchStep = 0;
                 squad?.ReportPlayer(this, _knownPlayerPos);
 
                 if (!_hadVisual)
@@ -201,6 +208,7 @@ namespace CatsAndKills.AI
             {
                 _knownPlayerPos = perception.HeardPosition;
                 _hasKnowledge = true;
+                _lastKnowledgeAt = Time.time;
                 squad?.ReportNoise(this, _knownPlayerPos);
                 _state = State.Investigate;
             }
@@ -259,6 +267,7 @@ namespace CatsAndKills.AI
 
             _knownPlayerPos = position;
             _hasKnowledge = true;
+            _lastKnowledgeAt = Time.time;
 
             if (_state == State.Idle)
             {
@@ -273,6 +282,7 @@ namespace CatsAndKills.AI
 
             _knownPlayerPos = position;
             _hasKnowledge = true;
+            _lastKnowledgeAt = Time.time;
             _state = State.Investigate;
             motor?.MoveTo(position);
         }
@@ -314,11 +324,35 @@ namespace CatsAndKills.AI
 
             if (!seesPlayer)
             {
+                if (Time.time - _lastKnowledgeAt > localMemoryDuration)
+                {
+                    _hasKnowledge = false;
+                    _searchStep = 0;
+                    ReleaseCover();
+                    _state = State.Idle;
+                    motor?.Stop();
+
+                    if (Time.time - _lastCommand > 2.5f)
+                        Callout("ПОТЕРЯЛ ЕГО.");
+
+                    return;
+                }
+
                 if (_state == State.HoldCover && Time.time < _stateUntil)
                     return;
 
                 _state = State.Investigate;
-                motor?.MoveTo(_knownPlayerPos);
+
+                if (motor != null && motor.ReachedDestination)
+                {
+                    if (Time.time >= _nextSearchMove)
+                        BeginSearchStep();
+                }
+                else if (motor != null && _searchStep == 0)
+                {
+                    motor.MoveTo(_knownPlayerPos);
+                }
+
                 return;
             }
 
@@ -443,6 +477,28 @@ namespace CatsAndKills.AI
                 : "ОБХОЖУ СПРАВА!");
         }
 
+        private void BeginSearchStep()
+        {
+            if (motor == null) return;
+
+            _searchStep++;
+            _nextSearchMove = Time.time + Random.Range(0.55f, 1.1f);
+
+            Vector2 offset = Random.insideUnitCircle;
+            if (offset.sqrMagnitude < 0.05f)
+                offset = Vector2.right;
+
+            offset = offset.normalized *
+                     Random.Range(
+                         Mathf.Min(1.2f + _searchStep * 0.25f, searchRadius),
+                         searchRadius);
+
+            motor.MoveTo(_knownPlayerPos + offset);
+
+            if (_searchStep == 1 && Time.time - _lastCommand > 1.5f)
+                Callout("ПРОВЕРЯЮ ПОСЛЕДНЮЮ ПОЗИЦИЮ!");
+        }
+
         private void BeginRetreat()
         {
             if (player == null) return;
@@ -479,6 +535,7 @@ namespace CatsAndKills.AI
                 : _knownPlayerPos;
 
             _hasKnowledge = true;
+            _lastKnowledgeAt = Time.time;
             CombatDirector.Instance?.ReportCombat();
 
             if (Random.value < 0.35f)
