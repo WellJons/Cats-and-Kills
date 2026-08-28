@@ -16,6 +16,24 @@ namespace CatsAndKills.Visual
         [SerializeField] private Sprite[] crawl = new Sprite[8];
         [SerializeField] private Sprite[] dead = new Sprite[8];
 
+        public void Configure(
+            Sprite[] idleSet,
+            Sprite[] moveSet,
+            Sprite[] fireSet,
+            Sprite[] reloadSet,
+            Sprite[] hurtSet,
+            Sprite[] crawlSet,
+            Sprite[] deadSet)
+        {
+            idle = Normalize(idleSet);
+            move = Normalize(moveSet);
+            fire = Normalize(fireSet);
+            reload = Normalize(reloadSet);
+            hurt = Normalize(hurtSet);
+            crawl = Normalize(crawlSet);
+            dead = Normalize(deadSet);
+        }
+
         public Sprite GetIdle(CharacterDirection8 direction) =>
             Get(idle, direction);
 
@@ -36,6 +54,19 @@ namespace CatsAndKills.Visual
 
         public Sprite GetDead(CharacterDirection8 direction) =>
             Get(dead, direction, GetIdle(direction));
+
+        private static Sprite[] Normalize(Sprite[] source)
+        {
+            var result = new Sprite[8];
+
+            if (source == null)
+                return result;
+
+            for (int i = 0; i < result.Length && i < source.Length; i++)
+                result[i] = source[i];
+
+            return result;
+        }
 
         private static Sprite Get(
             Sprite[] sprites,
