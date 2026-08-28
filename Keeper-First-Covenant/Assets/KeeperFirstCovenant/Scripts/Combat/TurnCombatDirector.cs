@@ -71,7 +71,15 @@ namespace KeeperFirstCovenant.Combat
 
             combatant.Died -= OnCombatantDied;
             _registered.Remove(combatant);
-            _turnOrder.RemoveAll(x => x.combatant == combatant);
+
+            int removedIndex = _turnOrder.FindIndex(x => x.combatant == combatant);
+            if (removedIndex >= 0)
+            {
+                _turnOrder.RemoveAt(removedIndex);
+
+                if (removedIndex <= _turnIndex)
+                    _turnIndex--;
+            }
         }
 
         public void BeginCombat(IEnumerable<CombatantRuntime> participants = null)
@@ -128,8 +136,6 @@ namespace KeeperFirstCovenant.Combat
 
         private void AdvanceTurn()
         {
-            CleanupDead();
-
             if (TryResolveCombat())
                 return;
 
@@ -152,14 +158,22 @@ namespace KeeperFirstCovenant.Combat
                 }
 
                 CombatantRuntime candidate = _turnOrder[_turnIndex].combatant;
-                if (candidate != null && candidate.IsAlive)
-                {
-                    CurrentActor = candidate;
-                    CurrentActor.BeginTurn();
-                    CurrentActorChanged?.Invoke(CurrentActor);
+                if (candidate == null || !candidate.IsAlive)
+                    continue;
+
+                CurrentActor = candidate;
+                CurrentActor.BeginTurn();
+
+                // A damage-over-time status can kill an actor at turn start.
+                // In that case the death event already advanced the queue.
+                if (CurrentActor != candidate || !candidate.IsAlive)
                     return;
-                }
+
+                CurrentActorChanged?.Invoke(CurrentActor);
+                return;
             }
+
+            TryResolveCombat();
         }
 
         private void OnCombatantDied(CombatantRuntime combatant)
@@ -198,12 +212,6 @@ namespace KeeperFirstCovenant.Combat
             }
 
             return false;
-        }
-
-        private void CleanupDead()
-        {
-            _turnOrder.RemoveAll(x => x.combatant == null || !x.combatant.IsAlive);
-            _turnIndex = Mathf.Clamp(_turnIndex, -1, Mathf.Max(-1, _turnOrder.Count - 1));
         }
 
         private void EndCombat(CombatState result)
