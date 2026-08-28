@@ -136,14 +136,10 @@ namespace CatsAndKills.EditorTools
             fx.bulletHoleSprite = _circle;
             fx.explosionSprite = _circle;
             fx.smokeSprite = _circle;
-            fx.casingClip = ProceduralAudioFactory.Casing;
 
             var musicGo = new GameObject("Adaptive Music");
             var music = musicGo.AddComponent<AdaptiveMusicDirector>();
-            music.Configure(
-                ProceduralAudioFactory.AmbientMusic,
-                ProceduralAudioFactory.AlertMusic,
-                ProceduralAudioFactory.CombatMusic);
+            music.Configure(null, null, null);
         }
 
         private static GameObject CreatePlayer(Vector2 position, Camera camera, CameraFollow2D cameraFollow)
@@ -227,13 +223,12 @@ namespace CatsAndKills.EditorTools
             var pistol = CreateWeaponDefinition("Service Pistol", false, 46f, 4.2f, 12, 60, 0.35f, 0.8f, 1.5f, 5f, 1);
             var shotgun = CreateWeaponDefinition("KS-12", false, 15f, 1.15f, 6, 30, 3.2f, 4.3f, 2.6f, 9f, 8);
 
-            rifle.shotClip = ProceduralAudioFactory.RifleShot;
-            pistol.shotClip = ProceduralAudioFactory.PistolShot;
-            shotgun.shotClip = ProceduralAudioFactory.ShotgunShot;
-
-            rifle.reloadClip = ProceduralAudioFactory.Reload;
-            pistol.reloadClip = ProceduralAudioFactory.Reload;
-            shotgun.reloadClip = ProceduralAudioFactory.Reload;
+            rifle.shotClip = null;
+            pistol.shotClip = null;
+            shotgun.shotClip = null;
+            rifle.reloadClip = null;
+            pistol.reloadClip = null;
+            shotgun.reloadClip = null;
 
             var weapon = weaponGo.AddComponent<HitscanWeapon2D>();
             weapon.Configure(rifle, aim, motor, muzzle.transform, casing.transform, cameraFollow, weaponRenderer, visualRecoil, flash, audio);
@@ -245,10 +240,10 @@ namespace CatsAndKills.EditorTools
             grenadeController.Configure(
                 aim,
                 _circle,
-                ProceduralAudioFactory.Explosion,
-                ProceduralAudioFactory.GrenadePin);
+                null,
+                null);
 
-            collar.Configure(ProceduralAudioFactory.Collar);
+            collar.Configure(null);
 
             var hudGo = new GameObject("Prototype HUD");
             var hud = hudGo.AddComponent<PrototypeHUD>();
@@ -550,19 +545,12 @@ namespace CatsAndKills.EditorTools
             var audio = gun.AddComponent<AudioSource>();
             audio.spatialBlend = 0.45f;
 
-            AudioClip enemyShot = archetype switch
-            {
-                EnemyArchetype.Pistolier => ProceduralAudioFactory.PistolShot,
-                EnemyArchetype.MachineGunner => ProceduralAudioFactory.MachineGunShot,
-                _ => ProceduralAudioFactory.RifleShot
-            };
-
             var enemyWeapon = root.AddComponent<EnemyWeapon2D>();
             enemyWeapon.Configure(
                 player,
                 muzzle.transform,
                 audio,
-                enemyShot,
+                null,
                 flash,
                 ~0);
 
@@ -589,7 +577,7 @@ namespace CatsAndKills.EditorTools
             grenadeThrower.Configure(
                 player,
                 _circle,
-                ProceduralAudioFactory.Explosion,
+                null,
                 grenadeCount);
 
             var brain = root.AddComponent<EnemyBrain>();
@@ -668,7 +656,7 @@ namespace CatsAndKills.EditorTools
             prop.Configure(
                 42f,
                 _circle,
-                ProceduralAudioFactory.Explosion);
+                null);
         }
 
         private static void CreateDestructible(string name, Vector2 position)
