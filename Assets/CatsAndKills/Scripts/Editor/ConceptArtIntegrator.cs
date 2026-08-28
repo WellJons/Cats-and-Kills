@@ -498,11 +498,11 @@ namespace CatsAndKills.EditorTools
 
             int padX =
                 Mathf.RoundToInt(
-                    nominalWidth * 0.10f);
+                    nominalWidth * 0.14f);
 
             int padY =
                 Mathf.RoundToInt(
-                    nominalHeight * 0.08f);
+                    nominalHeight * 0.10f);
 
             int cropWidth =
                 Mathf.Min(
@@ -525,46 +525,265 @@ namespace CatsAndKills.EditorTools
                 nominalHeight * 0.5f;
 
             int cropX =
-                Mathf.RoundToInt(
-                    centerX -
-                    cropWidth * 0.5f);
-
-            int cropTop =
-                Mathf.RoundToInt(
-                    centerTop -
-                    cropHeight * 0.5f);
-
-            cropX =
                 Mathf.Clamp(
-                    cropX,
+                    Mathf.RoundToInt(
+                        centerX -
+                        cropWidth * 0.5f),
                     0,
                     source.width -
                     cropWidth);
 
-            cropTop =
+            int cropTop =
                 Mathf.Clamp(
-                    cropTop,
+                    Mathf.RoundToInt(
+                        centerTop -
+                        cropHeight * 0.5f),
                     0,
                     source.height -
                     cropHeight);
+
+            int cropBottom =
+                source.height -
+                cropTop -
+                cropHeight;
+
+            int nominalBottom =
+                source.height -
+                nominalTop -
+                nominalHeight;
+
+            Color32[] sourcePixels =
+                source.GetPixels32(0);
+
+            Color32[] output =
+                new Color32[
+                    cropWidth *
+                    cropHeight];
+
+            bool[] visited =
+                new bool[
+                    cropWidth *
+                    cropHeight];
+
+            bool[] keep =
+                new bool[
+                    cropWidth *
+                    cropHeight];
+
+            var queue =
+                new Queue<int>();
+
+            var component =
+                new List<int>(2048);
+
+            float acceptLeft =
+                nominalX -
+                nominalWidth * 0.18f;
+
+            float acceptRight =
+                nominalX +
+                nominalWidth * 1.18f;
+
+            float acceptBottom =
+                nominalBottom -
+                nominalHeight * 0.18f;
+
+            float acceptTop =
+                nominalBottom +
+                nominalHeight * 1.18f;
+
+            for (int localY = 0;
+                 localY < cropHeight;
+                 localY++)
+            {
+                for (int localX = 0;
+                     localX < cropWidth;
+                     localX++)
+                {
+                    int localIndex =
+                        localY *
+                        cropWidth +
+                        localX;
+
+                    if (visited[localIndex])
+                        continue;
+
+                    int globalX =
+                        cropX +
+                        localX;
+
+                    int globalY =
+                        cropBottom +
+                        localY;
+
+                    Color32 seed =
+                        sourcePixels[
+                            globalY *
+                            source.width +
+                            globalX];
+
+                    if (seed.a <= 18)
+                    {
+                        visited[localIndex] = true;
+                        continue;
+                    }
+
+                    queue.Clear();
+                    component.Clear();
+
+                    queue.Enqueue(localIndex);
+                    visited[localIndex] = true;
+
+                    long sumX = 0;
+                    long sumY = 0;
+
+                    while (queue.Count > 0)
+                    {
+                        int index =
+                            queue.Dequeue();
+
+                        component.Add(index);
+
+                        int x =
+                            index %
+                            cropWidth;
+
+                        int y =
+                            index /
+                            cropWidth;
+
+                        sumX += cropX + x;
+                        sumY += cropBottom + y;
+
+                        for (int oy = -1;
+                             oy <= 1;
+                             oy++)
+                        {
+                            for (int ox = -1;
+                                 ox <= 1;
+                                 ox++)
+                            {
+                                if (ox == 0 &&
+                                    oy == 0)
+                                {
+                                    continue;
+                                }
+
+                                int nx = x + ox;
+                                int ny = y + oy;
+
+                                if (nx < 0 ||
+                                    ny < 0 ||
+                                    nx >= cropWidth ||
+                                    ny >= cropHeight)
+                                {
+                                    continue;
+                                }
+
+                                int ni =
+                                    ny *
+                                    cropWidth +
+                                    nx;
+
+                                if (visited[ni])
+                                    continue;
+
+                                int gx =
+                                    cropX +
+                                    nx;
+
+                                int gy =
+                                    cropBottom +
+                                    ny;
+
+                                Color32 px =
+                                    sourcePixels[
+                                        gy *
+                                        source.width +
+                                        gx];
+
+                                if (px.a <= 18)
+                                    continue;
+
+                                visited[ni] = true;
+                                queue.Enqueue(ni);
+                            }
+                        }
+                    }
+
+                    if (component.Count < 4)
+                        continue;
+
+                    float centroidX =
+                        sumX /
+                        (float)component.Count;
+
+                    float centroidY =
+                        sumY /
+                        (float)component.Count;
+
+                    bool belongsToFrame =
+                        centroidX >= acceptLeft &&
+                        centroidX <= acceptRight &&
+                        centroidY >= acceptBottom &&
+                        centroidY <= acceptTop;
+
+                    if (!belongsToFrame)
+                        continue;
+
+                    foreach (int index in component)
+                        keep[index] = true;
+                }
+            }
+
+            for (int localY = 0;
+                 localY < cropHeight;
+                 localY++)
+            {
+                for (int localX = 0;
+                     localX < cropWidth;
+                     localX++)
+                {
+                    int index =
+                        localY *
+                        cropWidth +
+                        localX;
+
+                    if (!keep[index])
+                    {
+                        output[index] =
+                            new Color32(
+                                0,
+                                0,
+                                0,
+                                0);
+
+                        continue;
+                    }
+
+                    int globalX =
+                        cropX +
+                        localX;
+
+                    int globalY =
+                        cropBottom +
+                        localY;
+
+                    output[index] =
+                        sourcePixels[
+                            globalY *
+                            source.width +
+                            globalX];
+                }
+            }
 
             float nominalPivotX =
                 nominalX +
                 nominalWidth * 0.5f;
 
-            float nominalBottom =
-                source.height -
-                nominalTop -
-                nominalHeight;
-
             float nominalPivotY =
                 nominalBottom +
                 nominalHeight * 0.075f;
-
-            float cropBottom =
-                source.height -
-                cropTop -
-                cropHeight;
 
             Vector2 pivot =
                 new Vector2(
@@ -581,15 +800,47 @@ namespace CatsAndKills.EditorTools
                             1f,
                             cropHeight)));
 
-            return Crop(
-                source,
-                relativePath,
-                cropX,
-                cropTop,
-                cropWidth,
-                cropHeight,
+            Texture2D texture =
+                new Texture2D(
+                    cropWidth,
+                    cropHeight,
+                    TextureFormat.RGBA32,
+                    false);
+
+            texture.SetPixels32(output);
+            texture.Apply();
+
+            string path =
+                GeneratedRoot +
+                "/" +
+                relativePath +
+                ".png";
+
+            string folder =
+                Path.GetDirectoryName(path)?
+                    .Replace("\\", "/");
+
+            EnsureFolder(folder);
+
+            File.WriteAllBytes(
+                path,
+                texture.EncodeToPNG());
+
+            UnityEngine.Object.DestroyImmediate(
+                texture);
+
+            AssetDatabase.ImportAsset(
+                path,
+                ImportAssetOptions.ForceSynchronousImport);
+
+            ConfigureGeneratedSprite(
+                path,
                 ppu,
                 pivot);
+
+            return
+                AssetDatabase.LoadAssetAtPath<Sprite>(
+                    path);
         }
 
         private static Sprite CreateFacilityFloorTexture(
