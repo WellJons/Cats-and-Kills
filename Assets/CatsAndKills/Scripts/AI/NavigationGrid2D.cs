@@ -72,6 +72,98 @@ namespace CatsAndKills.AI
             }
         }
 
+        public Vector2 SnapToCell(
+            Vector2 world)
+        {
+            if (_nodes == null)
+                Build();
+
+            Node node =
+                ClosestNode(world);
+
+            return node != null
+                ? node.World
+                : world;
+        }
+
+        public bool IsWalkable(
+            Vector2 world)
+        {
+            if (_nodes == null)
+                Build();
+
+            Node node =
+                ClosestNode(world);
+
+            return node != null &&
+                   node.Walkable;
+        }
+
+        public List<Vector2> GetReachableCells(
+            Vector2 startWorld,
+            int maxSteps)
+        {
+            var result =
+                new List<Vector2>();
+
+            if (maxSteps <= 0)
+                return result;
+
+            if (_nodes == null)
+                Build();
+
+            Node start =
+                ClosestNode(startWorld);
+
+            if (start == null ||
+                !start.Walkable)
+            {
+                return result;
+            }
+
+            var queue =
+                new Queue<Node>();
+
+            var distance =
+                new Dictionary<Node, int>();
+
+            queue.Enqueue(start);
+            distance[start] = 0;
+
+            while (queue.Count > 0)
+            {
+                Node current =
+                    queue.Dequeue();
+
+                int steps =
+                    distance[current];
+
+                if (steps > 0)
+                    result.Add(current.World);
+
+                if (steps >= maxSteps)
+                    continue;
+
+                foreach (Node next in
+                         Neighbours(current))
+                {
+                    if (next == null ||
+                        !next.Walkable ||
+                        distance.ContainsKey(next))
+                    {
+                        continue;
+                    }
+
+                    distance[next] =
+                        steps + 1;
+
+                    queue.Enqueue(next);
+                }
+            }
+
+            return result;
+        }
+
         public List<Vector2> FindPath(Vector2 startWorld, Vector2 endWorld)
         {
             if (_nodes == null) Build();
