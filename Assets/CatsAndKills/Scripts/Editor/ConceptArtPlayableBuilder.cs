@@ -143,6 +143,20 @@ namespace CatsAndKills.EditorTools
                 Object.FindAnyObjectByType<
                     TacticalOverwatchController>();
 
+            CityPatrolRoute2D[] patrolRoutes =
+                Object.FindObjectsByType<
+                    CityPatrolRoute2D>(
+                    FindObjectsSortMode.None);
+
+            DistrictZoneTrigger2D[] zones =
+                Object.FindObjectsByType<
+                    DistrictZoneTrigger2D>(
+                    FindObjectsSortMode.None);
+
+            CityClubAmbience2D club =
+                Object.FindAnyObjectByType<
+                    CityClubAmbience2D>();
+
             bool valid =
                 state != null &&
                 dialogue != null &&
@@ -150,9 +164,12 @@ namespace CatsAndKills.EditorTools
                 mission != null &&
                 civilians.Length >= 10 &&
                 posters.Length >= 3 &&
-                talkers.Length >= 3 &&
+                talkers.Length >= 4 &&
                 belt != null &&
-                overwatch != null;
+                overwatch != null &&
+                patrolRoutes.Length >= 4 &&
+                zones.Length >= 5 &&
+                club != null;
 
             if (!valid)
             {
@@ -174,7 +191,13 @@ namespace CatsAndKills.EditorTools
                     ", utilityBelt=" +
                     (belt != null) +
                     ", overwatch=" +
-                    (overwatch != null));
+                    (overwatch != null) +
+                    ", patrolRoutes=" +
+                    patrolRoutes.Length +
+                    ", zones=" +
+                    zones.Length +
+                    ", club=" +
+                    (club != null));
             }
             else
             {
@@ -185,7 +208,11 @@ namespace CatsAndKills.EditorTools
                     posters.Length +
                     " propaganda posters, " +
                     talkers.Length +
-                    " dialogue NPCs.");
+                    " dialogue NPCs, " +
+                    patrolRoutes.Length +
+                    " authored patrol routes, " +
+                    zones.Length +
+                    " named zones.");
             }
 
             return valid;
