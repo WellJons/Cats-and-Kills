@@ -868,94 +868,199 @@ namespace CatsAndKills.EditorTools
 
         private static void CreateFloor()
         {
-            var floor = new GameObject("Floor");
-            floor.transform.position = Vector3.zero;
-            var sr = floor.AddComponent<SpriteRenderer>();
-            sr.sprite = _floorSprite;
-            sr.drawMode = SpriteDrawMode.Tiled;
-            sr.size = new Vector2(46f, 28f);
-            sr.color = Color.white;
-            sr.sortingOrder = -100;
+            var floor =
+                new GameObject("Floor");
+
+            floor.transform.position =
+                Vector3.zero;
+
+            var sr =
+                floor.AddComponent<SpriteRenderer>();
+
+            sr.sprite =
+                _floorSprite;
+
+            sr.drawMode =
+                SpriteDrawMode.Tiled;
+
+            sr.size =
+                new Vector2(96f, 64f);
+
+            sr.color =
+                Color.white;
+
+            sr.sortingOrder =
+                -100;
 
             CreateFloorZone(
-                "Outer Yard",
-                new Vector2(-15.5f, -1.0f),
-                new Vector2(13.0f, 23.0f),
-                new Color(0.72f, 0.77f, 0.90f));
+                "West Approach",
+                new Vector2(-34f, -11f),
+                new Vector2(26f, 40f),
+                new Color(0.68f, 0.73f, 0.86f));
+
+            CreateFloorZone(
+                "Central Plaza",
+                new Vector2(0f, -2f),
+                new Vector2(30f, 26f),
+                new Color(0.74f, 0.72f, 0.82f));
 
             CreateFloorZone(
                 "Warehouse",
-                new Vector2(0.5f, 1.0f),
-                new Vector2(13.5f, 22.0f),
-                new Color(0.66f, 0.76f, 0.82f));
+                new Vector2(-23f, 12f),
+                new Vector2(30f, 23f),
+                new Color(0.64f, 0.73f, 0.80f));
+
+            CreateFloorZone(
+                "North Service Lane",
+                new Vector2(0f, 23f),
+                new Vector2(32f, 12f),
+                new Color(0.65f, 0.70f, 0.82f));
 
             CreateFloorZone(
                 "Administration",
-                new Vector2(16.0f, 1.5f),
-                new Vector2(11.5f, 21.0f),
-                new Color(0.76f, 0.71f, 0.80f));
+                new Vector2(25f, 11f),
+                new Vector2(29f, 24f),
+                new Color(0.76f, 0.69f, 0.79f));
+
+            CreateFloorZone(
+                "Barracks",
+                new Vector2(25f, -18f),
+                new Vector2(28f, 21f),
+                new Color(0.67f, 0.72f, 0.78f));
+
+            CreateFloorZone(
+                "Workshop",
+                new Vector2(-22f, -18f),
+                new Vector2(28f, 20f),
+                new Color(0.64f, 0.69f, 0.76f));
 
             CreateHazardStrip(
-                "Warehouse Threshold",
-                new Vector2(-7.0f, -7.5f),
-                new Vector2(1.1f, 4.2f),
-                90f);
+                "West Gate",
+                new Vector2(-39f, -22f),
+                new Vector2(5.0f, 0.75f),
+                0f);
 
             CreateHazardStrip(
-                "Admin Threshold",
-                new Vector2(9.35f, 0f),
-                new Vector2(1.2f, 3.6f),
-                90f);
+                "Plaza Crossing",
+                new Vector2(-1f, -9f),
+                new Vector2(8f, 0.75f),
+                0f);
 
             CreateHazardStrip(
-                "Extraction Marking",
-                new Vector2(18.5f, -10.0f),
-                new Vector2(4.8f, 0.75f),
+                "Admin Entry",
+                new Vector2(15f, 2f),
+                new Vector2(5f, 0.75f),
+                0f);
+
+            CreateHazardStrip(
+                "South Exit",
+                new Vector2(39f, -27f),
+                new Vector2(6f, 0.75f),
                 0f);
 
             CreateLightPool(
-                "Cold Yard Lamp",
-                new Vector2(-13f, 5f),
-                new Vector2(7f, 7f),
-                new Color(0.28f, 0.52f, 0.92f, 0.23f));
+                "West Gate Lamp",
+                new Vector2(-36f, -18f),
+                new Vector2(8f, 8f),
+                new Color(0.24f, 0.46f, 0.92f, 0.23f));
+
+            CreateLightPool(
+                "Plaza Lamp",
+                new Vector2(1f, 1f),
+                new Vector2(10f, 10f),
+                new Color(0.30f, 0.60f, 0.88f, 0.20f));
 
             CreateLightPool(
                 "Warehouse Lamp",
-                new Vector2(1.0f, 2.0f),
-                new Vector2(8f, 8f),
+                new Vector2(-22f, 12f),
+                new Vector2(9f, 9f),
                 new Color(0.22f, 0.68f, 0.72f, 0.20f));
 
             CreateLightPool(
                 "Admin Emergency Lamp",
-                new Vector2(15.0f, 4.0f),
-                new Vector2(6.5f, 6.5f),
+                new Vector2(25f, 11f),
+                new Vector2(8f, 8f),
                 new Color(0.88f, 0.20f, 0.25f, 0.18f));
         }
 
         private static void CreateGeometry()
         {
-            CreateWall("North", new Vector2(0f, 13.5f), new Vector2(46f, 0.8f));
-            CreateWall("South", new Vector2(0f, -13.5f), new Vector2(46f, 0.8f));
-            CreateWall("West", new Vector2(-22.5f, 0f), new Vector2(0.8f, 28f));
-            CreateWall("East", new Vector2(22.5f, 0f), new Vector2(0.8f, 28f));
+            // Only the outer shell remains authoritative after concept-art
+            // conversion. Interior concept buildings create their own wall
+            // collision and door openings.
+            CreateWall(
+                "North",
+                new Vector2(0f, 31.5f),
+                new Vector2(96f, 0.9f));
 
-            CreateWall("Warehouse West", new Vector2(-7f, 2f), new Vector2(0.7f, 18f));
-            CreateWall("Warehouse Rack A", new Vector2(-2f, -3f), new Vector2(0.7f, 6f));
-            CreateWall("Warehouse Rack B", new Vector2(2.5f, 3f), new Vector2(0.7f, 6f));
-            CreateWall("Admin Hall Lower", new Vector2(10f, -3f), new Vector2(0.7f, 4f));
-            CreateWall("Admin Hall Upper", new Vector2(10f, 5f), new Vector2(0.7f, 8f));
-            CreateDoor("Admin Security Door", new Vector2(10f, 0f), 90f);
-            CreateWall("Admin Cross", new Vector2(16f, 2f), new Vector2(10f, 0.7f));
+            CreateWall(
+                "South",
+                new Vector2(0f, -31.5f),
+                new Vector2(96f, 0.9f));
 
-            CreateDestructible("Crate 1", new Vector2(-14f, -5f));
-            CreateDestructible("Crate 2", new Vector2(-5f, 5f));
-            CreateDestructible("Crate 3", new Vector2(0f, -6f));
-            CreateDestructible("Crate 4", new Vector2(6f, 4f));
-            CreateDestructible("Crate 5", new Vector2(14f, -5f));
+            CreateWall(
+                "West",
+                new Vector2(-47.5f, 0f),
+                new Vector2(0.9f, 64f));
 
-            CreateExplosiveProp("Fuel Drum A", new Vector2(-1f, 5.5f));
-            CreateExplosiveProp("Fuel Drum B", new Vector2(6.5f, -2.5f));
-            CreateExplosiveProp("Fuel Drum C", new Vector2(15.5f, 5.0f));
+            CreateWall(
+                "East",
+                new Vector2(47.5f, 0f),
+                new Vector2(0.9f, 64f));
+
+            // Prototype-only blockers provide a sensible raw sandbox before
+            // the concept builder replaces them with semantic buildings.
+            CreateWall(
+                "Prototype Warehouse Back",
+                new Vector2(-23f, 20f),
+                new Vector2(26f, 0.7f));
+
+            CreateWall(
+                "Prototype Admin Back",
+                new Vector2(25f, 20f),
+                new Vector2(22f, 0.7f));
+
+            CreateWall(
+                "Prototype Barracks Back",
+                new Vector2(25f, -11f),
+                new Vector2(20f, 0.7f));
+
+            CreateWall(
+                "Prototype Workshop Back",
+                new Vector2(-22f, -11f),
+                new Vector2(18f, 0.7f));
+
+            CreateDestructible(
+                "Crate 1",
+                new Vector2(-34f, -20f));
+
+            CreateDestructible(
+                "Crate 2",
+                new Vector2(-6f, -4f));
+
+            CreateDestructible(
+                "Crate 3",
+                new Vector2(6f, 2f));
+
+            CreateDestructible(
+                "Crate 4",
+                new Vector2(18f, -6f));
+
+            CreateDestructible(
+                "Crate 5",
+                new Vector2(32f, -18f));
+
+            CreateExplosiveProp(
+                "Fuel Drum A",
+                new Vector2(-29f, -16f));
+
+            CreateExplosiveProp(
+                "Fuel Drum B",
+                new Vector2(2f, 4f));
+
+            CreateExplosiveProp(
+                "Fuel Drum C",
+                new Vector2(29f, 4f));
         }
 
         private static void CreateFloorZone(
