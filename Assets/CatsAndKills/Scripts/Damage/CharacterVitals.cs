@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CatsAndKills.Damage
@@ -46,6 +47,11 @@ namespace CatsAndKills.Damage
         }
 
         private GameObject _lastDamageSource;
+        private readonly HashSet<BodyPart> _dismembered =
+            new HashSet<BodyPart>();
+
+        public bool IsDismembered(BodyPart part) =>
+            _dismembered.Contains(part);
 
         public event Action<DamageInfo> Damaged;
         public event Action Died;
@@ -70,6 +76,7 @@ namespace CatsAndKills.Damage
             Health = maxHealth;
             LeftArm = RightArm = armCapacity;
             LeftLeg = RightLeg = legCapacity;
+            _dismembered.Clear();
         }
 
         public void ReceiveDamage(DamageInfo info)
@@ -84,10 +91,18 @@ namespace CatsAndKills.Damage
             Health = Mathf.Min(maxHealth, Health + amount);
 
             float limbHeal = amount * 0.38f;
-            LeftArm = Mathf.Min(armCapacity, LeftArm + limbHeal);
-            RightArm = Mathf.Min(armCapacity, RightArm + limbHeal);
-            LeftLeg = Mathf.Min(legCapacity, LeftLeg + limbHeal);
-            RightLeg = Mathf.Min(legCapacity, RightLeg + limbHeal);
+
+            if (!IsDismembered(BodyPart.LeftArm))
+                LeftArm = Mathf.Min(armCapacity, LeftArm + limbHeal);
+
+            if (!IsDismembered(BodyPart.RightArm))
+                RightArm = Mathf.Min(armCapacity, RightArm + limbHeal);
+
+            if (!IsDismembered(BodyPart.LeftLeg))
+                LeftLeg = Mathf.Min(legCapacity, LeftLeg + limbHeal);
+
+            if (!IsDismembered(BodyPart.RightLeg))
+                RightLeg = Mathf.Min(legCapacity, RightLeg + limbHeal);
         }
 
         public void ApplyDamage(BodyPart part, DamageInfo info, float multiplier)
@@ -116,8 +131,28 @@ namespace CatsAndKills.Damage
                 part != BodyPart.Head &&
                 part != BodyPart.Torso;
 
-            if (explosionDismember)
+            if (explosionDismember && !_dismembered.Contains(part))
+            {
+                _dismembered.Add(part);
+
+                switch (part)
+                {
+                    case BodyPart.LeftArm:
+                        LeftArm = 0f;
+                        break;
+                    case BodyPart.RightArm:
+                        RightArm = 0f;
+                        break;
+                    case BodyPart.LeftLeg:
+                        LeftLeg = 0f;
+                        break;
+                    case BodyPart.RightLeg:
+                        RightLeg = 0f;
+                        break;
+                }
+
                 Dismembered?.Invoke(part, info);
+            }
 
             if (Health <= 0f || (part == BodyPart.Head && damage >= 70f))
                 Die();
