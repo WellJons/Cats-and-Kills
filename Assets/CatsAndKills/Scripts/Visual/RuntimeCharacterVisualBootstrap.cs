@@ -166,7 +166,7 @@ namespace CatsAndKills.Visual
 
             bool valid =
                 visual != null &&
-                visual.gameObject.activeInHierarchy &&
+                visual.gameObject.activeSelf &&
                 sr != null &&
                 sr.enabled &&
                 !sr.forceRenderingOff &&
