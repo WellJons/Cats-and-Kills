@@ -21,6 +21,12 @@ namespace CatsAndKills.Combat
     {
         public static event Action<NoiseEvent> Noise;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            Noise = null;
+        }
+
         public static void Report(Vector2 position, float radius, GameObject source)
         {
             Noise?.Invoke(new NoiseEvent(position, radius, source));
