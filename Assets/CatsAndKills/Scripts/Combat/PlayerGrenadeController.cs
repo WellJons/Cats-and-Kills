@@ -18,6 +18,11 @@ namespace CatsAndKills.Combat
 
         public int GrenadeCount => grenadeCount;
 
+        public void AddGrenades(int amount)
+        {
+            grenadeCount = Mathf.Clamp(grenadeCount + Mathf.Max(0, amount), 0, 9);
+        }
+
         public void Configure(
             PlayerAim2D newAim,
             Sprite sprite,
