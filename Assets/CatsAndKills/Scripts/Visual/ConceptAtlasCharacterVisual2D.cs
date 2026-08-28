@@ -40,6 +40,7 @@ namespace CatsAndKills.Visual
         private float _hurtKick;
         private float _phase;
         private bool _built;
+        private bool _subscribed;
         private Vector3 _baseLocalScale = Vector3.one;
 
         public void Configure(
@@ -62,6 +63,12 @@ namespace CatsAndKills.Visual
             enemyWeapon = enemyGun;
             lookTarget = target;
             pixelsPerUnit = ppu;
+
+            _baseLocalScale = transform.localScale;
+
+            BuildSprites();
+            RefreshImmediate();
+            TrySubscribe();
         }
 
         private void Awake()
@@ -93,6 +100,29 @@ namespace CatsAndKills.Visual
 
         private void OnEnable()
         {
+            TrySubscribe();
+        }
+
+        private void Start()
+        {
+            TrySubscribe();
+
+            if (!_built)
+                BuildSprites();
+
+            RefreshImmediate();
+        }
+
+        private void OnDisable()
+        {
+            Unsubscribe();
+        }
+
+        private void TrySubscribe()
+        {
+            if (_subscribed)
+                return;
+
             if (vitals != null)
                 vitals.Damaged += OnDamaged;
 
@@ -101,10 +131,15 @@ namespace CatsAndKills.Visual
 
             if (enemyWeapon != null)
                 enemyWeapon.Fired += OnWeaponFired;
+
+            _subscribed = true;
         }
 
-        private void OnDisable()
+        private void Unsubscribe()
         {
+            if (!_subscribed)
+                return;
+
             if (vitals != null)
                 vitals.Damaged -= OnDamaged;
 
@@ -113,6 +148,8 @@ namespace CatsAndKills.Visual
 
             if (enemyWeapon != null)
                 enemyWeapon.Fired -= OnWeaponFired;
+
+            _subscribed = false;
         }
 
         private void OnDestroy()
