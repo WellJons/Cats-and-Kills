@@ -26,6 +26,12 @@ namespace CatsAndKills.Core
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         public void ReportAlert()
         {
             _lastAlert = Time.unscaledTime;
