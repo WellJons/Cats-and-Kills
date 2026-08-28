@@ -107,52 +107,230 @@ namespace CatsAndKills.FX
             go.AddComponent<DebrisLifetime2D>().SetLifetime(18f, true);
         }
 
-        public void ExplosionBurst(Vector2 position)
+        public void ExplosionBurst(
+            Vector2 position)
         {
             if (explosionSprite != null)
             {
-                GameObject flash = new GameObject("Explosion Flash");
-                flash.transform.position = position;
-                flash.transform.localScale = Vector3.one * 1.7f;
-                var sr = flash.AddComponent<SpriteRenderer>();
-                sr.sprite = explosionSprite;
-                sr.sortingOrder = 45;
+                GameObject scorch =
+                    new GameObject(
+                        "Explosion Scorch");
+
+                scorch.transform.position =
+                    position;
+
+                scorch.transform.rotation =
+                    Quaternion.Euler(
+                        0f,
+                        0f,
+                        Random.Range(
+                            0f,
+                            360f));
+
+                scorch.transform.localScale =
+                    Vector3.one *
+                    Random.Range(
+                        1.2f,
+                        1.7f);
+
+                SpriteRenderer scorchRenderer =
+                    scorch.AddComponent<SpriteRenderer>();
+
+                scorchRenderer.sprite =
+                    explosionSprite;
+
+                scorchRenderer.color =
+                    new Color(
+                        0.08f,
+                        0.04f,
+                        0.05f,
+                        0.28f);
+
+                scorchRenderer.sortingOrder =
+                    2;
+
+                scorch.AddComponent<DebrisLifetime2D>()
+                    .SetLifetime(
+                        28f,
+                        true);
+
+                GameObject core =
+                    new GameObject(
+                        "Explosion Core");
+
+                core.transform.position =
+                    position;
+
+                SpriteRenderer coreRenderer =
+                    core.AddComponent<SpriteRenderer>();
+
+                coreRenderer.sprite =
+                    explosionSprite;
+
+                coreRenderer.color =
+                    new Color(
+                        1f,
+                        0.76f,
+                        0.24f,
+                        1f);
+
+                coreRenderer.sortingOrder =
+                    48;
+
+                core.AddComponent<ExpandingFadeFX>()
+                    .Configure(
+                        0.14f,
+                        0.65f,
+                        1.55f);
+
+                GameObject flash =
+                    new GameObject(
+                        "Explosion Fireball");
+
+                flash.transform.position =
+                    position;
+
+                flash.transform.rotation =
+                    Quaternion.Euler(
+                        0f,
+                        0f,
+                        Random.Range(
+                            0f,
+                            360f));
+
+                SpriteRenderer flashRenderer =
+                    flash.AddComponent<SpriteRenderer>();
+
+                flashRenderer.sprite =
+                    explosionSprite;
+
+                flashRenderer.color =
+                    new Color(
+                        1f,
+                        0.28f,
+                        0.06f,
+                        0.96f);
+
+                flashRenderer.sortingOrder =
+                    47;
 
                 flash.AddComponent<ExpandingFadeFX>()
                     .Configure(
-                        0.28f,
-                        1.7f,
-                        2.7f);
+                        0.34f,
+                        1.25f,
+                        2.9f);
 
                 flash.AddComponent<TransientLight2D>()
                     .Configure(
                         new Color(
                             1f,
-                            0.34f,
-                            0.08f),
-                        2.6f,
-                        5.0f,
+                            0.30f,
+                            0.07f),
+                        3.4f,
+                        6.2f,
+                        0.28f);
+
+                GameObject wave =
+                    new GameObject(
+                        "Explosion Shockwave");
+
+                wave.transform.position =
+                    position;
+
+                SpriteRenderer waveRenderer =
+                    wave.AddComponent<SpriteRenderer>();
+
+                waveRenderer.sprite =
+                    explosionSprite;
+
+                waveRenderer.color =
+                    new Color(
+                        1f,
+                        0.72f,
+                        0.40f,
                         0.24f);
+
+                waveRenderer.sortingOrder =
+                    44;
+
+                wave.AddComponent<ExpandingFadeFX>()
+                    .Configure(
+                        0.22f,
+                        0.9f,
+                        3.8f);
             }
 
             if (smokeSprite != null)
             {
-                for (int i = 0; i < 5; i++)
+                for (int i = 0;
+                     i < 8;
+                     i++)
                 {
-                    GameObject smoke = new GameObject("Explosion Smoke");
-                    smoke.transform.position = position + Random.insideUnitCircle * 0.35f;
-                    smoke.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
-                    smoke.transform.localScale = Vector3.one * Random.Range(0.7f, 1.2f);
+                    GameObject smoke =
+                        new GameObject(
+                            "Explosion Smoke");
 
-                    var sr = smoke.AddComponent<SpriteRenderer>();
-                    sr.sprite = smokeSprite;
-                    sr.sortingOrder = 35;
-                    sr.color = new Color(0.65f, 0.68f, 0.74f, Random.Range(0.28f, 0.45f));
+                    Vector2 radial =
+                        Random.insideUnitCircle;
 
-                    smoke.AddComponent<ExpandingFadeFX>().Configure(
-                        Random.Range(1.1f, 1.7f),
-                        0.8f,
-                        Random.Range(1.4f, 2.1f));
+                    if (radial.sqrMagnitude <
+                        0.04f)
+                    {
+                        radial =
+                            Vector2.up;
+                    }
+
+                    smoke.transform.position =
+                        position +
+                        radial.normalized *
+                        Random.Range(
+                            0.10f,
+                            0.72f);
+
+                    smoke.transform.rotation =
+                        Quaternion.Euler(
+                            0f,
+                            0f,
+                            Random.Range(
+                                0f,
+                                360f));
+
+                    SpriteRenderer sr =
+                        smoke.AddComponent<SpriteRenderer>();
+
+                    sr.sprite =
+                        smokeSprite;
+
+                    sr.sortingOrder =
+                        36 + i % 2;
+
+                    sr.color =
+                        new Color(
+                            Random.Range(
+                                0.38f,
+                                0.56f),
+                            Random.Range(
+                                0.40f,
+                                0.58f),
+                            Random.Range(
+                                0.46f,
+                                0.64f),
+                            Random.Range(
+                                0.30f,
+                                0.48f));
+
+                    smoke.AddComponent<
+                            ExpandingFadeFX>()
+                        .Configure(
+                            Random.Range(
+                                1.3f,
+                                2.0f),
+                            Random.Range(
+                                0.55f,
+                                0.90f),
+                            Random.Range(
+                                1.7f,
+                                2.5f));
                 }
             }
         }
