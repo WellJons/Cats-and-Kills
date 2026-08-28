@@ -1,5 +1,6 @@
 using CatsAndKills.AI;
 using CatsAndKills.Narrative;
+using CatsAndKills.Player;
 using CatsAndKills.Tactical;
 using UnityEngine;
 
@@ -128,9 +129,9 @@ namespace CatsAndKills.World
             if (motor == null)
                 return;
 
-            Player.PlayerMotor2D player =
+            PlayerMotor2D player =
                 FindAnyObjectByType<
-                    Player.PlayerMotor2D>();
+                    PlayerMotor2D>();
 
             Vector2 away =
                 player != null
