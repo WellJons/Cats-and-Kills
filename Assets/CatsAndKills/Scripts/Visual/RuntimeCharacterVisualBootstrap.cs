@@ -78,6 +78,7 @@ namespace CatsAndKills.Visual
 
             EnemyBrain[] enemies =
                 Object.FindObjectsByType<EnemyBrain>(
+                    FindObjectsInactive.Include,
                     FindObjectsSortMode.None);
 
             foreach (EnemyBrain enemy in enemies)
@@ -119,6 +120,7 @@ namespace CatsAndKills.Visual
 
             EnemyBrain[] enemies =
                 Object.FindObjectsByType<EnemyBrain>(
+                    FindObjectsInactive.Include,
                     FindObjectsSortMode.None);
 
             foreach (EnemyBrain enemy in enemies)
