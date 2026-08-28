@@ -1,11 +1,21 @@
+using CatsAndKills.Player;
 using UnityEngine;
 
 namespace CatsAndKills.Combat
 {
+    [DefaultExecutionOrder(11000)]
     public sealed class WeaponVisualRecoil2D : MonoBehaviour
     {
+        [SerializeField] private Transform characterRoot;
+        [SerializeField] private PlayerAim2D aim;
+        [SerializeField] private SpriteRenderer weaponRenderer;
+        [SerializeField] private HitscanWeapon2D weapon;
+        [SerializeField] private bool anchorToCharacter = true;
+        [SerializeField] private float visualLengthMultiplier = 1.65f;
+
         private Vector3 _basePos;
         private Quaternion _baseRot;
+        private Vector3 _baseScale;
         private float _kickDistance;
         private float _kickRotation;
         private float _returnSharpness = 24f;
@@ -16,38 +26,112 @@ namespace CatsAndKills.Combat
         {
             _basePos = transform.localPosition;
             _baseRot = transform.localRotation;
+            _baseScale = transform.localScale;
+
+            if (weaponRenderer == null)
+                weaponRenderer = GetComponent<SpriteRenderer>();
+
+            if (weapon == null)
+                weapon = GetComponent<HitscanWeapon2D>();
+
+            if (aim == null)
+                aim = GetComponentInParent<PlayerAim2D>();
+
+            if (characterRoot == null &&
+                aim != null)
+            {
+                characterRoot = aim.transform;
+            }
         }
 
-        public void Kick(float distance, float rotation)
+        public void ConfigureAnchor(
+            Transform root,
+            PlayerAim2D aimSource,
+            SpriteRenderer renderer,
+            HitscanWeapon2D weaponSource)
+        {
+            characterRoot = root;
+            aim = aimSource;
+            weaponRenderer = renderer;
+            weapon = weaponSource;
+            anchorToCharacter = true;
+
+            if (weaponRenderer != null)
+            {
+                weaponRenderer.enabled = true;
+                weaponRenderer.forceRenderingOff = false;
+            }
+        }
+
+        public void Kick(
+            float distance,
+            float rotation)
         {
             _kickDistance += distance;
-            _kickRotation += Random.Range(-rotation, rotation);
+            _kickRotation +=
+                Random.Range(
+                    -rotation,
+                    rotation);
         }
 
-        public void SetReloading(bool value)
+        public void SetReloading(
+            bool value)
         {
             _reloading = value;
         }
 
         private void LateUpdate()
         {
-            float t = 1f - Mathf.Exp(-_returnSharpness * Time.unscaledDeltaTime);
-            _kickDistance = Mathf.Lerp(_kickDistance, 0f, t);
-            _kickRotation = Mathf.Lerp(_kickRotation, 0f, t);
+            float dt =
+                Mathf.Max(
+                    0f,
+                    Time.deltaTime);
 
-            _reloadBlend = Mathf.MoveTowards(
-                _reloadBlend,
-                _reloading ? 1f : 0f,
-                Time.unscaledDeltaTime * 5.8f);
+            float t =
+                1f -
+                Mathf.Exp(
+                    -_returnSharpness *
+                    dt);
+
+            _kickDistance =
+                Mathf.Lerp(
+                    _kickDistance,
+                    0f,
+                    t);
+
+            _kickRotation =
+                Mathf.Lerp(
+                    _kickRotation,
+                    0f,
+                    t);
+
+            _reloadBlend =
+                Mathf.MoveTowards(
+                    _reloadBlend,
+                    _reloading ? 1f : 0f,
+                    dt * 5.8f);
+
+            if (anchorToCharacter &&
+                TryApplyCharacterAnchoredPose())
+            {
+                return;
+            }
 
             Vector3 reloadOffset =
-                new Vector3(-0.12f, -0.18f, 0f) * _reloadBlend;
+                new Vector3(
+                    -0.12f,
+                    -0.18f,
+                    0f) *
+                _reloadBlend;
 
-            float reloadRotation = -38f * _reloadBlend;
+            float reloadRotation =
+                -38f *
+                _reloadBlend;
 
             transform.localPosition =
                 _basePos +
-                Vector3.left * _kickDistance +
+                Vector3.left *
+                _kickDistance +
                 reloadOffset;
 
             transform.localRotation =
@@ -55,7 +139,152 @@ namespace CatsAndKills.Combat
                 Quaternion.Euler(
                     0f,
                     0f,
-                    _kickRotation + reloadRotation);
+                    _kickRotation +
+                    reloadRotation);
+
+            transform.localScale =
+                _baseScale;
+        }
+
+        private bool TryApplyCharacterAnchoredPose()
+        {
+            if (characterRoot == null ||
+                aim == null ||
+                weaponRenderer == null ||
+                weaponRenderer.sprite == null)
+            {
+                return false;
+            }
+
+            Vector2 direction =
+                aim.AimDirection.sqrMagnitude >
+                0.001f
+                    ? aim.AimDirection.normalized
+                    : Vector2.right;
+
+            Vector2 aimPoint =
+                CharacterCombatGeometry2D.AimPoint(
+                    characterRoot);
+
+            Vector2 muzzlePoint =
+                CharacterCombatGeometry2D.MuzzlePoint(
+                    characterRoot,
+                    direction);
+
+            float anchorDistance =
+                Vector2.Distance(
+                    aimPoint,
+                    muzzlePoint);
+
+            float targetLength =
+                Mathf.Clamp(
+                    anchorDistance *
+                    visualLengthMultiplier *
+                    GetWeaponLengthMultiplier(),
+                    0.48f,
+                    1.65f);
+
+            float spriteWidth =
+                Mathf.Max(
+                    0.01f,
+                    weaponRenderer.sprite.bounds.size.x);
+
+            float scale =
+                targetLength /
+                spriteWidth;
+
+            Vector2 perpendicular =
+                new Vector2(
+                    -direction.y,
+                    direction.x);
+
+            Vector2 center =
+                muzzlePoint -
+                direction *
+                (targetLength * 0.48f);
+
+            center -=
+                direction *
+                _kickDistance;
+
+            center +=
+                (-direction * 0.10f -
+                 perpendicular * 0.10f) *
+                _reloadBlend;
+
+            float angle =
+                Mathf.Atan2(
+                    direction.y,
+                    direction.x) *
+                Mathf.Rad2Deg;
+
+            float handedness =
+                direction.x <
+                -0.01f
+                    ? -1f
+                    : 1f;
+
+            float reloadRotation =
+                -34f *
+                _reloadBlend *
+                handedness;
+
+            transform.position =
+                new Vector3(
+                    center.x,
+                    center.y,
+                    transform.position.z);
+
+            transform.rotation =
+                Quaternion.Euler(
+                    0f,
+                    0f,
+                    angle +
+                    _kickRotation +
+                    reloadRotation);
+
+            transform.localScale =
+                Vector3.one *
+                scale;
+
+            weaponRenderer.flipY =
+                direction.x <
+                -0.01f;
+
+            weaponRenderer.enabled = true;
+            weaponRenderer.forceRenderingOff = false;
+
+            return true;
+        }
+
+        private float GetWeaponLengthMultiplier()
+        {
+            WeaponDefinition definition =
+                weapon != null
+                    ? weapon.Definition
+                    : null;
+
+            if (definition == null ||
+                string.IsNullOrEmpty(
+                    definition.weaponName))
+            {
+                return 1f;
+            }
+
+            string name =
+                definition.weaponName
+                    .ToLowerInvariant();
+
+            if (name.Contains("pistol"))
+                return 0.62f;
+
+            if (name.Contains("ks-12") ||
+                name.Contains("shotgun"))
+            {
+                return 1.08f;
+            }
+
+            return 1f;
         }
     }
 }
