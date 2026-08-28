@@ -1,4 +1,5 @@
 using System.Collections;
+using CatsAndKills.Audio;
 using CatsAndKills.Core;
 using CatsAndKills.UI;
 using UnityEngine;
@@ -36,8 +37,13 @@ namespace CatsAndKills.Player
             _active = true;
             _readyAt = Time.unscaledTime + cooldown;
 
-            if (activationClip != null)
-                AudioSource.PlayClipAtPoint(activationClip, transform.position, 0.6f);
+            AudioClip resolvedClip =
+                activationClip != null
+                    ? activationClip
+                    : ProceduralAudioFactory.Collar;
+
+            if (resolvedClip != null)
+                AudioSource.PlayClipAtPoint(resolvedClip, transform.position, 0.6f);
 
             HapticsManager.Instance?.Pulse(0.15f, 0.45f, 0.13f);
             PrototypeHUD.Instance?.SetGlitch(1f);
