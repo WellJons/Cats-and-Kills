@@ -4,6 +4,7 @@ using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
+using CatsAndKills.Narrative;
 using CatsAndKills.UI;
 using CatsAndKills.Visual;
 using CatsAndKills.World;
@@ -103,13 +104,13 @@ namespace CatsAndKills.EditorTools
 
         private static bool ValidateDistrictVerticalSlice()
         {
-            Narrative.NarrativeWorldState state =
+            NarrativeWorldState state =
                 Object.FindAnyObjectByType<
-                    Narrative.NarrativeWorldState>();
+                    NarrativeWorldState>();
 
-            Narrative.NarrativeDialogueSystem dialogue =
+            NarrativeDialogueSystem dialogue =
                 Object.FindAnyObjectByType<
-                    Narrative.NarrativeDialogueSystem>();
+                    NarrativeDialogueSystem>();
 
             DistrictVerticalSliceDirector district =
                 Object.FindAnyObjectByType<
@@ -129,9 +130,9 @@ namespace CatsAndKills.EditorTools
                     PropagandaPoster2D>(
                     FindObjectsSortMode.None);
 
-            Narrative.DialogueInteractable2D[] talkers =
+            DialogueInteractable2D[] talkers =
                 Object.FindObjectsByType<
-                    Narrative.DialogueInteractable2D>(
+                    DialogueInteractable2D>(
                     FindObjectsSortMode.None);
 
             TacticalUtilityBelt belt =
