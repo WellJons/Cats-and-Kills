@@ -158,12 +158,10 @@ namespace CatsAndKills.AI
                 ap >= 4 &&
                 Random.value < 0.16f)
             {
-                if (grenades.TryThrow(
-                        true,
-                        0.65f))
+                if (grenades.TryThrowTactical())
                 {
                     ap -= 4;
-                    yield return new WaitForSeconds(0.45f);
+                    yield return new WaitForSeconds(0.92f);
                 }
             }
 
