@@ -7,9 +7,11 @@ using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
+using CatsAndKills.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using BodyPart = CatsAndKills.Damage.BodyPart;
 
 namespace CatsAndKills.EditorTools
 {
