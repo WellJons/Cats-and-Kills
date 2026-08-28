@@ -180,6 +180,10 @@ namespace CatsAndKills.EditorTools
                 fx, "FX/spark",
                 0, 300, 240, 175, 96f);
 
+            Sprite casing = Crop(
+                fx, "FX/casing",
+                1070, 150, 360, 260, 96f);
+
             Sprite smoke = Crop(
                 fx, "FX/smoke",
                 0, 675, 330, 270, 96f);
@@ -237,6 +241,7 @@ namespace CatsAndKills.EditorTools
             pack.bloodDrop = bloodDrop;
             pack.bulletHole = bulletHole;
             pack.spark = spark;
+            pack.casing = casing;
             pack.smoke = smoke;
             pack.explosion = explosion;
             pack.softShadow = softShadow;
