@@ -10,6 +10,7 @@ namespace CatsAndKills.World
         [SerializeField] private Door2D commandDoor;
         [SerializeField] private Transform terminalTarget;
         [SerializeField] private Transform extractionTarget;
+        [SerializeField] private bool narrativeMode;
 
         public string CurrentObjective { get; private set; } =
             "ЦЕЛЬ: проникнуть в административный корпус";
@@ -29,6 +30,23 @@ namespace CatsAndKills.World
                 extractionMarker.SetActive(false);
         }
 
+        public void ConfigureNarrativeMode(
+            bool enabled)
+        {
+            narrativeMode = enabled;
+        }
+
+        public void SetObjective(
+            string objective)
+        {
+            if (!string.IsNullOrWhiteSpace(
+                    objective))
+            {
+                CurrentObjective =
+                    objective;
+            }
+        }
+
         public void BindObjectiveTargets(
             Transform terminal,
             Transform extraction)
@@ -39,6 +57,9 @@ namespace CatsAndKills.World
 
         private IEnumerator Start()
         {
+            if (narrativeMode)
+                yield break;
+
             if (CheckpointSystem.HasCheckpoint)
             {
                 if (!string.IsNullOrEmpty(CheckpointSystem.Label) &&
