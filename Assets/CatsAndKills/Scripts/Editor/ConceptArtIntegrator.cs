@@ -113,25 +113,32 @@ namespace CatsAndKills.EditorTools
                 props, "Environment/debris",
                 555, 675, 325, 270, 96f);
 
+            // Build one large facility floor texture instead of repeating
+            // the isometric tile diamonds. This removes the visible grid and
+            // preserves the concept palette without obvious repetition.
             Sprite floorIndustrial =
-                CreateSeamlessFloorPatch(
+                CreateFacilityFloorTexture(
                     tileset,
                     "Environment/floor_industrial",
                     72,
                     81,
                     89,
                     63,
-                    96f);
+                    32f,
+                    173,
+                    new Color32(100, 104, 120, 255));
 
             Sprite floorOffice =
-                CreateSeamlessFloorPatch(
+                CreateFacilityFloorTexture(
                     tileset,
                     "Environment/floor_office",
                     317,
                     81,
                     89,
                     63,
-                    96f);
+                    32f,
+                    241,
+                    new Color32(112, 96, 118, 255));
 
             Sprite wallStraight = Crop(
                 tileset, "Environment/wall_straight",
@@ -443,83 +450,293 @@ namespace CatsAndKills.EditorTools
             }
         }
 
-        private static Sprite CreateSeamlessFloorPatch(
+        private static Sprite CreateFacilityFloorTexture(
             Texture2D source,
             string relativePath,
-            int x,
-            int topY,
-            int width,
-            int height,
-            float ppu)
+            int sampleX,
+            int sampleTopY,
+            int sampleWidth,
+            int sampleHeight,
+            float ppu,
+            int seed,
+            Color32 tint)
         {
             if (source == null)
                 return null;
 
-            int sourceY =
+            const int outW = 1536;
+            const int outH = 896;
+
+            int sampleY =
                 source.height -
-                topY -
-                height;
+                sampleTopY -
+                sampleHeight;
 
-            sourceY =
+            sampleY =
                 Mathf.Clamp(
-                    sourceY,
+                    sampleY,
                     0,
-                    source.height - height);
+                    source.height - sampleHeight);
 
-            Color32[] patch =
+            Color32[] sourcePixels =
                 source.GetPixels32();
 
-            Color32[] basePatch =
-                new Color32[width * height];
+            long sumR = 0;
+            long sumG = 0;
+            long sumB = 0;
+            int count = 0;
 
-            for (int yy = 0; yy < height; yy++)
+            for (int yy = 0; yy < sampleHeight; yy++)
             {
-                int srcRow =
-                    (sourceY + yy) *
-                    source.width +
-                    x;
-
-                int dstRow =
-                    yy * width;
-
-                Array.Copy(
-                    patch,
-                    srcRow,
-                    basePatch,
-                    dstRow,
-                    width);
-            }
-
-            int outW = width * 2;
-            int outH = height * 2;
-            Color32[] outputPixels =
-                new Color32[outW * outH];
-
-            for (int yy = 0; yy < outH; yy++)
-            {
-                int localY =
-                    yy < height
-                        ? yy
-                        : outH - 1 - yy;
-
-                for (int xx = 0; xx < outW; xx++)
+                for (int xx = 0; xx < sampleWidth; xx++)
                 {
-                    int localX =
-                        xx < width
-                            ? xx
-                            : outW - 1 - xx;
+                    int sx =
+                        Mathf.Clamp(
+                            sampleX + xx,
+                            0,
+                            source.width - 1);
+
+                    int sy =
+                        Mathf.Clamp(
+                            sampleY + yy,
+                            0,
+                            source.height - 1);
 
                     Color32 px =
-                        basePatch[
-                            localY * width +
-                            localX];
+                        sourcePixels[
+                            sy * source.width +
+                            sx];
 
-                    px.a = 255;
+                    if (px.a < 160)
+                        continue;
 
-                    outputPixels[
-                        yy * outW +
-                        xx] = px;
+                    sumR += px.r;
+                    sumG += px.g;
+                    sumB += px.b;
+                    count++;
                 }
+            }
+
+            Color32 average =
+                count > 0
+                    ? new Color32(
+                        (byte)(sumR / count),
+                        (byte)(sumG / count),
+                        (byte)(sumB / count),
+                        255)
+                    : new Color32(
+                        52,
+                        57,
+                        82,
+                        255);
+
+            float tintR = tint.r / 100f;
+            float tintG = tint.g / 100f;
+            float tintB = tint.b / 100f;
+
+            Color32[] pixels =
+                new Color32[outW * outH];
+
+            for (int y = 0; y < outH; y++)
+            {
+                float broadY =
+                    Mathf.Sin(
+                        y * 0.021f +
+                        seed * 0.13f) *
+                    2.8f;
+
+                for (int x = 0; x < outW; x++)
+                {
+                    unchecked
+                    {
+                        int hash =
+                            x * 73856093 ^
+                            y * 19349663 ^
+                            seed * 83492791;
+
+                        float grain =
+                            ((hash & 255) - 127) /
+                            127f;
+
+                        float broad =
+                            Mathf.Sin(
+                                x * 0.014f +
+                                y * 0.008f +
+                                seed) *
+                            2.2f +
+                            broadY;
+
+                        int r =
+                            Mathf.RoundToInt(
+                                average.r *
+                                tintR +
+                                grain * 3.8f +
+                                broad);
+
+                        int g =
+                            Mathf.RoundToInt(
+                                average.g *
+                                tintG +
+                                grain * 4.2f +
+                                broad);
+
+                        int b =
+                            Mathf.RoundToInt(
+                                average.b *
+                                tintB +
+                                grain * 5.0f +
+                                broad * 1.25f);
+
+                        pixels[y * outW + x] =
+                            new Color32(
+                                (byte)Mathf.Clamp(r, 0, 255),
+                                (byte)Mathf.Clamp(g, 0, 255),
+                                (byte)Mathf.Clamp(b, 0, 255),
+                                255);
+                    }
+                }
+            }
+
+            // Large staggered panels: visible enough to describe an industrial
+            // floor, but sparse enough to avoid the old checker/grid look.
+            const int panelW = 256;
+            const int panelH = 160;
+
+            for (int y = panelH; y < outH; y += panelH)
+            {
+                DrawFloorLine(
+                    pixels,
+                    outW,
+                    outH,
+                    0,
+                    y,
+                    outW - 1,
+                    y,
+                    new Color32(30, 34, 50, 255),
+                    2);
+
+                DrawFloorLine(
+                    pixels,
+                    outW,
+                    outH,
+                    0,
+                    y + 2,
+                    outW - 1,
+                    y + 2,
+                    new Color32(68, 72, 96, 255),
+                    1);
+            }
+
+            int row = 0;
+
+            for (int y = 0; y < outH; y += panelH, row++)
+            {
+                int offset =
+                    row % 2 == 0
+                        ? 0
+                        : panelW / 2;
+
+                for (int x = offset; x < outW; x += panelW)
+                {
+                    DrawFloorLine(
+                        pixels,
+                        outW,
+                        outH,
+                        x,
+                        y,
+                        x,
+                        Mathf.Min(
+                            outH - 1,
+                            y + panelH),
+                        new Color32(31, 35, 51, 255),
+                        2);
+
+                    if ((x / panelW + row) % 3 == 0)
+                    {
+                        DrawFloorDot(
+                            pixels,
+                            outW,
+                            outH,
+                            x + 10,
+                            y + 10,
+                            new Color32(89, 70, 96, 255));
+                    }
+                }
+            }
+
+            // Non-repeating wear, scratches and oil stains.
+            var random =
+                new System.Random(seed);
+
+            for (int i = 0; i < 72; i++)
+            {
+                int x0 =
+                    random.Next(
+                        16,
+                        outW - 48);
+
+                int y0 =
+                    random.Next(
+                        16,
+                        outH - 32);
+
+                int len =
+                    random.Next(
+                        10,
+                        52);
+
+                int rise =
+                    random.Next(
+                        -8,
+                        9);
+
+                DrawFloorLine(
+                    pixels,
+                    outW,
+                    outH,
+                    x0,
+                    y0,
+                    x0 + len,
+                    y0 + rise,
+                    new Color32(
+                        27,
+                        29,
+                        42,
+                        (byte)random.Next(95, 150)),
+                    1);
+            }
+
+            for (int i = 0; i < 18; i++)
+            {
+                int cx =
+                    random.Next(
+                        40,
+                        outW - 40);
+
+                int cy =
+                    random.Next(
+                        40,
+                        outH - 40);
+
+                int rx =
+                    random.Next(
+                        16,
+                        52);
+
+                int ry =
+                    random.Next(
+                        8,
+                        28);
+
+                DarkenFloorEllipse(
+                    pixels,
+                    outW,
+                    outH,
+                    cx,
+                    cy,
+                    rx,
+                    ry,
+                    random.Next(5, 13));
             }
 
             Texture2D output =
@@ -529,7 +746,7 @@ namespace CatsAndKills.EditorTools
                     TextureFormat.RGBA32,
                     false);
 
-            output.SetPixels32(outputPixels);
+            output.SetPixels32(pixels);
             output.Apply();
 
             string path =
@@ -561,6 +778,184 @@ namespace CatsAndKills.EditorTools
 
             return AssetDatabase.LoadAssetAtPath<Sprite>(
                 path);
+        }
+
+        private static void DrawFloorLine(
+            Color32[] pixels,
+            int width,
+            int height,
+            int x0,
+            int y0,
+            int x1,
+            int y1,
+            Color32 color,
+            int thickness)
+        {
+            int dx = Mathf.Abs(x1 - x0);
+            int sx = x0 < x1 ? 1 : -1;
+            int dy = -Mathf.Abs(y1 - y0);
+            int sy = y0 < y1 ? 1 : -1;
+            int error = dx + dy;
+
+            while (true)
+            {
+                for (int oy = -thickness; oy <= thickness; oy++)
+                {
+                    for (int ox = -thickness; ox <= thickness; ox++)
+                    {
+                        int x = x0 + ox;
+                        int y = y0 + oy;
+
+                        if (x < 0 ||
+                            y < 0 ||
+                            x >= width ||
+                            y >= height)
+                        {
+                            continue;
+                        }
+
+                        Color32 current =
+                            pixels[y * width + x];
+
+                        pixels[y * width + x] =
+                            BlendFloor(
+                                current,
+                                color);
+                    }
+                }
+
+                if (x0 == x1 && y0 == y1)
+                    break;
+
+                int e2 = 2 * error;
+
+                if (e2 >= dy)
+                {
+                    error += dy;
+                    x0 += sx;
+                }
+
+                if (e2 <= dx)
+                {
+                    error += dx;
+                    y0 += sy;
+                }
+            }
+        }
+
+        private static void DrawFloorDot(
+            Color32[] pixels,
+            int width,
+            int height,
+            int cx,
+            int cy,
+            Color32 color)
+        {
+            for (int y = cy - 2; y <= cy + 2; y++)
+            {
+                for (int x = cx - 2; x <= cx + 2; x++)
+                {
+                    if (x < 0 ||
+                        y < 0 ||
+                        x >= width ||
+                        y >= height)
+                    {
+                        continue;
+                    }
+
+                    pixels[y * width + x] =
+                        BlendFloor(
+                            pixels[y * width + x],
+                            color);
+                }
+            }
+        }
+
+        private static void DarkenFloorEllipse(
+            Color32[] pixels,
+            int width,
+            int height,
+            int cx,
+            int cy,
+            int rx,
+            int ry,
+            int amount)
+        {
+            for (int y = cy - ry; y <= cy + ry; y++)
+            {
+                for (int x = cx - rx; x <= cx + rx; x++)
+                {
+                    if (x < 0 ||
+                        y < 0 ||
+                        x >= width ||
+                        y >= height)
+                    {
+                        continue;
+                    }
+
+                    float nx =
+                        (x - cx) /
+                        (float)Mathf.Max(1, rx);
+
+                    float ny =
+                        (y - cy) /
+                        (float)Mathf.Max(1, ry);
+
+                    float d =
+                        nx * nx +
+                        ny * ny;
+
+                    if (d > 1f)
+                        continue;
+
+                    float strength =
+                        (1f - d) *
+                        amount;
+
+                    Color32 px =
+                        pixels[y * width + x];
+
+                    pixels[y * width + x] =
+                        new Color32(
+                            (byte)Mathf.Max(
+                                0,
+                                px.r - strength),
+                            (byte)Mathf.Max(
+                                0,
+                                px.g - strength),
+                            (byte)Mathf.Max(
+                                0,
+                                px.b - strength),
+                            255);
+                }
+            }
+        }
+
+        private static Color32 BlendFloor(
+            Color32 baseColor,
+            Color32 overlay)
+        {
+            float a =
+                overlay.a /
+                255f;
+
+            return new Color32(
+                (byte)Mathf.RoundToInt(
+                    Mathf.Lerp(
+                        baseColor.r,
+                        overlay.r,
+                        a)),
+                (byte)Mathf.RoundToInt(
+                    Mathf.Lerp(
+                        baseColor.g,
+                        overlay.g,
+                        a)),
+                (byte)Mathf.RoundToInt(
+                    Mathf.Lerp(
+                        baseColor.b,
+                        overlay.b,
+                        a)),
+                255);
         }
 
         private static Sprite CropAmbience(
