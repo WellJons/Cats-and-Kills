@@ -418,7 +418,10 @@ namespace CatsAndKills.AI
             switch (role)
             {
                 case SquadRole.Suppress:
-                    if (_cover == null && _state != State.MoveToCover)
+                    if (_state == State.MoveToCover)
+                        break;
+
+                    if (_cover == null)
                         TryTakeCover();
                     else
                     {
@@ -440,7 +443,10 @@ namespace CatsAndKills.AI
                     break;
 
                 case SquadRole.Hold:
-                    if (_cover == null && _state != State.MoveToCover)
+                    if (_state == State.MoveToCover)
+                        break;
+
+                    if (_cover == null)
                         TryTakeCover();
                     else
                     {
@@ -490,10 +496,19 @@ namespace CatsAndKills.AI
             }
 
             ReleaseCover();
+
+            if (motor == null ||
+                !motor.MoveTo(candidate.transform.position))
+            {
+                candidate.Release(this);
+                _cover = null;
+                _state = State.Engage;
+                return;
+            }
+
             _cover = candidate;
             _state = State.MoveToCover;
             _stateUntil = Time.time + suppressionHold;
-            motor?.MoveTo(candidate.transform.position);
 
             Callout(archetype == EnemyArchetype.MachineGunner
                 ? "ЗАНИМАЮ ПОЗИЦИЮ!"
@@ -519,8 +534,27 @@ namespace CatsAndKills.AI
                 toThreat * 1.6f;
 
             ReleaseCover();
+
+            if (motor == null ||
+                !motor.MoveTo(flankPoint))
+            {
+                Vector2 oppositePoint =
+                    _knownPlayerPos -
+                    perpendicular * flankDistance * extra -
+                    toThreat * 1.6f;
+
+                if (motor == null ||
+                    !motor.MoveTo(oppositePoint))
+                {
+                    _state = State.Engage;
+                    motor?.Stop();
+                    return;
+                }
+
+                side = -side;
+            }
+
             _state = State.Flank;
-            motor?.MoveTo(flankPoint);
 
             Callout(side > 0f
                 ? "ОБХОЖУ СЛЕВА!"
@@ -571,11 +605,7 @@ namespace CatsAndKills.AI
 
             if (delta.sqrMagnitude < 0.001f) return;
 
-            float angle =
-                Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
-
-            transform.rotation =
-                Quaternion.Euler(0f, 0f, angle);
+            perception?.SetFacing(delta);
         }
 
         private void OnDamaged(DamageInfo info)
