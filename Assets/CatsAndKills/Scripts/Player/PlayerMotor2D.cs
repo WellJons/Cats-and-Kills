@@ -1,6 +1,7 @@
 using System.Collections;
 using CatsAndKills.Core;
 using CatsAndKills.Damage;
+using CatsAndKills.Narrative;
 using CatsAndKills.Tactical;
 using UnityEngine;
 
@@ -52,6 +53,12 @@ namespace CatsAndKills.Player
         {
             if (Time.timeScale <= 0f) return;
             if (vitals != null && vitals.IsDead) return;
+
+            if (NarrativeDialogueSystem.IsDialogueOpen)
+            {
+                _desiredVelocity = Vector2.zero;
+                return;
+            }
 
             TacticalCombatDirector tactical =
                 TacticalCombatDirector.Instance;
