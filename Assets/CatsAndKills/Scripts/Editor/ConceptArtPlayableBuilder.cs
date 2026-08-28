@@ -30,6 +30,7 @@ namespace CatsAndKills.EditorTools
             AddAtmosphere();
             ImproveCamera();
             ApplyLitSpriteMaterial();
+            ApplyConceptFX(pack);
 
             EditorSceneManager.MarkSceneDirty(
                 EditorSceneManager.GetActiveScene());
@@ -107,6 +108,24 @@ namespace CatsAndKills.EditorTools
                     sr.sharedMaterial = material;
                 }
             }
+        }
+
+        private static void ApplyConceptFX(
+            ProductionArtPack pack)
+        {
+            FXService fx =
+                Object.FindAnyObjectByType<FXService>();
+
+            if (fx == null)
+                return;
+
+            fx.bloodSprite = pack.bloodDrop;
+            fx.sparkSprite = pack.spark;
+            fx.bulletHoleSprite = pack.bulletHole;
+            fx.explosionSprite = pack.explosion;
+            fx.smokeSprite = pack.smoke;
+
+            EditorUtility.SetDirty(fx);
         }
 
         private static void AddAtmosphere()
