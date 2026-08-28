@@ -64,6 +64,7 @@ namespace CatsAndKills.AI
 
         public EnemyArchetype Archetype => archetype;
         public SquadRole Role => role;
+        public bool IsAlerted => _hasKnowledge || _hadVisual;
 
         public void Configure(
             Transform newPlayer,
