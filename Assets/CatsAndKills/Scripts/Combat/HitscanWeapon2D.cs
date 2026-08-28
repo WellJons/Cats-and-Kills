@@ -201,9 +201,24 @@ namespace CatsAndKills.Combat
             muzzleFlash?.Flash();
 
             if (casingPort != null)
+            {
+                Transform root =
+                    ownerVitals != null
+                        ? ownerVitals.transform
+                        : transform.root;
+
+                casingPort.position =
+                    CharacterCombatGeometry2D.CasingPoint(
+                        root,
+                        aim.AimDirection);
+
                 FXService.Instance?.EjectCasing(
                     casingPort.position,
-                    (Vector2)transform.up + Random.insideUnitCircle * 0.35f);
+                    new Vector2(
+                        -aim.AimDirection.y,
+                        aim.AimDirection.x) +
+                    Random.insideUnitCircle * 0.35f);
+            }
 
             AudioClip shotClip =
                 definition.shotClip != null
@@ -242,15 +257,30 @@ namespace CatsAndKills.Combat
 
         private void FireRay(Vector2 direction, DamageType damageType)
         {
-            Vector2 origin = muzzle != null
-                ? (Vector2)muzzle.position
-                : (Vector2)transform.position;
+            Transform characterRoot =
+                ownerVitals != null
+                    ? ownerVitals.transform
+                    : transform.root;
 
-            RaycastHit2D hit = Physics2D.Raycast(
-                origin,
-                direction,
-                definition.range,
-                definition.hitMask);
+            Vector2 origin =
+                CharacterCombatGeometry2D.MuzzlePoint(
+                    characterRoot,
+                    direction);
+
+            CharacterCombatGeometry2D.PlaceMuzzleTransform(
+                muzzle,
+                characterRoot,
+                direction);
+
+            RaycastHit2D hit =
+                CharacterCombatGeometry2D.FirstMeaningfulHit(
+                    origin,
+                    direction,
+                    definition.range,
+                    definition.hitMask,
+                    characterRoot != null
+                        ? characterRoot.root
+                        : transform.root);
 
             Vector2 endPoint = origin + direction * definition.range;
 
