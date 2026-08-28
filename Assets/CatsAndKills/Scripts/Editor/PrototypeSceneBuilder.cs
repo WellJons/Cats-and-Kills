@@ -81,6 +81,19 @@ namespace CatsAndKills.EditorTools
             CreateEnemy("Pistolier 02", new Vector2(16f, 4f), player.transform, nav, coverManager, squadC, EnemyArchetype.Pistolier);
             CreateEnemy("Demolitionist 02", new Vector2(18f, 7f), player.transform, nav, coverManager, squadC, EnemyArchetype.Demolitionist);
 
+            var responseSquad = new GameObject("Squad D // Response").AddComponent<SquadController>();
+            var reinforcementUnits = new[]
+            {
+                CreateEnemy("Reinforcement Rifle 01", new Vector2(18f, -10f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Rifleman),
+                CreateEnemy("Reinforcement Rifle 02", new Vector2(20f, -8f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Rifleman),
+                CreateEnemy("Reinforcement MG", new Vector2(20f, -11f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.MachineGunner),
+                CreateEnemy("Reinforcement Demo", new Vector2(16f, -11f), player.transform, nav, coverManager, responseSquad, EnemyArchetype.Demolitionist)
+            };
+
+            var reinforcementDirector = new GameObject("Reinforcement Director")
+                .AddComponent<ReinforcementDirector>();
+            reinforcementDirector.Configure(reinforcementUnits);
+
             coverManager.Refresh();
             nav.Build();
             cameraFollow.Configure(player.transform, player.GetComponent<PlayerAim2D>());
