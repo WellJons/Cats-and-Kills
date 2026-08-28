@@ -113,7 +113,7 @@ namespace CatsAndKills.EditorTools
                     aim,
                     weapon,
                     null,
-                    1f);
+                    1.18f);
 
             ReplaceShadow(
                 root.transform,
@@ -122,7 +122,7 @@ namespace CatsAndKills.EditorTools
 
             if (visual != null)
                 visual.transform.localPosition =
-                    new Vector3(0f, 0.60f, 0f);
+                    Vector3.zero;
         }
 
         private static void ConvertEnemy(
@@ -138,8 +138,8 @@ namespace CatsAndKills.EditorTools
 
             float scale =
                 brain.Archetype == EnemyArchetype.MachineGunner
-                    ? 1.12f
-                    : 0.98f;
+                    ? 1.26f
+                    : 1.10f;
 
             GameObject visual =
                 CreateCharacterVisual(
@@ -155,7 +155,7 @@ namespace CatsAndKills.EditorTools
 
             if (visual != null)
                 visual.transform.localPosition =
-                    new Vector3(0f, 0.58f, 0f);
+                    Vector3.zero;
 
             ReplaceShadow(
                 root.transform,
@@ -192,6 +192,19 @@ namespace CatsAndKills.EditorTools
 
             sr.color = Color.white;
             sr.sortingOrder = 10;
+            sr.enabled = true;
+
+            Shader spriteShader =
+                Shader.Find("Sprites/Default");
+
+            if (spriteShader != null)
+            {
+                sr.sharedMaterial =
+                    new Material(spriteShader)
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    };
+            }
 
             ThreeQuarterCharacterVisual2D visual =
                 go.AddComponent<ThreeQuarterCharacterVisual2D>();
@@ -309,11 +322,14 @@ namespace CatsAndKills.EditorTools
                 if (sr != null)
                 {
                     sr.sprite = pack.floorIndustrial;
+                    sr.drawMode = SpriteDrawMode.Tiled;
+                    sr.size = new Vector2(46f, 28f);
                     sr.color = new Color(
-                        0.82f,
-                        0.88f,
+                        0.86f,
+                        0.90f,
                         1f,
                         1f);
+                    sr.sortingOrder = -100;
                 }
             }
 
