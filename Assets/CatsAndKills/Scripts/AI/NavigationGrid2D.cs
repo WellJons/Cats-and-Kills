@@ -14,6 +14,7 @@ namespace CatsAndKills.AI
         private int _width;
         private int _height;
         private Vector2 _origin;
+        private int _searchId;
 
         public float CellSize => cellSize;
 
@@ -26,6 +27,8 @@ namespace CatsAndKills.AI
             public float G;
             public float H;
             public Node Parent;
+            public int SearchId;
+            public bool Closed;
             public float F => G + H;
         }
 
@@ -79,41 +82,93 @@ namespace CatsAndKills.AI
             if (start == null || goal == null || !goal.Walkable)
                 return new List<Vector2>();
 
-            var open = new List<Node>();
-            var closed = new HashSet<Node>();
+            _searchId++;
 
-            ResetSearchState();
+            if (_searchId == int.MaxValue)
+            {
+                _searchId = 1;
+
+                for (int x = 0;
+                     x < _width;
+                     x++)
+                {
+                    for (int y = 0;
+                         y < _height;
+                         y++)
+                    {
+                        _nodes[x, y].SearchId = 0;
+                    }
+                }
+            }
+
+            var open =
+                new List<Node>(128);
+
+            PrepareNode(start);
+
             start.G = 0f;
             start.H = Heuristic(start, goal);
             open.Add(start);
 
             while (open.Count > 0)
             {
+                int currentIndex = 0;
                 Node current = open[0];
-                for (int i = 1; i < open.Count; i++)
+
+                for (int i = 1;
+                     i < open.Count;
+                     i++)
                 {
-                    if (open[i].F < current.F || (Mathf.Approximately(open[i].F, current.F) && open[i].H < current.H))
-                        current = open[i];
+                    Node candidate =
+                        open[i];
+
+                    if (candidate.F < current.F ||
+                        (Mathf.Approximately(
+                             candidate.F,
+                             current.F) &&
+                         candidate.H < current.H))
+                    {
+                        current = candidate;
+                        currentIndex = i;
+                    }
                 }
 
-                open.Remove(current);
-                closed.Add(current);
+                open.RemoveAt(
+                    currentIndex);
+
+                current.Closed = true;
 
                 if (current == goal)
                     return Retrace(start, goal);
 
-                foreach (Node next in Neighbours(current))
+                foreach (Node next in
+                         Neighbours(current))
                 {
-                    if (!next.Walkable || closed.Contains(next))
+                    if (!next.Walkable)
                         continue;
 
-                    float tentative = current.G + Vector2.Distance(current.World, next.World);
-                    if (!open.Contains(next) || tentative < next.G)
+                    PrepareNode(next);
+
+                    if (next.Closed)
+                        continue;
+
+                    float tentative =
+                        current.G +
+                        Vector2.Distance(
+                            current.World,
+                            next.World);
+
+                    bool inOpen =
+                        open.Contains(next);
+
+                    if (!inOpen ||
+                        tentative < next.G)
                     {
                         next.G = tentative;
                         next.H = Heuristic(next, goal);
                         next.Parent = current;
-                        if (!open.Contains(next))
+
+                        if (!inOpen)
                             open.Add(next);
                     }
                 }
@@ -171,17 +226,24 @@ namespace CatsAndKills.AI
             }
         }
 
-        private void ResetSearchState()
+        private void PrepareNode(
+            Node node)
         {
-            for (int x = 0; x < _width; x++)
+            if (node == null ||
+                node.SearchId == _searchId)
             {
-                for (int y = 0; y < _height; y++)
-                {
-                    _nodes[x, y].G = float.PositiveInfinity;
-                    _nodes[x, y].H = 0f;
-                    _nodes[x, y].Parent = null;
-                }
+                return;
             }
+
+            node.SearchId =
+                _searchId;
+
+            node.G =
+                float.PositiveInfinity;
+
+            node.H = 0f;
+            node.Parent = null;
+            node.Closed = false;
         }
 
         private float Heuristic(Node a, Node b)
