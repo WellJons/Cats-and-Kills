@@ -20,6 +20,7 @@ namespace CatsAndKills.AI
         private float _fireRate = 7.5f;
         private float _spreadDegrees = 2.2f;
         private float _impactForce = 2.2f;
+        private float _coverDamageMultiplier = 1f;
         private int _minBurst = 2;
         private int _maxBurst = 5;
         private float _minBurstPause = 0.3f;
@@ -55,7 +56,8 @@ namespace CatsAndKills.AI
             float spread,
             int minBurst,
             int maxBurst,
-            float range = 20f)
+            float range = 20f,
+            float coverDamageMultiplier = 1f)
         {
             _damage = damage;
             _fireRate = fireRate;
@@ -63,6 +65,7 @@ namespace CatsAndKills.AI
             _minBurst = minBurst;
             _maxBurst = maxBurst;
             _range = range;
+            _coverDamageMultiplier = Mathf.Max(0.1f, coverDamageMultiplier);
         }
 
         public void SetTrigger(bool held, bool suppressing = false)
@@ -75,6 +78,7 @@ namespace CatsAndKills.AI
         {
             if (!_triggerHeld || _target == null) return;
             if (_ownerVitals != null && !_ownerVitals.CanUsePrimaryWeapon) return;
+            if (!CanFireSafely()) return;
             if (Time.time < _nextShot) return;
 
             if (_shotsRemaining <= 0)
@@ -94,6 +98,44 @@ namespace CatsAndKills.AI
             Fire();
             _shotsRemaining--;
             _nextShot = Time.time + 1f / Mathf.Max(0.1f, _fireRate);
+        }
+
+        private bool CanFireSafely()
+        {
+            if (_target == null) return false;
+
+            Vector2 origin = muzzle != null
+                ? (Vector2)muzzle.position
+                : (Vector2)transform.position;
+
+            Vector2 delta = (Vector2)_target.position - origin;
+            float distance = delta.magnitude;
+            if (distance < 0.01f) return false;
+
+            RaycastHit2D[] hits = Physics2D.RaycastAll(
+                origin,
+                delta / distance,
+                distance);
+
+            foreach (RaycastHit2D hit in hits)
+            {
+                if (hit.collider == null) continue;
+                if (hit.collider.transform.root == transform.root) continue;
+
+                if (hit.collider.transform.root == _target.root)
+                    return true;
+
+                EnemyBrain friendly =
+                    hit.collider.GetComponentInParent<EnemyBrain>();
+
+                if (friendly != null)
+                    return false;
+
+                if (!hit.collider.isTrigger)
+                    return false;
+            }
+
+            return true;
         }
 
         private void Fire()
@@ -134,8 +176,12 @@ namespace CatsAndKills.AI
                 if (receiver == null)
                     receiver = hit.collider.GetComponentInParent<IDamageReceiver>();
 
+                float appliedDamage = _damage;
+                if (hit.collider.GetComponentInParent<DestructibleCover>() != null)
+                    appliedDamage *= _coverDamageMultiplier;
+
                 receiver?.ReceiveDamage(new DamageInfo(
-                    _damage,
+                    appliedDamage,
                     hit.point,
                     direction,
                     _impactForce,
