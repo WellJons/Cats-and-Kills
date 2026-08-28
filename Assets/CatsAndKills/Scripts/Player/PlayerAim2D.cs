@@ -1,5 +1,6 @@
 using CatsAndKills.Combat;
 using CatsAndKills.Core;
+using CatsAndKills.Narrative;
 using UnityEngine;
 
 namespace CatsAndKills.Player
@@ -73,6 +74,7 @@ namespace CatsAndKills.Player
         private void LateUpdate()
         {
             if (worldCamera == null) return;
+            if (NarrativeDialogueSystem.IsDialogueOpen) return;
 
             Vector2 stick = CKInput.AimStick;
 
