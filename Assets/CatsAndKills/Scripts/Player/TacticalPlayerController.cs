@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CatsAndKills.AI;
 using CatsAndKills.Combat;
 using CatsAndKills.Core;
+using CatsAndKills.Damage;
 using CatsAndKills.Narrative;
 using CatsAndKills.Tactical;
 using UnityEngine;
@@ -30,6 +31,7 @@ namespace CatsAndKills.Player
         [SerializeField] private PlayerAim2D aim;
         [SerializeField] private Camera worldCamera;
         [SerializeField] private Rigidbody2D body;
+        [SerializeField] private CharacterVitals vitals;
         [SerializeField] private float movementSpeed = 6.5f;
 
         private TargetMode _targetMode;
@@ -66,6 +68,9 @@ namespace CatsAndKills.Player
         {
             if (body == null)
                 body = GetComponent<Rigidbody2D>();
+
+            if (vitals == null)
+                vitals = GetComponent<CharacterVitals>();
 
             if (worldCamera == null)
                 worldCamera = Camera.main;
@@ -406,6 +411,23 @@ namespace CatsAndKills.Player
                     body.position = waypoint;
                 else
                     transform.position = waypoint;
+
+                if (TacticalFireField2D.ApplyTraversalBurn(
+                        vitals,
+                        waypoint,
+                        7f))
+                {
+                    UI.WorldCalloutSystem.Instance?.Show(
+                        transform,
+                        "ГОРЮ!",
+                        0.7f);
+
+                    if (vitals != null &&
+                        vitals.IsDead)
+                    {
+                        break;
+                    }
+                }
             }
 
             if (body != null)
