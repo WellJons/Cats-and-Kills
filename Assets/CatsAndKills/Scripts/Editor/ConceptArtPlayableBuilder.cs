@@ -209,12 +209,24 @@ namespace CatsAndKills.EditorTools
                         RuntimeCharacterVisualBootstrap>();
             }
 
+            ProductionArtPack pack =
+                AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
+                    ConceptArtIntegrator.GeneratedRoot +
+                    "/Data/ProductionArtPack.asset");
+
+            if (pack == null)
+            {
+                Debug.LogError(
+                    "Runtime character bootstrap cannot find ProductionArtPack.");
+                return;
+            }
+
             bootstrap.Configure(
-                LoadConceptAtlas("player.png"),
-                LoadConceptAtlas("pistolier.png"),
-                LoadConceptAtlas("rifleman.png"),
-                LoadConceptAtlas("machinegunner.png"),
-                LoadConceptAtlas("demolitionist.png"));
+                pack.player,
+                pack.pistolier,
+                pack.rifleman,
+                pack.machineGunner,
+                pack.demolitionist);
 
             EditorUtility.SetDirty(bootstrap);
         }
