@@ -17,6 +17,8 @@ namespace CatsAndKills.AI
         private List<Vector2> _path = new List<Vector2>();
         private int _pathIndex;
         private bool _hasDestination;
+        private readonly Collider2D[] _neighbours =
+            new Collider2D[16];
 
         public bool LastMoveFailed { get; private set; }
         public bool ReachedDestination => !_hasDestination && !LastMoveFailed;
@@ -100,11 +102,18 @@ namespace CatsAndKills.AI
             Vector2 desired = delta.normalized * moveSpeed * limbFactor;
 
             Vector2 separation = Vector2.zero;
-            Collider2D[] neighbours =
-                Physics2D.OverlapCircleAll(transform.position, 0.72f);
 
-            foreach (Collider2D neighbour in neighbours)
+            int neighbourCount =
+                Physics2D.OverlapCircleNonAlloc(
+                    transform.position,
+                    0.72f,
+                    _neighbours);
+
+            for (int i = 0; i < neighbourCount; i++)
             {
+                Collider2D neighbour =
+                    _neighbours[i];
+
                 if (neighbour == null ||
                     neighbour.transform.root == transform.root)
                     continue;
@@ -112,16 +121,24 @@ namespace CatsAndKills.AI
                 EnemyMotor2D other =
                     neighbour.GetComponentInParent<EnemyMotor2D>();
 
-                if (other == null) continue;
+                if (other == null)
+                    continue;
 
                 Vector2 away =
                     (Vector2)transform.position -
                     (Vector2)other.transform.position;
 
-                float distance = Mathf.Max(0.05f, away.magnitude);
+                float distance =
+                    Mathf.Max(
+                        0.05f,
+                        away.magnitude);
+
                 separation +=
                     away.normalized *
-                    Mathf.Clamp01(1f - distance / 0.72f);
+                    Mathf.Clamp01(
+                        1f -
+                        distance /
+                        0.72f);
             }
 
             desired += separation * 1.6f;
