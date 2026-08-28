@@ -25,8 +25,8 @@ namespace CatsAndKills.AI
         [SerializeField] private float coverDamageMultiplier = 1f;
         [SerializeField] private int minBurst = 2;
         [SerializeField] private int maxBurst = 5;
-        [SerializeField] private float minBurstPause = 0.3f;
-        [SerializeField] private float maxBurstPause = 0.75f;
+        [SerializeField] private float minBurstPause = 0.55f;
+        [SerializeField] private float maxBurstPause = 1.10f;
         [SerializeField] private LayerMask hitMask = ~0;
 
         private CharacterVitals _ownerVitals;
@@ -75,6 +75,22 @@ namespace CatsAndKills.AI
                 Mathf.Max(
                     0.1f,
                     newCoverDamageMultiplier);
+
+            if (newFireRate > 10f)
+            {
+                minBurstPause = 0.34f;
+                maxBurstPause = 0.72f;
+            }
+            else if (newFireRate < 5f)
+            {
+                minBurstPause = 0.68f;
+                maxBurstPause = 1.28f;
+            }
+            else
+            {
+                minBurstPause = 0.55f;
+                maxBurstPause = 1.08f;
+            }
         }
 
         private void Awake()
@@ -179,8 +195,8 @@ namespace CatsAndKills.AI
                 float pause =
                     _suppressing
                         ? Random.Range(
-                            0.08f,
-                            0.20f)
+                            0.28f,
+                            0.58f)
                         : Random.Range(
                             minBurstPause,
                             maxBurstPause);
