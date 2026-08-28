@@ -1,3 +1,4 @@
+using CatsAndKills.Audio;
 using CatsAndKills.Core;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
@@ -63,8 +64,13 @@ namespace CatsAndKills.Combat
             _cooking = true;
             _cookStarted = Time.time;
 
-            if (pinClip != null)
-                AudioSource.PlayClipAtPoint(pinClip, transform.position, 0.45f);
+            AudioClip resolvedPin =
+                pinClip != null
+                    ? pinClip
+                    : ProceduralAudioFactory.GrenadePin;
+
+            if (resolvedPin != null)
+                AudioSource.PlayClipAtPoint(resolvedPin, transform.position, 0.45f);
         }
 
         private void ThrowCooked(bool fuseExpired)
