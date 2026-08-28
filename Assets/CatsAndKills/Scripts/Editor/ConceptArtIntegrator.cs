@@ -112,17 +112,16 @@ namespace CatsAndKills.EditorTools
                 props, "Environment/debris",
                 555, 675, 325, 270, 96f);
 
+            // Use opaque interior patches of the isometric floor tiles.
+            // Repeating the whole diamond tile leaves transparent corners and
+            // produces the "floating diamonds over black" artifact.
             Sprite floorIndustrial = Crop(
                 tileset, "Environment/floor_industrial",
-                0, 0, 245, 190, 160f,
-                null,
-                new Color32(29, 34, 50, 255));
+                91, 63, 96, 96, 64f);
 
             Sprite floorOffice = Crop(
                 tileset, "Environment/floor_office",
-                245, 0, 240, 190, 160f,
-                null,
-                new Color32(38, 33, 48, 255));
+                322, 63, 96, 96, 64f);
 
             Sprite wallStraight = Crop(
                 tileset, "Environment/wall_straight",
