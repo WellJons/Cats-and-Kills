@@ -2111,8 +2111,11 @@ namespace CatsAndKills.EditorTools
                     outW *
                     outH];
 
-            const int macroW = 224;
-            const int macroH = 168;
+            // Build one continuous floor surface. The old implementation
+            // changed mirroring/tone per large macro block, which produced the
+            // obvious rectangular patches visible in Game view.
+            const float sampleScaleX = 2.55f;
+            const float sampleScaleY = 2.35f;
 
             for (int y = 0;
                  y < outH;
@@ -2122,172 +2125,186 @@ namespace CatsAndKills.EditorTools
                      x < outW;
                      x++)
                 {
-                    int macroX =
-                        x /
-                        macroW;
+                    float warpX =
+                        Mathf.Sin(
+                            y * 0.0085f +
+                            seed * 0.37f) *
+                        5.0f +
+                        Mathf.Sin(
+                            y * 0.021f -
+                            seed * 0.19f) *
+                        1.8f;
 
-                    int macroY =
-                        y /
-                        macroH;
+                    float warpY =
+                        Mathf.Sin(
+                            x * 0.0072f -
+                            seed * 0.23f) *
+                        4.2f +
+                        Mathf.Sin(
+                            x * 0.018f +
+                            seed * 0.31f) *
+                        1.5f;
 
-                    unchecked
+                    float sourceX =
+                        x / sampleScaleX +
+                        warpX;
+
+                    float sourceY =
+                        y / sampleScaleY +
+                        warpY;
+
+                    int tileX =
+                        Mathf.FloorToInt(
+                            sourceX /
+                            Mathf.Max(
+                                1,
+                                sampleWidth));
+
+                    int tileY =
+                        Mathf.FloorToInt(
+                            sourceY /
+                            Mathf.Max(
+                                1,
+                                sampleHeight));
+
+                    float localX =
+                        Mathf.Repeat(
+                            sourceX,
+                            sampleWidth);
+
+                    float localY =
+                        Mathf.Repeat(
+                            sourceY,
+                            sampleHeight);
+
+                    if (Mathf.Abs(tileX) % 2 == 1)
                     {
-                        int macroHash =
-                            macroX *
-                            92837111 ^
-                            macroY *
-                            689287499 ^
-                            seed *
-                            283923481;
-
-                        bool mirrorX =
-                            (macroHash &
-                             1) != 0;
-
-                        bool mirrorY =
-                            (macroHash &
-                             2) != 0;
-
-                        int localX =
-                            x %
-                            macroW;
-
-                        int localY =
-                            y %
-                            macroH;
-
-                        float u =
-                            localX /
-                            (float)Mathf.Max(
-                                1,
-                                macroW - 1);
-
-                        float v =
-                            localY /
-                            (float)Mathf.Max(
-                                1,
-                                macroH - 1);
-
-                        if (mirrorX)
-                            u = 1f - u;
-
-                        if (mirrorY)
-                            v = 1f - v;
-
-                        int sx =
-                            Mathf.Clamp(
-                                Mathf.RoundToInt(
-                                    u *
-                                    (sampleWidth - 1)),
-                                0,
-                                sampleWidth - 1);
-
-                        int sy =
-                            Mathf.Clamp(
-                                Mathf.RoundToInt(
-                                    v *
-                                    (sampleHeight - 1)),
-                                0,
-                                sampleHeight - 1);
-
-                        Color32 primary =
-                            filledSample[
-                                sy *
-                                sampleWidth +
-                                sx];
-
-                        int detailX =
-                            Mathf.Abs(
-                                x / 3 +
-                                seed * 17 +
-                                y / 11) %
-                            sampleWidth;
-
-                        int detailY =
-                            Mathf.Abs(
-                                y / 3 +
-                                seed * 29 -
-                                x / 13) %
-                            sampleHeight;
-
-                        Color32 secondary =
-                            filledSample[
-                                detailY *
-                                sampleWidth +
-                                detailX];
-
-                        float macroTone =
-                            (((macroHash >> 8) &
-                              31) -
-                             15) /
-                            255f;
-
-                        float broad =
-                            Mathf.Sin(
-                                x * 0.0032f +
-                                y * 0.0021f +
-                                seed * 0.41f) *
-                            0.035f;
-
-                        float grime =
-                            Mathf.Sin(
-                                x * 0.011f -
-                                y * 0.008f +
-                                seed) *
-                            0.018f;
-
-                        float r =
-                            Mathf.Lerp(
-                                primary.r,
-                                secondary.r,
-                                0.18f) *
-                            tintR;
-
-                        float g =
-                            Mathf.Lerp(
-                                primary.g,
-                                secondary.g,
-                                0.18f) *
-                            tintG;
-
-                        float b =
-                            Mathf.Lerp(
-                                primary.b,
-                                secondary.b,
-                                0.18f) *
-                            tintB;
-
-                        float multiplier =
-                            1f +
-                            macroTone +
-                            broad +
-                            grime;
-
-                        pixels[
-                            y *
-                            outW +
-                            x] =
-                            new Color32(
-                                (byte)Mathf.Clamp(
-                                    Mathf.RoundToInt(
-                                        r *
-                                        multiplier),
-                                    0,
-                                    255),
-                                (byte)Mathf.Clamp(
-                                    Mathf.RoundToInt(
-                                        g *
-                                        multiplier),
-                                    0,
-                                    255),
-                                (byte)Mathf.Clamp(
-                                    Mathf.RoundToInt(
-                                        b *
-                                        multiplier),
-                                    0,
-                                    255),
-                                255);
+                        localX =
+                            sampleWidth -
+                            1 -
+                            localX;
                     }
+
+                    if (Mathf.Abs(tileY) % 2 == 1)
+                    {
+                        localY =
+                            sampleHeight -
+                            1 -
+                            localY;
+                    }
+
+                    int sx =
+                        Mathf.Clamp(
+                            Mathf.RoundToInt(
+                                localX),
+                            0,
+                            sampleWidth - 1);
+
+                    int sy =
+                        Mathf.Clamp(
+                            Mathf.RoundToInt(
+                                localY),
+                            0,
+                            sampleHeight - 1);
+
+                    Color32 primary =
+                        filledSample[
+                            sy *
+                            sampleWidth +
+                            sx];
+
+                    int detailX =
+                        Mathf.Abs(
+                            x / 5 +
+                            seed * 17 +
+                            y / 19) %
+                        sampleWidth;
+
+                    int detailY =
+                        Mathf.Abs(
+                            y / 5 +
+                            seed * 29 -
+                            x / 23) %
+                        sampleHeight;
+
+                    Color32 secondary =
+                        filledSample[
+                            detailY *
+                            sampleWidth +
+                            detailX];
+
+                    float broad =
+                        Mathf.Sin(
+                            x * 0.0032f +
+                            y * 0.0021f +
+                            seed * 0.41f) *
+                        0.032f;
+
+                    float grime =
+                        Mathf.Sin(
+                            x * 0.010f -
+                            y * 0.007f +
+                            seed) *
+                        0.014f;
+
+                    float cross =
+                        Mathf.Sin(
+                            (x + y) *
+                            0.016f +
+                            seed * 0.7f) *
+                        0.009f;
+
+                    float r =
+                        Mathf.Lerp(
+                            primary.r,
+                            secondary.r,
+                            0.12f) *
+                        tintR;
+
+                    float g =
+                        Mathf.Lerp(
+                            primary.g,
+                            secondary.g,
+                            0.12f) *
+                        tintG;
+
+                    float b =
+                        Mathf.Lerp(
+                            primary.b,
+                            secondary.b,
+                            0.12f) *
+                        tintB;
+
+                    float multiplier =
+                        1f +
+                        broad +
+                        grime +
+                        cross;
+
+                    pixels[
+                        y *
+                        outW +
+                        x] =
+                        new Color32(
+                            (byte)Mathf.Clamp(
+                                Mathf.RoundToInt(
+                                    r *
+                                    multiplier),
+                                0,
+                                255),
+                            (byte)Mathf.Clamp(
+                                Mathf.RoundToInt(
+                                    g *
+                                    multiplier),
+                                0,
+                                255),
+                            (byte)Mathf.Clamp(
+                                Mathf.RoundToInt(
+                                    b *
+                                    multiplier),
+                                0,
+                                255),
+                            255);
                 }
             }
 
