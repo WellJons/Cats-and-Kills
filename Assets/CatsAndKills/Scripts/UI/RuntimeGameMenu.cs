@@ -30,8 +30,17 @@ namespace CatsAndKills.UI
 
         private void Start()
         {
-            Time.timeScale = 0f;
             GamePreferences.Apply();
+
+            if (CheckpointSystem.HasCheckpoint)
+            {
+                _page = Page.Playing;
+                Time.timeScale = 1f;
+            }
+            else
+            {
+                Time.timeScale = 0f;
+            }
         }
 
         private void Update()
@@ -163,6 +172,7 @@ namespace CatsAndKills.UI
 
             if (GUI.Button(new Rect(x + 180, 332, width - 360, 44), "ПЕРЕЗАПУСТИТЬ УРОВЕНЬ", _button))
             {
+                CheckpointSystem.Clear();
                 Time.timeScale = 1f;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
