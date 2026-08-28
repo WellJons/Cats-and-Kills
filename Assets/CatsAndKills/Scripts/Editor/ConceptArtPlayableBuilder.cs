@@ -436,7 +436,7 @@ namespace CatsAndKills.EditorTools
                 SpriteDrawMode.Tiled;
 
             sr.size =
-                new Vector2(72f, 52f);
+                new Vector2(112f, 80f);
 
             sr.color =
                 new Color(
@@ -632,13 +632,16 @@ namespace CatsAndKills.EditorTools
         private static void AddAtmosphere()
         {
             GameObject existing =
-                GameObject.Find("Concept Atmosphere");
+                GameObject.Find(
+                    "Concept Atmosphere");
 
             if (existing != null)
-                Object.DestroyImmediate(existing);
+                Object.DestroyImmediate(
+                    existing);
 
             GameObject root =
-                new GameObject("Concept Atmosphere");
+                new GameObject(
+                    "Concept Atmosphere");
 
             Sprite softFog =
                 ConceptArtIntegrator.GetAmbienceSprite(
@@ -685,79 +688,213 @@ namespace CatsAndKills.EditorTools
                     305,
                     90f);
 
-            CreateFog(
-                root.transform,
-                "Background Fog A",
-                softFog,
-                new Vector2(-12f, 4f),
-                new Vector3(4.5f, 2.2f, 1f),
-                new Color(0.40f, 0.34f, 0.66f, 0.24f),
-                700,
-                new Vector2(0.018f, 0.004f));
+            Vector2[] fogPositions =
+            {
+                new Vector2(-39f, -23f),
+                new Vector2(-31f, -7f),
+                new Vector2(-24f, 12f),
+                new Vector2(-8f, 1f),
+                new Vector2(6f, -8f),
+                new Vector2(0f, 23f),
+                new Vector2(24f, 10f),
+                new Vector2(29f, -18f),
+                new Vector2(41f, -5f)
+            };
+
+            for (int i = 0;
+                 i < fogPositions.Length;
+                 i++)
+            {
+                bool magenta =
+                    i % 3 == 1;
+
+                CreateFog(
+                    root.transform,
+                    "District Fog " + i,
+                    magenta
+                        ? magentaFog
+                        : softFog,
+                    fogPositions[i],
+                    magenta
+                        ? new Vector3(
+                            3.6f,
+                            1.7f,
+                            1f)
+                        : new Vector3(
+                            4.6f,
+                            2.1f,
+                            1f),
+                    magenta
+                        ? new Color(
+                            0.56f,
+                            0.20f,
+                            0.54f,
+                            0.12f)
+                        : new Color(
+                            0.28f,
+                            0.33f,
+                            0.55f,
+                            0.14f),
+                    720 +
+                    i * 3,
+                    new Vector2(
+                        i % 2 == 0
+                            ? 0.010f
+                            : -0.008f,
+                        0.002f));
+            }
 
             CreateFog(
                 root.transform,
-                "Background Fog B",
-                magentaFog,
-                new Vector2(4f, 7f),
-                new Vector3(4.0f, 2.0f, 1f),
-                new Color(0.72f, 0.22f, 0.66f, 0.20f),
-                750,
-                new Vector2(-0.012f, 0.003f));
-
-            CreateFog(
-                root.transform,
-                "Foreground Fog",
+                "Foreground Street Fog West",
                 softFog,
-                new Vector2(0f, -6f),
-                new Vector3(5.8f, 2.3f, 1f),
-                new Color(0.36f, 0.28f, 0.54f, 0.16f),
+                new Vector2(-31f, -17f),
+                new Vector3(
+                    6.2f,
+                    2.4f,
+                    1f),
+                new Color(
+                    0.32f,
+                    0.28f,
+                    0.50f,
+                    0.11f),
                 7600,
-                new Vector2(0.008f, 0.002f));
+                new Vector2(
+                    0.006f,
+                    0.001f));
+
+            CreateFog(
+                root.transform,
+                "Foreground Plaza Fog",
+                softFog,
+                new Vector2(1f, -4f),
+                new Vector3(
+                    7.0f,
+                    2.6f,
+                    1f),
+                new Color(
+                    0.30f,
+                    0.26f,
+                    0.48f,
+                    0.10f),
+                7602,
+                new Vector2(
+                    -0.005f,
+                    0.001f));
+
+            CreateFog(
+                root.transform,
+                "Foreground East Fog",
+                magentaFog,
+                new Vector2(28f, -6f),
+                new Vector3(
+                    6.0f,
+                    2.3f,
+                    1f),
+                new Color(
+                    0.50f,
+                    0.17f,
+                    0.44f,
+                    0.09f),
+                7604,
+                new Vector2(
+                    0.004f,
+                    0.001f));
 
             CreateGlow(
                 root.transform,
-                "Cyan Practical Spill",
+                "West Cyan Spill",
                 cyanGlow,
-                new Vector2(-13f, 6f),
-                new Vector3(2.2f, 1.7f, 1f),
-                new Color(0.20f, 0.82f, 1f, 0.28f),
+                new Vector2(-36f, -18f),
+                new Vector3(
+                    2.4f,
+                    1.8f,
+                    1f),
+                new Color(
+                    0.20f,
+                    0.78f,
+                    1f,
+                    0.20f),
                 650);
 
             CreateGlow(
                 root.transform,
-                "Red Alarm Spill",
+                "Plaza Red Spill",
                 redGlow,
-                new Vector2(7f, 5f),
-                new Vector3(2.4f, 2.0f, 1f),
-                new Color(1f, 0.10f, 0.18f, 0.26f),
+                new Vector2(7f, -8f),
+                new Vector3(
+                    2.8f,
+                    2.2f,
+                    1f),
+                new Color(
+                    1f,
+                    0.08f,
+                    0.16f,
+                    0.22f),
                 680);
 
             CreateGlow(
                 root.transform,
-                "Red Alarm Spill 2",
+                "Warehouse Cyan Spill",
+                cyanGlow,
+                new Vector2(-14f, 8f),
+                new Vector3(
+                    2.5f,
+                    1.9f,
+                    1f),
+                new Color(
+                    0.18f,
+                    0.76f,
+                    1f,
+                    0.19f),
+                650);
+
+            CreateGlow(
+                root.transform,
+                "Admin Alarm Spill",
                 redGlow,
-                new Vector2(-18f, 1.5f),
-                new Vector3(1.9f, 1.6f, 1f),
-                new Color(1f, 0.09f, 0.16f, 0.22f),
+                new Vector2(14f, 9f),
+                new Vector3(
+                    3.0f,
+                    2.3f,
+                    1f),
+                new Color(
+                    1f,
+                    0.08f,
+                    0.17f,
+                    0.24f),
                 680);
 
             CreateGlow(
                 root.transform,
-                "Overhead Cone",
-                cone,
-                new Vector2(-6f, 5f),
-                new Vector3(2.0f, 2.0f, 1f),
-                new Color(0.46f, 0.58f, 1f, 0.20f),
-                620);
+                "Barracks Cyan Spill",
+                cyanGlow,
+                new Vector2(16f, -20f),
+                new Vector3(
+                    2.2f,
+                    1.7f,
+                    1f),
+                new Color(
+                    0.20f,
+                    0.66f,
+                    1f,
+                    0.18f),
+                650);
 
             CreateGlow(
                 root.transform,
-                "Overhead Cone 2",
+                "North Cone",
                 cone,
-                new Vector2(12f, 3f),
-                new Vector3(1.7f, 1.7f, 1f),
-                new Color(0.80f, 0.20f, 0.76f, 0.18f),
+                new Vector2(1f, 25f),
+                new Vector3(
+                    2.3f,
+                    2.5f,
+                    1f),
+                new Color(
+                    0.42f,
+                    0.55f,
+                    1f,
+                    0.18f),
                 620);
         }
 
