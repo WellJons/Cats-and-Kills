@@ -8,6 +8,7 @@ namespace CatsAndKills.UI
     {
         [SerializeField] private TacticalCombatDirector tactical;
         [SerializeField] private TacticalPlayerController playerController;
+        [SerializeField] private CollarAbility collar;
 
         private GUIStyle _phase;
         private GUIStyle _hint;
@@ -23,6 +24,11 @@ namespace CatsAndKills.UI
                 playerController != null
                     ? playerController
                     : FindAnyObjectByType<TacticalPlayerController>();
+
+            collar =
+                collar != null
+                    ? collar
+                    : FindAnyObjectByType<CollarAbility>();
         }
 
         private void EnsureStyles()
@@ -179,6 +185,63 @@ namespace CatsAndKills.UI
                         24f),
                     mode,
                     _hint);
+
+                if (collar != null)
+                {
+                    GUI.Label(
+                        new Rect(
+                            515f,
+                            40f,
+                            470f,
+                            25f),
+                        "Q // " +
+                        collar.TacticalAbilityName +
+                        "   INSTABILITY " +
+                        collar.Instability.ToString("0") +
+                        "%",
+                        _hint);
+
+                    float instability =
+                        collar.Instability01;
+
+                    Rect bg =
+                        new Rect(
+                            515f,
+                            72f,
+                            240f,
+                            10f);
+
+                    GUI.Box(
+                        bg,
+                        GUIContent.none);
+
+                    Color oldColor =
+                        GUI.color;
+
+                    GUI.color =
+                        Color.Lerp(
+                            new Color(
+                                0.18f,
+                                0.72f,
+                                0.92f),
+                            new Color(
+                                1f,
+                                0.16f,
+                                0.18f),
+                            instability);
+
+                    GUI.Box(
+                        new Rect(
+                            bg.x,
+                            bg.y,
+                            bg.width *
+                            instability,
+                            bg.height),
+                        GUIContent.none);
+
+                    GUI.color =
+                        oldColor;
+                }
             }
 
             GUI.matrix = old;
