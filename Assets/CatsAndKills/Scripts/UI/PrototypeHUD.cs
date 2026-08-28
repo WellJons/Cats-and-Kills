@@ -113,10 +113,16 @@ namespace CatsAndKills.UI
             }
 
             if (grenades != null)
+            {
+                string grenadeText = grenades.IsCooking
+                    ? $"GRENADE FUSE  {grenades.CookRemaining:0.0}s"
+                    : $"GRENADES  {grenades.GrenadeCount}";
+
                 GUI.Label(
                     new Rect(Screen.width - 250, Screen.height - 30, 220, 22),
-                    $"GRENADES  {grenades.GrenadeCount}",
+                    grenadeText,
                     _small);
+            }
 
             if (suppression != null && suppression.IsSuppressed)
             {
