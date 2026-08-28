@@ -37,7 +37,7 @@ namespace CatsAndKills.AI
         [SerializeField] private SquadRole role = SquadRole.Assault;
 
         [Header("Decision")]
-        [SerializeField] private float decisionInterval = 0.48f;
+        [SerializeField] private float decisionInterval = 0.28f;
         [SerializeField] private float preferredRange = 6.5f;
         [SerializeField] private float flankDistance = 5f;
         [SerializeField] private float suppressionHold = 1.8f;
@@ -221,16 +221,22 @@ namespace CatsAndKills.AI
                 ? Vector2.Distance(transform.position, player.position)
                 : float.MaxValue;
 
-            bool suppressing = role == SquadRole.Suppress;
+            bool suppressing =
+                role == SquadRole.Suppress;
+
+            bool combatState =
+                _state != State.Idle &&
+                _state != State.Investigate &&
+                _state != State.Retreat;
+
             bool shouldFire =
                 sees &&
                 distance <= firingRange &&
-                (_state == State.Engage ||
-                 _state == State.HoldCover ||
-                 _state == State.MoveToCover ||
-                 _state == State.Advance);
+                combatState;
 
-            weapon?.SetTrigger(shouldFire, suppressing);
+            weapon?.SetTrigger(
+                shouldFire,
+                suppressing);
 
             if (sees)
                 grenades?.TryThrow(true, aggression);
