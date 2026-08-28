@@ -1,4 +1,5 @@
 using CatsAndKills.Core;
+using CatsAndKills.Narrative;
 using CatsAndKills.Tactical;
 using UnityEngine;
 
@@ -117,6 +118,7 @@ namespace CatsAndKills.Combat
         private void Update()
         {
             if (Time.timeScale <= 0f) return;
+            if (NarrativeDialogueSystem.IsDialogueOpen) return;
 
             TacticalCombatDirector tactical =
                 TacticalCombatDirector.Instance;
