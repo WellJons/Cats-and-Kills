@@ -29,6 +29,16 @@ namespace CatsAndKills.World
             Label = null;
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            HasCheckpoint = false;
+            Position = Vector2.zero;
+            Label = null;
+
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void HookSceneLoad()
         {
