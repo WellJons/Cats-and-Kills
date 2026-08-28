@@ -112,16 +112,25 @@ namespace CatsAndKills.EditorTools
                 props, "Environment/debris",
                 555, 675, 325, 270, 96f);
 
-            // Use opaque interior patches of the isometric floor tiles.
-            // Repeating the whole diamond tile leaves transparent corners and
-            // produces the "floating diamonds over black" artifact.
-            Sprite floorIndustrial = Crop(
-                tileset, "Environment/floor_industrial",
-                91, 63, 96, 96, 64f);
+            Sprite floorIndustrial =
+                CreateSeamlessFloorPatch(
+                    tileset,
+                    "Environment/floor_industrial",
+                    72,
+                    81,
+                    89,
+                    63,
+                    96f);
 
-            Sprite floorOffice = Crop(
-                tileset, "Environment/floor_office",
-                322, 63, 96, 96, 64f);
+            Sprite floorOffice =
+                CreateSeamlessFloorPatch(
+                    tileset,
+                    "Environment/floor_office",
+                    317,
+                    81,
+                    89,
+                    63,
+                    96f);
 
             Sprite wallStraight = Crop(
                 tileset, "Environment/wall_straight",
@@ -179,8 +188,10 @@ namespace CatsAndKills.EditorTools
                 fx, "FX/explosion",
                 0, 790, 500, 296, 96f);
 
+            // Character shadows are better served by the small
+            // procedural ellipse than by a cropped ambience atlas cell.
             Sprite softShadow =
-                CropAmbience("soft_shadow", 0, 0, 260, 120, 96f);
+                GeneratedArtFactory.Get("soft_shadow");
 
             ProductionArtPack pack =
                 AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
@@ -403,6 +414,126 @@ namespace CatsAndKills.EditorTools
                 case 3: return "fire";
                 default: return "hurt";
             }
+        }
+
+        private static Sprite CreateSeamlessFloorPatch(
+            Texture2D source,
+            string relativePath,
+            int x,
+            int topY,
+            int width,
+            int height,
+            float ppu)
+        {
+            if (source == null)
+                return null;
+
+            int sourceY =
+                source.height -
+                topY -
+                height;
+
+            sourceY =
+                Mathf.Clamp(
+                    sourceY,
+                    0,
+                    source.height - height);
+
+            Color32[] patch =
+                source.GetPixels32();
+
+            Color32[] basePatch =
+                new Color32[width * height];
+
+            for (int yy = 0; yy < height; yy++)
+            {
+                int srcRow =
+                    (sourceY + yy) *
+                    source.width +
+                    x;
+
+                int dstRow =
+                    yy * width;
+
+                Array.Copy(
+                    patch,
+                    srcRow,
+                    basePatch,
+                    dstRow,
+                    width);
+            }
+
+            int outW = width * 2;
+            int outH = height * 2;
+            Color32[] outputPixels =
+                new Color32[outW * outH];
+
+            for (int yy = 0; yy < outH; yy++)
+            {
+                int localY =
+                    yy < height
+                        ? yy
+                        : outH - 1 - yy;
+
+                for (int xx = 0; xx < outW; xx++)
+                {
+                    int localX =
+                        xx < width
+                            ? xx
+                            : outW - 1 - xx;
+
+                    Color32 px =
+                        basePatch[
+                            localY * width +
+                            localX];
+
+                    px.a = 255;
+
+                    outputPixels[
+                        yy * outW +
+                        xx] = px;
+                }
+            }
+
+            Texture2D output =
+                new Texture2D(
+                    outW,
+                    outH,
+                    TextureFormat.RGBA32,
+                    false);
+
+            output.SetPixels32(outputPixels);
+            output.Apply();
+
+            string path =
+                GeneratedRoot +
+                "/" +
+                relativePath +
+                ".png";
+
+            string folder =
+                Path.GetDirectoryName(path)?
+                    .Replace("\\", "/");
+
+            EnsureFolder(folder);
+
+            File.WriteAllBytes(
+                path,
+                output.EncodeToPNG());
+
+            UnityEngine.Object.DestroyImmediate(output);
+
+            AssetDatabase.ImportAsset(
+                path,
+                ImportAssetOptions.ForceSynchronousImport);
+
+            ConfigureGeneratedSprite(
+                path,
+                ppu,
+                new Vector2(0.5f, 0.5f));
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(
+                path);
         }
 
         private static Sprite CropAmbience(
