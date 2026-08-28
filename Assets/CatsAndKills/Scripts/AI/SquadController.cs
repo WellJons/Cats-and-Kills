@@ -143,7 +143,7 @@ namespace CatsAndKills.AI
             foreach (var member in _members)
             {
                 if (member != null)
-                    member.ReceiveNoiseContact(
+                    member.ReceiveAreaAlert(
                         approximatePosition + uncertainty);
             }
         }
