@@ -35,7 +35,7 @@ namespace CatsAndKills.EditorTools
 
             InstallDirectAtlasCharacterVisuals();
             ConceptVisualPolishBuilder.Apply(pack);
-            InstallConceptHUD();
+            InstallConceptHUD(pack);
 
             AddAtmosphere();
             ImproveCamera();
@@ -77,7 +77,8 @@ namespace CatsAndKills.EditorTools
             CreateWorldBackdrop();
         }
 
-        private static void InstallConceptHUD()
+        private static void InstallConceptHUD(
+            ProductionArtPack pack)
         {
             PrototypeHUD[] oldHud =
                 Object.FindObjectsByType<PrototypeHUD>(
@@ -94,9 +95,19 @@ namespace CatsAndKills.EditorTools
 
             if (existing == null)
             {
-                new GameObject(
-                    "Concept HUD")
-                    .AddComponent<ConceptHUD>();
+                existing =
+                    new GameObject(
+                        "Concept HUD")
+                        .AddComponent<ConceptHUD>();
+            }
+
+            if (pack != null)
+            {
+                existing.ConfigureSkin(
+                    pack.uiPortrait,
+                    pack.uiObjectiveIcon,
+                    pack.uiGrenadeIcon,
+                    pack.uiMedkitIcon);
             }
         }
 
