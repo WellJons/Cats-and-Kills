@@ -154,14 +154,27 @@ namespace CatsAndKills.Visual
 
         private void OnDestroy()
         {
+            Unsubscribe();
+
             for (int row = 0; row < SourceRows; row++)
             {
                 for (int col = 0; col < SourceColumns; col++)
                 {
-                    if (_sprites[row, col] != null)
-                        Destroy(_sprites[row, col]);
+                    Sprite sprite = _sprites[row, col];
+
+                    if (sprite == null)
+                        continue;
+
+                    if (Application.isPlaying)
+                        Destroy(sprite);
+                    else
+                        DestroyImmediate(sprite);
+
+                    _sprites[row, col] = null;
                 }
             }
+
+            _built = false;
         }
 
         private void LateUpdate()
@@ -171,8 +184,11 @@ namespace CatsAndKills.Visual
             // inheriting that transform rotation.
             transform.rotation = Quaternion.identity;
 
-            if (!_built)
+            if (!_built || !SpritesValid())
+            {
+                _built = false;
                 BuildSprites();
+            }
 
             if (!_built || bodyRenderer == null)
                 return;
@@ -192,8 +208,36 @@ namespace CatsAndKills.Visual
 
         private void BuildSprites()
         {
-            if (_built || atlas == null)
+            if (_built && SpritesValid())
                 return;
+
+            if (atlas == null)
+            {
+                Debug.LogError(
+                    "ConceptAtlasCharacterVisual2D has no source atlas.",
+                    this);
+
+                _built = false;
+                return;
+            }
+
+            for (int row = 0; row < SourceRows; row++)
+            {
+                for (int col = 0; col < SourceColumns; col++)
+                {
+                    Sprite stale = _sprites[row, col];
+
+                    if (stale == null)
+                        continue;
+
+                    if (Application.isPlaying)
+                        Destroy(stale);
+                    else
+                        DestroyImmediate(stale);
+
+                    _sprites[row, col] = null;
+                }
+            }
 
             for (int row = 0; row < SourceRows; row++)
             {
@@ -243,6 +287,18 @@ namespace CatsAndKills.Visual
             _built = true;
         }
 
+        private bool SpritesValid()
+        {
+            if (!_built)
+                return false;
+
+            return
+                _sprites[0, 0] != null &&
+                _sprites[0, SourceColumns - 1] != null &&
+                _sprites[SourceRows - 1, 0] != null &&
+                _sprites[SourceRows - 1, SourceColumns - 1] != null;
+        }
+
         private void RefreshImmediate()
         {
             CharacterDirection8 direction =
@@ -269,6 +325,8 @@ namespace CatsAndKills.Visual
                 bodyRenderer.sprite = next;
                 bodyRenderer.flipX = flipX;
                 bodyRenderer.enabled = true;
+                bodyRenderer.forceRenderingOff = false;
+                bodyRenderer.sortingLayerName = "Default";
 
                 bool dead =
                     vitals != null &&
