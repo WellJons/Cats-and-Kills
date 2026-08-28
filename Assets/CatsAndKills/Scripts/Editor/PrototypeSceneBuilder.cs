@@ -422,7 +422,11 @@ namespace CatsAndKills.EditorTools
             BodyPart bodyPart)
         {
             var col = part.AddComponent<BoxCollider2D>();
-            col.size = Vector2.one;
+            col.size =
+                bodyPart == BodyPart.LeftArm ||
+                bodyPart == BodyPart.RightArm
+                    ? new Vector2(0.95f, 0.42f)
+                    : new Vector2(0.95f, 0.45f);
 
             var hit = part.AddComponent<BodyPartHitbox>();
             hit.Configure(vitals, bodyPart, 0.90f);
@@ -652,9 +656,10 @@ namespace CatsAndKills.EditorTools
         {
             var floor = new GameObject("Floor");
             floor.transform.position = Vector3.zero;
-            floor.transform.localScale = new Vector3(46f, 28f, 1f);
             var sr = floor.AddComponent<SpriteRenderer>();
             sr.sprite = _floorSprite;
+            sr.drawMode = SpriteDrawMode.Tiled;
+            sr.size = new Vector2(46f, 28f);
             sr.color = Color.white;
             sr.sortingOrder = -100;
         }
@@ -687,16 +692,17 @@ namespace CatsAndKills.EditorTools
         {
             var go = new GameObject(name);
             go.transform.position = position;
-            go.transform.localScale = new Vector3(size.x, size.y, 1f);
             go.layer = _obstacleLayer;
 
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = _wallSprite;
+            sr.drawMode = SpriteDrawMode.Tiled;
+            sr.size = size;
             sr.color = Color.white;
             sr.sortingOrder = 2;
 
             var col = go.AddComponent<BoxCollider2D>();
-            col.size = Vector2.one;
+            col.size = size;
             return go;
         }
 
