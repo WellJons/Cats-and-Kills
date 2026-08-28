@@ -139,6 +139,10 @@ namespace CatsAndKills.EditorTools
                 Object.FindAnyObjectByType<
                     TacticalUtilityBelt>();
 
+            TacticalOverwatchController overwatch =
+                Object.FindAnyObjectByType<
+                    TacticalOverwatchController>();
+
             bool valid =
                 state != null &&
                 dialogue != null &&
@@ -147,7 +151,8 @@ namespace CatsAndKills.EditorTools
                 civilians.Length >= 10 &&
                 posters.Length >= 3 &&
                 talkers.Length >= 3 &&
-                belt != null;
+                belt != null &&
+                overwatch != null;
 
             if (!valid)
             {
@@ -167,7 +172,9 @@ namespace CatsAndKills.EditorTools
                     ", talkers=" +
                     talkers.Length +
                     ", utilityBelt=" +
-                    (belt != null));
+                    (belt != null) +
+                    ", overwatch=" +
+                    (overwatch != null));
             }
             else
             {
