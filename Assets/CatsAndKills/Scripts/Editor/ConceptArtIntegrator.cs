@@ -114,11 +114,15 @@ namespace CatsAndKills.EditorTools
 
             Sprite floorIndustrial = Crop(
                 tileset, "Environment/floor_industrial",
-                0, 0, 245, 190, 96f);
+                0, 0, 245, 190, 160f,
+                null,
+                new Color32(29, 34, 50, 255));
 
             Sprite floorOffice = Crop(
                 tileset, "Environment/floor_office",
-                245, 0, 240, 190, 96f);
+                245, 0, 240, 190, 160f,
+                null,
+                new Color32(38, 33, 48, 255));
 
             Sprite wallStraight = Crop(
                 tileset, "Environment/wall_straight",
@@ -289,36 +293,43 @@ namespace CatsAndKills.EditorTools
             if (atlas == null)
                 return null;
 
-            Sprite[][] rows = new Sprite[5][];
+            // The generated concept sheets visually contain seven columns,
+            // even though the original generation request asked for eight.
+            // Slicing them as 8 columns was cutting every character in half.
+            const int sourceColumns = 7;
+            const int rowsCount = 5;
 
-            for (int row = 0; row < 5; row++)
+            Sprite[][] sourceRows = new Sprite[rowsCount][];
+
+            for (int row = 0; row < rowsCount; row++)
             {
-                rows[row] = new Sprite[8];
+                sourceRows[row] = new Sprite[sourceColumns];
 
-                for (int col = 0; col < 8; col++)
+                for (int col = 0; col < sourceColumns; col++)
                 {
                     int x0 =
                         Mathf.RoundToInt(
-                            col * atlas.width / 8f);
+                            col * atlas.width / (float)sourceColumns);
 
                     int x1 =
                         Mathf.RoundToInt(
-                            (col + 1) * atlas.width / 8f);
+                            (col + 1) * atlas.width /
+                            (float)sourceColumns);
 
                     int top0 =
                         Mathf.RoundToInt(
-                            row * atlas.height / 5f);
+                            row * atlas.height / (float)rowsCount);
 
                     int top1 =
                         Mathf.RoundToInt(
-                            (row + 1) * atlas.height / 5f);
+                            (row + 1) * atlas.height /
+                            (float)rowsCount);
 
-                    rows[row][col] =
+                    sourceRows[row][col] =
                         Crop(
                             atlas,
                             "Characters/" +
-                            id + "/" +
-                            id + "_" +
+                            id + "/source_" +
                             RowName(row) + "_" +
                             col,
                             x0,
@@ -326,8 +337,30 @@ namespace CatsAndKills.EditorTools
                             x1 - x0,
                             top1 - top0,
                             128f,
-                            new Vector2(0.5f, 0.08f));
+                            new Vector2(0.5f, 0.075f));
                 }
+            }
+
+            Sprite[][] mapped = new Sprite[rowsCount][];
+
+            for (int row = 0; row < rowsCount; row++)
+            {
+                Sprite[] src = sourceRows[row];
+                Sprite[] dst = new Sprite[8];
+
+                // Actual generated layout:
+                // 0 E, 1 SE, 2 N, 3 NW, 4 W, 5 S, 6 SW.
+                // NE is the only missing view; runtime mirrors the NW frame.
+                dst[(int)CharacterDirection8.East] = src[0];
+                dst[(int)CharacterDirection8.NorthEast] = src[3];
+                dst[(int)CharacterDirection8.North] = src[2];
+                dst[(int)CharacterDirection8.NorthWest] = src[3];
+                dst[(int)CharacterDirection8.West] = src[4];
+                dst[(int)CharacterDirection8.SouthWest] = src[6];
+                dst[(int)CharacterDirection8.South] = src[5];
+                dst[(int)CharacterDirection8.SouthEast] = src[1];
+
+                mapped[row] = dst;
             }
 
             string dataPath =
@@ -352,14 +385,15 @@ namespace CatsAndKills.EditorTools
             }
 
             set.ConfigureExtended(
-                rows[0],
-                rows[1],
-                rows[2],
-                rows[3],
-                rows[0],
-                rows[4],
-                rows[1],
-                rows[4]);
+                mapped[0],
+                mapped[1],
+                mapped[2],
+                mapped[3],
+                mapped[0],
+                mapped[4],
+                mapped[1],
+                mapped[4],
+                true);
 
             EditorUtility.SetDirty(set);
 
@@ -407,7 +441,8 @@ namespace CatsAndKills.EditorTools
             int width,
             int height,
             float ppu,
-            Vector2? pivot = null)
+            Vector2? pivot = null,
+            Color32? transparentFill = null)
         {
             if (source == null)
                 return null;
@@ -466,6 +501,29 @@ namespace CatsAndKills.EditorTools
                     crop,
                     dstRow,
                     clampedW);
+            }
+
+            if (transparentFill.HasValue)
+            {
+                Color32 fill = transparentFill.Value;
+
+                for (int i = 0; i < crop.Length; i++)
+                {
+                    Color32 px = crop[i];
+                    float alpha = px.a / 255f;
+
+                    crop[i] = new Color32(
+                        (byte)Mathf.RoundToInt(
+                            px.r * alpha +
+                            fill.r * (1f - alpha)),
+                        (byte)Mathf.RoundToInt(
+                            px.g * alpha +
+                            fill.g * (1f - alpha)),
+                        (byte)Mathf.RoundToInt(
+                            px.b * alpha +
+                            fill.b * (1f - alpha)),
+                        255);
+                }
             }
 
             Texture2D output =
