@@ -111,6 +111,10 @@ namespace CatsAndKills.Player
                     {
                         tactical.RefundAP(2);
                     }
+                    else
+                    {
+                        MaybeEndTurn();
+                    }
                 }
 
                 return;
@@ -137,6 +141,10 @@ namespace CatsAndKills.Player
                     {
                         tactical.RefundAP(3);
                     }
+                    else
+                    {
+                        MaybeEndTurn();
+                    }
                 }
 
                 return;
@@ -161,6 +169,9 @@ namespace CatsAndKills.Player
                         {
                             _targetMode =
                                 TargetMode.Move;
+
+                            StartCoroutine(
+                                ResolveGrenadeAction());
                         }
                     }
 
@@ -291,6 +302,31 @@ namespace CatsAndKills.Player
                 body.linearVelocity = Vector2.zero;
 
             _moving = false;
+            MaybeEndTurn();
+        }
+
+        private IEnumerator ResolveGrenadeAction()
+        {
+            _moving = true;
+
+            yield return new WaitForSeconds(
+                0.88f);
+
+            _moving = false;
+            MaybeEndTurn();
+        }
+
+        private void MaybeEndTurn()
+        {
+            if (_moving ||
+                tactical == null ||
+                !tactical.IsPlayerTurn ||
+                tactical.PlayerAP > 0)
+            {
+                return;
+            }
+
+            tactical.EndPlayerTurn();
         }
     }
 }
