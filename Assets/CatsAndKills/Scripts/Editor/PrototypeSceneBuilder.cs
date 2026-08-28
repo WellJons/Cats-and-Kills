@@ -211,6 +211,17 @@ namespace CatsAndKills.EditorTools
                 _grenadeSprite,
                 _smokeSprite);
 
+            TacticalOverwatchController overwatch =
+                player.GetComponent<TacticalOverwatchController>();
+
+            if (overwatch == null)
+                overwatch =
+                    player.AddComponent<TacticalOverwatchController>();
+
+            overwatch.Configure(
+                playerWeapon,
+                obstacleMask);
+
             PlayerAim2D playerAim =
                 player.GetComponent<PlayerAim2D>();
 
@@ -227,6 +238,7 @@ namespace CatsAndKills.EditorTools
                 playerWeapon,
                 playerGrenades,
                 utilityBelt,
+                overwatch,
                 playerAim,
                 camera);
 
