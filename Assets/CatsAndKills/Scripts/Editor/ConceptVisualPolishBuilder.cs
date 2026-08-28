@@ -508,129 +508,159 @@ namespace CatsAndKills.EditorTools
             ProductionArtPack pack,
             Material lit)
         {
-            // WEST ENTRY: visible immediately when the level starts.
+            Sprite industrialFloor =
+                pack.floorIndustrial;
+
+            Sprite officeFloor =
+                pack.floorOffice != null
+                    ? pack.floorOffice
+                    : pack.floorIndustrial;
+
+            Sprite wallStraight =
+                pack.wallStraight;
+
+            Sprite wallSide =
+                pack.wallCorner != null
+                    ? pack.wallCorner
+                    : pack.wallStraight;
+
+            // WEST ENTRY: immediately reads as a guarded industrial yard.
             CreateBuilding(
                 parent,
                 "Security Gatehouse",
                 new Vector2(-38f, -21f),
                 new Vector2(8f, 8f),
-                null,
-                null,
+                officeFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 0f,
                 float.NaN,
                 -1.2f,
                 0f,
-                new Color(0.11f, 0.15f, 0.21f, 0.98f));
+                new Color(0.09f, 0.12f, 0.18f, 0.98f));
 
             CreateBuilding(
                 parent,
                 "Workshop",
                 new Vector2(-27f, -17f),
                 new Vector2(17f, 13f),
-                null,
-                null,
+                industrialFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 float.NaN,
                 2.5f,
                 float.NaN,
                 0f,
-                new Color(0.10f, 0.14f, 0.19f, 0.98f));
+                new Color(0.08f, 0.11f, 0.16f, 0.98f));
 
-            // SOUTH-WEST shop creates a second route into the square.
             CreateBuilding(
                 parent,
                 "Corner Store",
                 new Vector2(-9f, -17f),
                 new Vector2(11f, 9f),
-                null,
-                null,
+                officeFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 1.5f,
                 float.NaN,
                 float.NaN,
                 0f,
-                new Color(0.13f, 0.14f, 0.20f, 0.98f));
+                new Color(0.10f, 0.11f, 0.17f, 0.98f));
 
-            // NORTH-WEST warehouse is a large enterable combat space.
+            // NORTH-WEST warehouse: large enterable firefight space.
             CreateBuilding(
                 parent,
                 "Warehouse 04",
                 new Vector2(-25f, 11f),
                 new Vector2(24f, 17f),
-                null,
-                null,
+                industrialFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 -4f,
                 float.NaN,
                 1.5f,
                 float.NaN,
-                new Color(0.10f, 0.15f, 0.20f, 0.98f));
+                new Color(0.07f, 0.11f, 0.16f, 0.98f));
 
-            // NORTH-EAST clinic provides an alternate path around the plaza.
             CreateBuilding(
                 parent,
                 "Clinic",
                 new Vector2(8f, 14f),
                 new Vector2(12f, 10f),
-                null,
-                null,
+                officeFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 0f,
                 float.NaN,
                 -1f,
                 float.NaN,
-                new Color(0.13f, 0.15f, 0.22f, 0.98f));
+                new Color(0.10f, 0.12f, 0.18f, 0.98f));
 
             CreateBuilding(
                 parent,
                 "Administration",
                 new Vector2(26f, 12f),
                 new Vector2(21f, 18f),
-                null,
-                null,
+                officeFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 -2f,
                 float.NaN,
                 -2f,
                 float.NaN,
-                new Color(0.16f, 0.12f, 0.20f, 0.98f));
+                new Color(0.12f, 0.09f, 0.17f, 0.98f));
 
             CreateBuilding(
                 parent,
                 "Barracks",
                 new Vector2(27f, -18f),
                 new Vector2(18f, 14f),
-                null,
-                null,
+                officeFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 float.NaN,
                 -2f,
                 1.5f,
                 float.NaN,
-                new Color(0.11f, 0.14f, 0.20f, 0.98f));
+                new Color(0.08f, 0.11f, 0.17f, 0.98f));
 
             CreateBuilding(
                 parent,
                 "North Checkpoint",
                 new Vector2(-5f, 24f),
                 new Vector2(14f, 9f),
-                null,
-                null,
+                industrialFloor,
+                wallStraight,
+                wallSide,
+                pack.reinforcedDoor,
                 lit,
                 0f,
                 float.NaN,
                 float.NaN,
                 1f,
-                new Color(0.11f, 0.14f, 0.21f, 0.98f));
+                new Color(0.08f, 0.11f, 0.17f, 0.98f));
 
-            // Plaza barriers are real collision, not decorative hazard strips.
+            // Plaza edges are real walls with real wall art.
             CreateBuildingWallSegment(
                 parent,
                 "Plaza West Security",
                 new Vector2(-13f, 2f),
                 new Vector2(0.65f, 8f),
-                null,
+                wallSide,
                 lit);
 
             CreateBuildingWallSegment(
@@ -638,7 +668,7 @@ namespace CatsAndKills.EditorTools
                 "Plaza East Security",
                 new Vector2(13f, 2f),
                 new Vector2(0.65f, 8f),
-                null,
+                wallSide,
                 lit);
 
             CreateBuildingWallSegment(
@@ -646,7 +676,7 @@ namespace CatsAndKills.EditorTools
                 "Plaza North Security",
                 new Vector2(0f, 12f),
                 new Vector2(8f, 0.65f),
-                null,
+                wallStraight,
                 lit);
 
             CreateBuildingWallSegment(
@@ -654,7 +684,9 @@ namespace CatsAndKills.EditorTools
                 "Plaza South Security",
                 new Vector2(0f, -8f),
                 new Vector2(7f, 0.65f),
-                null,
+                pack.wallDamaged != null
+                    ? pack.wallDamaged
+                    : wallStraight,
                 lit);
         }
 
@@ -665,6 +697,8 @@ namespace CatsAndKills.EditorTools
             Vector2 size,
             Sprite interiorSprite,
             Sprite wallSprite,
+            Sprite sideWallSprite,
+            Sprite doorSprite,
             Material material,
             float southDoorX,
             float northDoorX,
@@ -685,11 +719,12 @@ namespace CatsAndKills.EditorTools
 
             CreateBuildingInteriorFloor(
                 root.transform,
+                interiorSprite,
                 size,
                 new Color(
-                    Mathf.Clamp01(roofColor.r + 0.08f),
-                    Mathf.Clamp01(roofColor.g + 0.08f),
-                    Mathf.Clamp01(roofColor.b + 0.09f),
+                    Mathf.Clamp01(roofColor.r + 0.18f),
+                    Mathf.Clamp01(roofColor.g + 0.18f),
+                    Mathf.Clamp01(roofColor.b + 0.20f),
                     1f));
 
             const float thickness = 0.72f;
@@ -703,7 +738,7 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 southDoorX,
                 doorWidth,
-                null,
+                wallSprite,
                 material);
 
             CreateHorizontalBuildingSide(
@@ -714,7 +749,7 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 northDoorX,
                 doorWidth,
-                null,
+                wallSprite,
                 material);
 
             CreateVerticalBuildingSide(
@@ -725,7 +760,7 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 westDoorY,
                 doorWidth,
-                null,
+                sideWallSprite,
                 material);
 
             CreateVerticalBuildingSide(
@@ -736,8 +771,23 @@ namespace CatsAndKills.EditorTools
                 thickness,
                 eastDoorY,
                 doorWidth,
-                null,
+                sideWallSprite,
                 material);
+
+            if (doorSprite != null)
+            {
+                CreateFacadeDoor(
+                    root.transform,
+                    name + " Service Door",
+                    doorSprite,
+                    new Vector2(
+                        Mathf.Clamp(
+                            -size.x * 0.18f,
+                            -size.x * 0.35f,
+                            size.x * 0.35f),
+                        size.y * 0.5f),
+                    0.78f);
+            }
 
             Sprite square =
                 GeneratedArtFactory.Get(
@@ -760,8 +810,8 @@ namespace CatsAndKills.EditorTools
 
             edgeRenderer.size =
                 new Vector2(
-                    size.x + 0.35f,
-                    size.y + 0.35f);
+                    Mathf.Max(1f, size.x - 1.15f),
+                    Mathf.Max(1f, size.y - 1.15f));
 
             edgeRenderer.color =
                 new Color(
@@ -790,8 +840,8 @@ namespace CatsAndKills.EditorTools
 
             roofRenderer.size =
                 new Vector2(
-                    Mathf.Max(1f, size.x - 0.30f),
-                    Mathf.Max(1f, size.y - 0.30f));
+                    Mathf.Max(1f, size.x - 1.35f),
+                    Mathf.Max(1f, size.y - 1.35f));
 
             roofRenderer.color =
                 roofColor;
@@ -851,14 +901,17 @@ namespace CatsAndKills.EditorTools
 
         private static void CreateBuildingInteriorFloor(
             Transform parent,
+            Sprite sprite,
             Vector2 size,
             Color color)
         {
-            Sprite square =
-                GeneratedArtFactory.Get(
-                    "ui_square");
+            Sprite resolved =
+                sprite != null
+                    ? sprite
+                    : GeneratedArtFactory.Get(
+                        "floor");
 
-            if (square == null)
+            if (resolved == null)
                 return;
 
             GameObject floor =
@@ -872,17 +925,68 @@ namespace CatsAndKills.EditorTools
             SpriteRenderer sr =
                 floor.AddComponent<SpriteRenderer>();
 
-            sr.sprite = square;
+            sr.sprite = resolved;
             sr.drawMode =
-                SpriteDrawMode.Tiled;
-
-            sr.size =
-                new Vector2(
-                    Mathf.Max(1f, size.x - 1.3f),
-                    Mathf.Max(1f, size.y - 1.3f));
+                SpriteDrawMode.Simple;
 
             sr.color = color;
             sr.sortingOrder = -1200;
+
+            Vector2 sourceSize =
+                resolved.bounds.size;
+
+            floor.transform.localScale =
+                new Vector3(
+                    (size.x - 1.3f) /
+                    Mathf.Max(
+                        0.1f,
+                        sourceSize.x),
+                    (size.y - 1.3f) /
+                    Mathf.Max(
+                        0.1f,
+                        sourceSize.y),
+                    1f);
+        }
+
+        private static void CreateFacadeDoor(
+            Transform parent,
+            string name,
+            Sprite sprite,
+            Vector2 localPosition,
+            float scale)
+        {
+            if (sprite == null)
+                return;
+
+            GameObject go =
+                new GameObject(name);
+
+            go.transform.SetParent(
+                parent,
+                false);
+
+            go.transform.localPosition =
+                localPosition;
+
+            go.transform.localScale =
+                Vector3.one *
+                scale;
+
+            SpriteRenderer sr =
+                go.AddComponent<SpriteRenderer>();
+
+            sr.sprite = sprite;
+            sr.color = Color.white;
+            sr.sortingOrder = 2;
+
+            DepthSortedSprite2D depth =
+                go.AddComponent<
+                    DepthSortedSprite2D>();
+
+            depth.Configure(
+                new[] { sr },
+                5000,
+                0f);
         }
 
         private static void CreateRoofUnit(
@@ -1147,6 +1251,11 @@ namespace CatsAndKills.EditorTools
 
             collider.size = size;
 
+            var renderers =
+                new System.Collections.Generic.List<SpriteRenderer>();
+
+            // Dark physical base makes gaps impossible even if concept art has
+            // transparent padding.
             SpriteRenderer baseRenderer =
                 wall.AddComponent<SpriteRenderer>();
 
@@ -1158,72 +1267,167 @@ namespace CatsAndKills.EditorTools
 
             baseRenderer.color =
                 new Color(
-                    0.070f,
+                    0.045f,
+                    0.055f,
                     0.085f,
-                    0.120f,
                     1f);
+
+            renderers.Add(
+                baseRenderer);
+
+            bool horizontal =
+                size.x >= size.y;
+
+            if (wallSprite != null)
+            {
+                if (horizontal)
+                {
+                    float naturalWidth =
+                        Mathf.Max(
+                            0.5f,
+                            wallSprite.bounds.size.x);
+
+                    float targetPanelWidth =
+                        Mathf.Clamp(
+                            naturalWidth * 0.92f,
+                            2.4f,
+                            3.8f);
+
+                    int panelCount =
+                        Mathf.Max(
+                            1,
+                            Mathf.CeilToInt(
+                                size.x /
+                                targetPanelWidth));
+
+                    float spacing =
+                        size.x /
+                        panelCount;
+
+                    float artScale =
+                        spacing /
+                        naturalWidth;
+
+                    for (int i = 0;
+                         i < panelCount;
+                         i++)
+                    {
+                        GameObject panel =
+                            new GameObject(
+                                "Wall Art " + i);
+
+                        panel.transform.SetParent(
+                            wall.transform,
+                            false);
+
+                        panel.transform.localPosition =
+                            new Vector3(
+                                -size.x * 0.5f +
+                                spacing * (i + 0.5f),
+                                -size.y * 0.30f,
+                                0f);
+
+                        panel.transform.localScale =
+                            Vector3.one *
+                            artScale;
+
+                        SpriteRenderer sr =
+                            panel.AddComponent<
+                                SpriteRenderer>();
+
+                        sr.sprite = wallSprite;
+                        sr.color = Color.white;
+                        sr.sortingOrder = 1;
+
+                        if (material != null)
+                            sr.sharedMaterial = material;
+
+                        renderers.Add(sr);
+                    }
+                }
+                else
+                {
+                    // Side-wall art is kept as individual grounded pieces
+                    // instead of rotating a front-wall illustration by 90°.
+                    float naturalHeight =
+                        Mathf.Max(
+                            0.5f,
+                            wallSprite.bounds.size.y);
+
+                    float targetHeight =
+                        Mathf.Clamp(
+                            naturalHeight * 0.75f,
+                            2.4f,
+                            3.6f);
+
+                    int panelCount =
+                        Mathf.Max(
+                            1,
+                            Mathf.CeilToInt(
+                                size.y /
+                                targetHeight));
+
+                    float spacing =
+                        size.y /
+                        panelCount;
+
+                    float artScale =
+                        Mathf.Clamp(
+                            0.78f,
+                            0.62f,
+                            0.92f);
+
+                    for (int i = 0;
+                         i < panelCount;
+                         i++)
+                    {
+                        GameObject panel =
+                            new GameObject(
+                                "Side Wall Art " + i);
+
+                        panel.transform.SetParent(
+                            wall.transform,
+                            false);
+
+                        panel.transform.localPosition =
+                            new Vector3(
+                                0f,
+                                -size.y * 0.5f +
+                                spacing * (i + 0.5f),
+                                0f);
+
+                        panel.transform.localScale =
+                            Vector3.one *
+                            artScale;
+
+                        SpriteRenderer sr =
+                            panel.AddComponent<
+                                SpriteRenderer>();
+
+                        sr.sprite = wallSprite;
+                        sr.color =
+                            new Color(
+                                0.82f,
+                                0.86f,
+                                0.96f,
+                                1f);
+
+                        sr.sortingOrder = 1;
+
+                        if (material != null)
+                            sr.sharedMaterial = material;
+
+                        renderers.Add(sr);
+                    }
+                }
+            }
 
             DepthSortedSprite2D depth =
                 wall.AddComponent<
                     DepthSortedSprite2D>();
 
-            GameObject top =
-                new GameObject(
-                    "Wall Highlight");
-
-            top.transform.SetParent(
-                wall.transform,
-                false);
-
-            SpriteRenderer topRenderer =
-                top.AddComponent<SpriteRenderer>();
-
-            topRenderer.sprite = square;
-            topRenderer.drawMode =
-                SpriteDrawMode.Tiled;
-
-            bool horizontal =
-                size.x >= size.y;
-
-            topRenderer.size =
-                horizontal
-                    ? new Vector2(
-                        size.x,
-                        Mathf.Min(
-                            0.16f,
-                            size.y * 0.34f))
-                    : new Vector2(
-                        Mathf.Min(
-                            0.16f,
-                            size.x * 0.34f),
-                        size.y);
-
-            top.transform.localPosition =
-                horizontal
-                    ? new Vector3(
-                        0f,
-                        size.y * 0.24f,
-                        0f)
-                    : new Vector3(
-                        -size.x * 0.24f,
-                        0f,
-                        0f);
-
-            topRenderer.color =
-                new Color(
-                    0.24f,
-                    0.29f,
-                    0.38f,
-                    1f);
-
-            topRenderer.sortingOrder = 1;
-
             depth.Configure(
-                new[]
-                {
-                    baseRenderer,
-                    topRenderer
-                },
+                renderers.ToArray(),
                 5000,
                 0f);
         }
