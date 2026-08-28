@@ -19,6 +19,10 @@ namespace CatsAndKills.EditorTools
         public const string PackPath =
             GeneratedRoot + "/ConceptProductionArtPack.asset";
 
+        private static readonly Dictionary<int, List<AlphaComponentInfo>>
+            AlphaComponentCache =
+                new Dictionary<int, List<AlphaComponentInfo>>();
+
         private static readonly string[] RequiredAtlases =
         {
             "player.png",
@@ -39,6 +43,8 @@ namespace CatsAndKills.EditorTools
         {
             if (!ValidateAtlases())
                 return;
+
+            AlphaComponentCache.Clear();
 
             EnsureFolder(GeneratedRoot);
             EnsureFolder(GeneratedRoot + "/Characters");
@@ -73,71 +79,71 @@ namespace CatsAndKills.EditorTools
             Texture2D fx = LoadTexture("fx.png");
             Texture2D ui = LoadTexture("ui.png");
 
-            Sprite reinforcedDoor = Crop(
+            Sprite reinforcedDoor = CropConnectedAsset(
                 props, "Environment/reinforced_door",
                 18, 7, 447, 511, 96f);
 
-            Sprite crateHeavy = Crop(
+            Sprite crateHeavy = CropConnectedAsset(
                 props, "Environment/crate_heavy",
                 514, 91, 301, 317, 96f);
 
-            Sprite crateLight = Crop(
+            Sprite crateLight = CropConnectedAsset(
                 props, "Environment/crate_light",
                 869, 182, 200, 226, 96f);
 
-            Sprite crateStack = Crop(
+            Sprite crateStack = CropConnectedAsset(
                 props, "Environment/crate_stack",
                 1127, 95, 298, 308, 96f);
 
-            Sprite fuelDrum = Crop(
+            Sprite fuelDrum = CropConnectedAsset(
                 props, "Environment/fuel_drum",
                 45, 527, 113, 190, 96f);
 
-            Sprite barrelStack = Crop(
+            Sprite barrelStack = CropConnectedAsset(
                 props, "Environment/barrel_stack",
                 207, 449, 241, 272, 96f);
 
-            Sprite terminal = Crop(
+            Sprite terminal = CropConnectedAsset(
                 props, "Environment/terminal",
                 485, 420, 193, 292, 96f);
 
-            Sprite lamp = Crop(
+            Sprite lamp = CropConnectedAsset(
                 props, "Environment/lamp",
                 724, 435, 108, 259, 96f);
 
-            Sprite pipeCluster = Crop(
+            Sprite pipeCluster = CropConnectedAsset(
                 props, "Environment/pipe_cluster",
                 869, 443, 223, 277, 96f);
 
-            Sprite fence = Crop(
+            Sprite fence = CropConnectedAsset(
                 props, "Environment/fence",
                 1122, 420, 314, 334, 96f);
 
-            Sprite barricade = Crop(
+            Sprite barricade = CropConnectedAsset(
                 props, "Environment/barricade",
                 248, 736, 314, 210, 96f);
 
-            Sprite cableBundle = Crop(
+            Sprite cableBundle = CropConnectedAsset(
                 props, "Environment/cable_bundle",
                 991, 741, 277, 143, 96f);
 
-            Sprite ammoBox = Crop(
+            Sprite ammoBox = CropConnectedAsset(
                 props, "Environment/ammo_box",
                 768, 925, 171, 139, 96f);
 
-            Sprite medkitBox = Crop(
+            Sprite medkitBox = CropConnectedAsset(
                 props, "Environment/medkit_box",
                 1004, 916, 172, 143, 96f);
 
-            Sprite burningBarrel = Crop(
+            Sprite burningBarrel = CropConnectedAsset(
                 props, "Environment/burning_barrel",
                 1274, 822, 149, 244, 96f);
 
-            Sprite propagandaPoster = Crop(
+            Sprite propagandaPoster = CropConnectedAsset(
                 props, "Environment/propaganda_poster",
                 10, 712, 183, 351, 96f);
 
-            Sprite debris = Crop(
+            Sprite debris = CropConnectedAsset(
                 props, "Environment/debris",
                 607, 709, 335, 196, 96f);
 
@@ -168,35 +174,35 @@ namespace CatsAndKills.EditorTools
                     241,
                     new Color32(112, 96, 118, 255));
 
-            Sprite wallStraight = Crop(
+            Sprite wallStraight = CropConnectedAsset(
                 tileset, "Environment/wall_straight",
                 754, 2, 378, 403, 96f);
 
-            Sprite wallCorner = Crop(
+            Sprite wallCorner = CropConnectedAsset(
                 tileset, "Environment/wall_corner",
                 1143, 15, 288, 350, 96f);
 
-            Sprite wallDamaged = Crop(
+            Sprite wallDamaged = CropConnectedAsset(
                 tileset, "Environment/wall_damaged",
                 1142, 316, 289, 331, 96f);
 
-            Sprite rifle = Crop(
+            Sprite rifle = CropConnectedAsset(
                 weapons, "Weapons/rifle",
                 0, 0, 455, 230, 110f);
 
-            Sprite pistol = Crop(
+            Sprite pistol = CropConnectedAsset(
                 weapons, "Weapons/pistol",
                 0, 215, 250, 260, 110f);
 
-            Sprite shotgun = Crop(
+            Sprite shotgun = CropConnectedAsset(
                 weapons, "Weapons/shotgun",
                 0, 455, 490, 235, 110f);
 
-            Sprite machineGun = Crop(
+            Sprite machineGun = CropConnectedAsset(
                 weapons, "Weapons/machinegun",
                 900, 210, 548, 300, 110f);
 
-            Sprite grenade = Crop(
+            Sprite grenade = CropConnectedAsset(
                 weapons, "Weapons/grenade",
                 0, 650, 220, 260, 110f);
 
@@ -216,31 +222,31 @@ namespace CatsAndKills.EditorTools
                 ui, "UI/objective_icon",
                 430, 245, 205, 205, 128f);
 
-            Sprite muzzleFlash = Crop(
+            Sprite muzzleFlash = CropConnectedAsset(
                 fx, "FX/muzzle_flash",
                 0, 0, 175, 150, 96f);
 
-            Sprite bloodDrop = Crop(
+            Sprite bloodDrop = CropConnectedAsset(
                 fx, "FX/blood",
                 0, 485, 260, 180, 96f);
 
-            Sprite bulletHole = Crop(
+            Sprite bulletHole = CropConnectedAsset(
                 fx, "FX/bullet_hole",
                 360, 340, 170, 150, 96f);
 
-            Sprite spark = Crop(
+            Sprite spark = CropConnectedAsset(
                 fx, "FX/spark",
                 0, 300, 240, 175, 96f);
 
-            Sprite casing = Crop(
+            Sprite casing = CropConnectedAsset(
                 fx, "FX/casing",
                 1070, 150, 360, 260, 96f);
 
-            Sprite smoke = Crop(
+            Sprite smoke = CropConnectedAsset(
                 fx, "FX/smoke",
                 0, 675, 330, 270, 96f);
 
-            Sprite explosion = Crop(
+            Sprite explosion = CropConnectedAsset(
                 fx, "FX/explosion",
                 0, 790, 500, 296, 96f);
 
@@ -937,6 +943,17 @@ namespace CatsAndKills.EditorTools
             if (source == null)
                 return result;
 
+            int cacheKey =
+                source.GetInstanceID();
+
+            if (alphaThreshold == 18 &&
+                AlphaComponentCache.TryGetValue(
+                    cacheKey,
+                    out List<AlphaComponentInfo> cached))
+            {
+                return cached;
+            }
+
             int width =
                 source.width;
 
@@ -1041,6 +1058,9 @@ namespace CatsAndKills.EditorTools
                 if (component.Count >= 3)
                     result.Add(component);
             }
+
+            if (alphaThreshold == 18)
+                AlphaComponentCache[cacheKey] = result;
 
             return result;
         }
@@ -1147,6 +1167,314 @@ namespace CatsAndKills.EditorTools
                             sourceIndex];
                 }
             }
+        }
+
+        private static Sprite CropConnectedAsset(
+            Texture2D source,
+            string relativePath,
+            int roughX,
+            int roughTopY,
+            int roughWidth,
+            int roughHeight,
+            float ppu)
+        {
+            if (source == null)
+                return null;
+
+            List<AlphaComponentInfo> components =
+                FindAlphaComponents(
+                    source,
+                    18);
+
+            int roughBottom =
+                source.height -
+                roughTopY -
+                roughHeight;
+
+            float centerX =
+                roughX +
+                roughWidth * 0.5f;
+
+            float centerY =
+                roughBottom +
+                roughHeight * 0.5f;
+
+            AlphaComponentInfo main = null;
+            float bestScore = float.MaxValue;
+
+            foreach (AlphaComponentInfo component
+                     in components)
+            {
+                bool intersects =
+                    component.maxX >= roughX &&
+                    component.minX <=
+                    roughX + roughWidth &&
+                    component.maxY >= roughBottom &&
+                    component.minY <=
+                    roughBottom + roughHeight;
+
+                if (!intersects)
+                    continue;
+
+                bool centerInside =
+                    component.CenterX >= roughX &&
+                    component.CenterX <=
+                    roughX + roughWidth &&
+                    component.CenterY >= roughBottom &&
+                    component.CenterY <=
+                    roughBottom + roughHeight;
+
+                float dx =
+                    (component.CenterX - centerX) /
+                    Mathf.Max(
+                        1f,
+                        roughWidth);
+
+                float dy =
+                    (component.CenterY - centerY) /
+                    Mathf.Max(
+                        1f,
+                        roughHeight);
+
+                float score =
+                    dx * dx +
+                    dy * dy -
+                    Mathf.Log10(
+                        Mathf.Max(
+                            1,
+                            component.Count)) *
+                    0.10f;
+
+                if (centerInside)
+                    score -= 0.35f;
+
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    main = component;
+                }
+            }
+
+            if (main == null)
+            {
+                Debug.LogWarning(
+                    "Could not find opaque component for " +
+                    relativePath +
+                    "; using rough crop.");
+
+                return Crop(
+                    source,
+                    relativePath,
+                    roughX,
+                    roughTopY,
+                    roughWidth,
+                    roughHeight,
+                    ppu);
+            }
+
+            var selected =
+                new List<AlphaComponentInfo>
+                {
+                    main
+                };
+
+            float margin =
+                Mathf.Max(
+                    10f,
+                    Mathf.Min(
+                        roughWidth,
+                        roughHeight) *
+                    0.12f);
+
+            foreach (AlphaComponentInfo component
+                     in components)
+            {
+                if (component == main ||
+                    component.Count < 4)
+                {
+                    continue;
+                }
+
+                bool centerInside =
+                    component.CenterX >= roughX &&
+                    component.CenterX <=
+                    roughX + roughWidth &&
+                    component.CenterY >= roughBottom &&
+                    component.CenterY <=
+                    roughBottom + roughHeight;
+
+                float gapX =
+                    Mathf.Max(
+                        0f,
+                        Mathf.Max(
+                            main.minX -
+                            component.maxX,
+                            component.minX -
+                            main.maxX));
+
+                float gapY =
+                    Mathf.Max(
+                        0f,
+                        Mathf.Max(
+                            main.minY -
+                            component.maxY,
+                            component.minY -
+                            main.maxY));
+
+                float gap =
+                    Mathf.Sqrt(
+                        gapX * gapX +
+                        gapY * gapY);
+
+                bool closeDetachedDetail =
+                    gap <= margin &&
+                    component.Count <=
+                    main.Count * 0.45f;
+
+                if (centerInside ||
+                    closeDetachedDetail)
+                {
+                    selected.Add(component);
+                }
+            }
+
+            int minX = int.MaxValue;
+            int minY = int.MaxValue;
+            int maxX = int.MinValue;
+            int maxY = int.MinValue;
+
+            foreach (AlphaComponentInfo component
+                     in selected)
+            {
+                minX =
+                    Mathf.Min(
+                        minX,
+                        component.minX);
+
+                minY =
+                    Mathf.Min(
+                        minY,
+                        component.minY);
+
+                maxX =
+                    Mathf.Max(
+                        maxX,
+                        component.maxX);
+
+                maxY =
+                    Mathf.Max(
+                        maxY,
+                        component.maxY);
+            }
+
+            int pad =
+                Mathf.Max(
+                    8,
+                    Mathf.RoundToInt(
+                        Mathf.Min(
+                            roughWidth,
+                            roughHeight) *
+                        0.035f));
+
+            minX =
+                Mathf.Max(
+                    0,
+                    minX - pad);
+
+            minY =
+                Mathf.Max(
+                    0,
+                    minY - pad);
+
+            maxX =
+                Mathf.Min(
+                    source.width - 1,
+                    maxX + pad);
+
+            maxY =
+                Mathf.Min(
+                    source.height - 1,
+                    maxY + pad);
+
+            int width =
+                maxX -
+                minX +
+                1;
+
+            int height =
+                maxY -
+                minY +
+                1;
+
+            Color32[] sourcePixels =
+                source.GetPixels32(0);
+
+            Color32[] output =
+                new Color32[
+                    width *
+                    height];
+
+            foreach (AlphaComponentInfo component
+                     in selected)
+            {
+                foreach (int sourceIndex
+                         in component.pixels)
+                {
+                    int sx =
+                        sourceIndex %
+                        source.width;
+
+                    int sy =
+                        sourceIndex /
+                        source.width;
+
+                    int dx =
+                        sx -
+                        minX;
+
+                    int dy =
+                        sy -
+                        minY;
+
+                    if (dx < 0 ||
+                        dy < 0 ||
+                        dx >= width ||
+                        dy >= height)
+                    {
+                        continue;
+                    }
+
+                    output[
+                        dy *
+                        width +
+                        dx] =
+                        sourcePixels[
+                            sourceIndex];
+                }
+            }
+
+            Vector2 pivot =
+                new Vector2(
+                    Mathf.Clamp01(
+                        (centerX -
+                         minX) /
+                        Mathf.Max(
+                            1f,
+                            width)),
+                    Mathf.Clamp01(
+                        (centerY -
+                         minY) /
+                        Mathf.Max(
+                            1f,
+                            height)));
+
+            return SaveGeneratedSprite(
+                output,
+                width,
+                height,
+                relativePath,
+                ppu,
+                pivot);
         }
 
         private static Sprite SaveGeneratedSprite(
