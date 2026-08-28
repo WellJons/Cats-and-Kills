@@ -126,6 +126,21 @@ namespace CatsAndKills.UI
                 tactical.RoundIndex,
                 _phase);
 
+            if (!tactical.IsPlayerTurn &&
+                playerController != null &&
+                playerController.Overwatch != null &&
+                playerController.Overwatch.IsArmed)
+            {
+                GUI.Label(
+                    new Rect(
+                        44f,
+                        82f,
+                        width - 80f,
+                        24f),
+                    "OVERWATCH // контроль линии активен",
+                    _hint);
+            }
+
             if (tactical.IsPlayerTurn)
             {
                 float x =
@@ -208,7 +223,7 @@ namespace CatsAndKills.UI
                             : string.Empty;
 
                     mode =
-                        "ЛКМ движение  |  ПКМ огонь  |  G граната  |  R перезарядка" +
+                        "ЛКМ движение  |  ПКМ огонь  |  O наблюдение  |  G граната  |  R перезарядка" +
                         utility +
                         "  |  Enter конец хода";
                 }
