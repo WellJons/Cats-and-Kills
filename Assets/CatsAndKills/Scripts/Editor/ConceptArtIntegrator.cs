@@ -75,43 +75,43 @@ namespace CatsAndKills.EditorTools
 
             Sprite reinforcedDoor = Crop(
                 props, "Environment/reinforced_door",
-                0, 0, 465, 470, 96f);
+                18, 7, 447, 511, 96f);
 
             Sprite crateHeavy = Crop(
                 props, "Environment/crate_heavy",
-                465, 20, 390, 365, 96f);
+                514, 91, 301, 317, 96f);
 
             Sprite crateLight = Crop(
                 props, "Environment/crate_light",
-                820, 55, 300, 320, 96f);
+                869, 182, 200, 226, 96f);
 
             Sprite fuelDrum = Crop(
                 props, "Environment/fuel_drum",
-                0, 400, 190, 315, 96f);
+                45, 527, 113, 190, 96f);
 
             Sprite terminal = Crop(
                 props, "Environment/terminal",
-                450, 385, 245, 330, 96f);
+                485, 420, 193, 292, 96f);
 
             Sprite lamp = Crop(
                 props, "Environment/lamp",
-                670, 385, 190, 330, 96f);
+                724, 435, 108, 259, 96f);
 
             Sprite pipeCluster = Crop(
                 props, "Environment/pipe_cluster",
-                840, 390, 250, 320, 96f);
+                869, 443, 223, 277, 96f);
 
             Sprite fence = Crop(
                 props, "Environment/fence",
-                1080, 380, 368, 350, 96f);
+                1122, 420, 314, 334, 96f);
 
             Sprite propagandaPoster = Crop(
                 props, "Environment/propaganda_poster",
-                0, 690, 205, 396, 96f);
+                10, 712, 183, 351, 96f);
 
             Sprite debris = Crop(
                 props, "Environment/debris",
-                555, 675, 325, 270, 96f);
+                607, 709, 335, 196, 96f);
 
             // Build one large facility floor texture instead of repeating
             // the isometric tile diamonds. This removes the visible grid and
@@ -142,15 +142,15 @@ namespace CatsAndKills.EditorTools
 
             Sprite wallStraight = Crop(
                 tileset, "Environment/wall_straight",
-                710, 0, 390, 395, 96f);
+                754, 2, 378, 403, 96f);
 
             Sprite wallCorner = Crop(
                 tileset, "Environment/wall_corner",
-                1090, 0, 358, 395, 96f);
+                1143, 15, 288, 350, 96f);
 
             Sprite wallDamaged = Crop(
                 tileset, "Environment/wall_damaged",
-                1080, 330, 368, 350, 96f);
+                1142, 316, 289, 331, 96f);
 
             Sprite rifle = Crop(
                 weapons, "Weapons/rifle",
