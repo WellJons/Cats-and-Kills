@@ -71,6 +71,7 @@ namespace CatsAndKills.EditorTools
             Texture2D weapons = LoadTexture("weapons.png");
             Texture2D tileset = LoadTexture("tileset.png");
             Texture2D fx = LoadTexture("fx.png");
+            Texture2D ui = LoadTexture("ui.png");
 
             Sprite reinforcedDoor = Crop(
                 props, "Environment/reinforced_door",
@@ -164,6 +165,22 @@ namespace CatsAndKills.EditorTools
                 weapons, "Weapons/grenade",
                 0, 650, 220, 260, 110f);
 
+            Sprite uiPortrait = Crop(
+                ui, "UI/player_portrait",
+                18, 18, 238, 238, 128f);
+
+            Sprite uiGrenadeIcon = Crop(
+                ui, "UI/grenade_icon",
+                20, 270, 205, 172, 128f);
+
+            Sprite uiMedkitIcon = Crop(
+                ui, "UI/medkit_icon",
+                225, 270, 205, 172, 128f);
+
+            Sprite uiObjectiveIcon = Crop(
+                ui, "UI/objective_icon",
+                430, 245, 205, 205, 128f);
+
             Sprite muzzleFlash = Crop(
                 fx, "FX/muzzle_flash",
                 0, 0, 175, 150, 96f);
@@ -236,6 +253,11 @@ namespace CatsAndKills.EditorTools
             pack.lamp = lamp;
             pack.debris = debris;
             pack.propagandaPoster = propagandaPoster;
+
+            pack.uiPortrait = uiPortrait;
+            pack.uiGrenadeIcon = uiGrenadeIcon;
+            pack.uiMedkitIcon = uiMedkitIcon;
+            pack.uiObjectiveIcon = uiObjectiveIcon;
 
             pack.muzzleFlash = muzzleFlash;
             pack.bloodDrop = bloodDrop;
