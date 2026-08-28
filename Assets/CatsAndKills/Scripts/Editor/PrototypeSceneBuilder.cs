@@ -522,6 +522,35 @@ namespace CatsAndKills.EditorTools
             def.recoilMax = recoilMax;
             def.recoilRecovery = automatic ? 8.5f : 12f;
             def.recoilHorizontal = automatic ? 0.38f : 0.65f;
+
+            bool isPistol =
+                lowerName.Contains("pistol");
+
+            bool isShotgun =
+                lowerName.Contains("ks-12") ||
+                pellets > 1;
+
+            def.impactForce =
+                isShotgun
+                    ? 6.2f
+                    : isPistol
+                        ? 2.7f
+                        : 4.2f;
+
+            def.dismemberPower =
+                isShotgun
+                    ? 0.92f
+                    : isPistol
+                        ? 0.08f
+                        : 0.24f;
+
+            def.reloadTime =
+                isShotgun
+                    ? 2.35f
+                    : isPistol
+                        ? 1.25f
+                        : 1.65f;
+
             def.visualKickDistance = pellets > 1 ? 0.20f : 0.10f;
             def.visualKickRotation = pellets > 1 ? 7f : 3.5f;
             def.cameraKick = pellets > 1 ? 0.22f : 0.10f;
