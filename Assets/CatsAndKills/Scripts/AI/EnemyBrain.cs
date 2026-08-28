@@ -325,6 +325,16 @@ namespace CatsAndKills.AI
                 transform.position,
                 _knownPlayerPos);
 
+            if (archetype == EnemyArchetype.Demolitionist &&
+                seesPlayer &&
+                distance <= 5.2f)
+            {
+                _state = State.Advance;
+                ReleaseCover();
+                motor?.MoveTo(_knownPlayerPos);
+                return;
+            }
+
             if (morale != null && morale.Broken)
             {
                 BeginRetreat();
