@@ -1369,42 +1369,29 @@ namespace CatsAndKills.EditorTools
 
             int pad =
                 Mathf.Max(
-                    8,
+                    10,
                     Mathf.RoundToInt(
                         Mathf.Min(
                             roughWidth,
                             roughHeight) *
-                        0.035f));
+                        0.045f));
 
-            minX =
-                Mathf.Max(
-                    0,
-                    minX - pad);
-
-            minY =
-                Mathf.Max(
-                    0,
-                    minY - pad);
-
-            maxX =
-                Mathf.Min(
-                    source.width - 1,
-                    maxX + pad);
-
-            maxY =
-                Mathf.Min(
-                    source.height - 1,
-                    maxY + pad);
+            int contentMinX = minX;
+            int contentMinY = minY;
+            int contentMaxX = maxX;
+            int contentMaxY = maxY;
 
             int width =
-                maxX -
-                minX +
-                1;
+                contentMaxX -
+                contentMinX +
+                1 +
+                pad * 2;
 
             int height =
-                maxY -
-                minY +
-                1;
+                contentMaxY -
+                contentMinY +
+                1 +
+                pad * 2;
 
             Color32[] sourcePixels =
                 source.GetPixels32(0);
@@ -1430,11 +1417,13 @@ namespace CatsAndKills.EditorTools
 
                     int dx =
                         sx -
-                        minX;
+                        contentMinX +
+                        pad;
 
                     int dy =
                         sy -
-                        minY;
+                        contentMinY +
+                        pad;
 
                     if (dx < 0 ||
                         dy < 0 ||
@@ -1472,13 +1461,15 @@ namespace CatsAndKills.EditorTools
                 new Vector2(
                     Mathf.Clamp01(
                         (pivotXWorld -
-                         minX) /
+                         contentMinX +
+                         pad) /
                         Mathf.Max(
                             1f,
                             width)),
                     Mathf.Clamp01(
                         (pivotYWorld -
-                         minY) /
+                         contentMinY +
+                         pad) /
                         Mathf.Max(
                             1f,
                             height)));
