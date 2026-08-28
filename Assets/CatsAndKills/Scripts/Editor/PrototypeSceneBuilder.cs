@@ -173,6 +173,7 @@ namespace CatsAndKills.EditorTools
             new GameObject("Radio Dialogue").AddComponent<RadioDialogueSystem>();
             new GameObject("World Callouts").AddComponent<WorldCalloutSystem>();
             new GameObject("Runtime Game Menu").AddComponent<RuntimeGameMenu>();
+            new GameObject("Propaganda Broadcast").AddComponent<PropagandaBroadcast2D>();
 
             var fxGo = new GameObject("FX Service");
             var fx = fxGo.AddComponent<FXService>();
