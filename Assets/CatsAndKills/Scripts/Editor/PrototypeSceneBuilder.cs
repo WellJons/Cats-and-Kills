@@ -36,6 +36,7 @@ namespace CatsAndKills.EditorTools
         private static Sprite _wallSprite;
         private static Sprite _crateSprite;
         private static Sprite _barrelSprite;
+        private static Sprite _doorSprite;
         private static Sprite _muzzleSprite;
         private static Sprite _bloodSprite;
         private static Sprite _sparkSprite;
@@ -69,6 +70,7 @@ namespace CatsAndKills.EditorTools
             _wallSprite = GeneratedArtFactory.Get("wall");
             _crateSprite = GeneratedArtFactory.Get("crate");
             _barrelSprite = GeneratedArtFactory.Get("barrel");
+            _doorSprite = GeneratedArtFactory.Get("door");
             _muzzleSprite = GeneratedArtFactory.Get("muzzle");
             _bloodSprite = GeneratedArtFactory.Get("blood");
             _sparkSprite = GeneratedArtFactory.Get("spark");
@@ -683,7 +685,9 @@ namespace CatsAndKills.EditorTools
             CreateWall("Warehouse West", new Vector2(-7f, 2f), new Vector2(0.7f, 18f));
             CreateWall("Warehouse Rack A", new Vector2(-2f, -3f), new Vector2(0.7f, 6f));
             CreateWall("Warehouse Rack B", new Vector2(2.5f, 3f), new Vector2(0.7f, 6f));
-            CreateWall("Admin Hall", new Vector2(10f, 2f), new Vector2(0.7f, 14f));
+            CreateWall("Admin Hall Lower", new Vector2(10f, -3f), new Vector2(0.7f, 4f));
+            CreateWall("Admin Hall Upper", new Vector2(10f, 5f), new Vector2(0.7f, 8f));
+            CreateDoor("Admin Security Door", new Vector2(10f, 0f), 90f);
             CreateWall("Admin Cross", new Vector2(16f, 2f), new Vector2(10f, 0.7f));
 
             CreateDestructible("Crate 1", new Vector2(-14f, -5f));
@@ -695,6 +699,34 @@ namespace CatsAndKills.EditorTools
             CreateExplosiveProp("Fuel Drum A", new Vector2(-1f, 5.5f));
             CreateExplosiveProp("Fuel Drum B", new Vector2(6.5f, -2.5f));
             CreateExplosiveProp("Fuel Drum C", new Vector2(15.5f, 5.0f));
+        }
+
+        private static Door2D CreateDoor(
+            string name,
+            Vector2 position,
+            float rotation)
+        {
+            var root = new GameObject(name);
+            root.transform.position = position;
+            root.transform.rotation =
+                Quaternion.Euler(0f, 0f, rotation);
+            root.layer = _obstacleLayer;
+
+            var visual = new GameObject("Door Visual");
+            visual.transform.SetParent(root.transform, false);
+
+            var sr = visual.AddComponent<SpriteRenderer>();
+            sr.sprite = _doorSprite;
+            sr.sortingOrder = 6;
+            sr.color = Color.white;
+
+            var col = root.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(1.85f, 0.38f);
+
+            var door = root.AddComponent<Door2D>();
+            door.Configure(col, visual.transform, false);
+
+            return door;
         }
 
         private static GameObject CreateWall(string name, Vector2 position, Vector2 size)
