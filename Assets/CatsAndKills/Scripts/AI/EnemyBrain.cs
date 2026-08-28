@@ -1,6 +1,7 @@
 using CatsAndKills.Core;
 using CatsAndKills.Damage;
 using CatsAndKills.UI;
+using CatsAndKills.Tactical;
 using UnityEngine;
 
 namespace CatsAndKills.AI
@@ -179,6 +180,17 @@ namespace CatsAndKills.AI
         {
             if (vitals != null && vitals.IsDead) return;
 
+            TacticalCombatDirector tactical =
+                TacticalCombatDirector.Instance;
+
+            if (tactical != null &&
+                tactical.IsTacticalCombat)
+            {
+                weapon?.SetTrigger(false);
+                motor?.Stop();
+                return;
+            }
+
             if (grenadeAwareness != null &&
                 grenadeAwareness.TryGetEvadePoint(out Vector2 evadePoint))
             {
@@ -194,6 +206,18 @@ namespace CatsAndKills.AI
             }
 
             bool sees = player != null && perception != null && perception.CanSee(player);
+
+            if (sees &&
+                tactical != null)
+            {
+                weapon?.SetTrigger(false);
+                motor?.Stop();
+
+                tactical.EnterCombat(
+                    GetComponent<TacticalEnemyAgent>());
+
+                return;
+            }
 
             if (sees)
             {
@@ -633,6 +657,10 @@ namespace CatsAndKills.AI
             _hasKnowledge = true;
             _lastKnowledgeAt = Time.time;
             CombatDirector.Instance?.ReportCombat();
+
+            TacticalCombatDirector.Instance
+                ?.EnterCombat(
+                    GetComponent<TacticalEnemyAgent>());
 
             if (Random.value < 0.35f)
                 Callout(vitals != null && vitals.Health < 35f
