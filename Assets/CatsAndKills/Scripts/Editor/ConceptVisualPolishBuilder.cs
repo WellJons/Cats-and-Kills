@@ -598,6 +598,14 @@ namespace CatsAndKills.EditorTools
             if (material == null)
                 return;
 
+            GameObject polishRoot =
+                GameObject.Find(RootName);
+
+            Transform polishTransform =
+                polishRoot != null
+                    ? polishRoot.transform
+                    : null;
+
             foreach (SpriteRenderer sr in
                      Object.FindObjectsByType<SpriteRenderer>(
                          FindObjectsSortMode.None))
@@ -625,9 +633,9 @@ namespace CatsAndKills.EditorTools
                         "Concept Atlas Visual");
 
                 bool conceptPolish =
+                    polishTransform != null &&
                     sr.transform.IsChildOf(
-                        GameObject.Find(RootName)?
-                            .transform);
+                        polishTransform);
 
                 if (generatedConcept ||
                     sourceConcept ||
