@@ -45,6 +45,11 @@ namespace CatsAndKills.UI
             _glitch = Mathf.Clamp01(amount);
         }
 
+        public void BindMission(MissionDirector missionDirector)
+        {
+            mission = missionDirector;
+        }
+
         private void Ensure()
         {
             if (_large != null) return;
