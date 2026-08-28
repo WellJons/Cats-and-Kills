@@ -1,4 +1,7 @@
 #if UNITY_EDITOR
+using CatsAndKills.AI;
+using CatsAndKills.Combat;
+using CatsAndKills.Damage;
 using CatsAndKills.FX;
 using CatsAndKills.Player;
 using CatsAndKills.Visual;
@@ -28,6 +31,8 @@ namespace CatsAndKills.EditorTools
             ThreeQuarterPlayableBuilder.BuildWithPack(
                 pack,
                 "generated concept");
+
+            InstallDirectAtlasCharacterVisuals();
 
             AddAtmosphere();
             ImproveCamera();
@@ -62,11 +67,206 @@ namespace CatsAndKills.EditorTools
 
             if (follow != null)
             {
-                follow.ConfigureBounds(
-                    new Vector2(-23f, -14f),
-                    new Vector2(23f, 14f),
-                    camera);
+                // Keep the camera centered on the player at the map edges.
+                // The scene backdrop covers the extra view outside the walls.
             }
+
+            CreateWorldBackdrop();
+        }
+
+        private static void InstallDirectAtlasCharacterVisuals()
+        {
+            PlayerMotor2D player =
+                Object.FindAnyObjectByType<PlayerMotor2D>();
+
+            if (player == null)
+                return;
+
+            Texture2D playerAtlas =
+                LoadConceptAtlas("player.png");
+
+            ReplaceWithDirectVisual(
+                player.gameObject,
+                playerAtlas,
+                player.transform,
+                true,
+                1.28f);
+
+            EnemyBrain[] enemies =
+                Object.FindObjectsByType<EnemyBrain>(
+                    FindObjectsSortMode.None);
+
+            foreach (EnemyBrain enemy in enemies)
+            {
+                string file =
+                    enemy.Archetype switch
+                    {
+                        EnemyArchetype.Pistolier =>
+                            "pistolier.png",
+
+                        EnemyArchetype.MachineGunner =>
+                            "machinegunner.png",
+
+                        EnemyArchetype.Demolitionist =>
+                            "demolitionist.png",
+
+                        _ =>
+                            "rifleman.png"
+                    };
+
+                float scale =
+                    enemy.Archetype ==
+                    EnemyArchetype.MachineGunner
+                        ? 1.40f
+                        : 1.22f;
+
+                ReplaceWithDirectVisual(
+                    enemy.gameObject,
+                    LoadConceptAtlas(file),
+                    player.transform,
+                    false,
+                    scale);
+            }
+        }
+
+        private static Texture2D LoadConceptAtlas(
+            string file)
+        {
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(
+                ConceptArtIntegrator.AtlasRoot +
+                "/" +
+                file);
+        }
+
+        private static void ReplaceWithDirectVisual(
+            GameObject root,
+            Texture2D atlas,
+            Transform lookTarget,
+            bool isPlayer,
+            float scale)
+        {
+            if (atlas == null || root == null)
+                return;
+
+            Transform oldVisual =
+                root.transform.Find(
+                    isPlayer
+                        ? "Player 3-4 Visual"
+                        : "Enemy 3-4 Visual");
+
+            if (oldVisual != null)
+                Object.DestroyImmediate(
+                    oldVisual.gameObject);
+
+            Transform existing =
+                root.transform.Find(
+                    "Concept Atlas Visual");
+
+            if (existing != null)
+                Object.DestroyImmediate(
+                    existing.gameObject);
+
+            GameObject go =
+                new GameObject(
+                    "Concept Atlas Visual");
+
+            go.transform.SetParent(
+                root.transform,
+                false);
+
+            go.transform.localPosition =
+                Vector3.zero;
+
+            go.transform.localScale =
+                Vector3.one * scale;
+
+            SpriteRenderer sr =
+                go.AddComponent<SpriteRenderer>();
+
+            sr.color = Color.white;
+            sr.enabled = true;
+            sr.sortingOrder = 10;
+
+            CharacterVitals vitals =
+                root.GetComponent<CharacterVitals>();
+
+            Rigidbody2D body =
+                root.GetComponent<Rigidbody2D>();
+
+            PlayerAim2D aim =
+                isPlayer
+                    ? root.GetComponent<PlayerAim2D>()
+                    : null;
+
+            HitscanWeapon2D playerGun =
+                isPlayer
+                    ? root.GetComponentInChildren<
+                        HitscanWeapon2D>()
+                    : null;
+
+            EnemyWeapon2D enemyGun =
+                !isPlayer
+                    ? root.GetComponent<EnemyWeapon2D>()
+                    : null;
+
+            ConceptAtlasCharacterVisual2D visual =
+                go.AddComponent<
+                    ConceptAtlasCharacterVisual2D>();
+
+            visual.Configure(
+                atlas,
+                sr,
+                vitals,
+                body,
+                aim,
+                playerGun,
+                enemyGun,
+                isPlayer ? null : lookTarget,
+                128f);
+
+            DepthSortedSprite2D depth =
+                go.AddComponent<DepthSortedSprite2D>();
+
+            depth.Configure(
+                new[] { sr },
+                5000,
+                0f);
+
+            if (isPlayer && aim != null)
+                aim.SetBodyRotationEnabled(false);
+        }
+
+        private static void CreateWorldBackdrop()
+        {
+            GameObject existing =
+                GameObject.Find("World Backdrop");
+
+            if (existing != null)
+                Object.DestroyImmediate(existing);
+
+            GameObject go =
+                new GameObject("World Backdrop");
+
+            SpriteRenderer sr =
+                go.AddComponent<SpriteRenderer>();
+
+            sr.sprite =
+                GeneratedArtFactory.Get("ui_square");
+
+            sr.drawMode =
+                SpriteDrawMode.Tiled;
+
+            sr.size =
+                new Vector2(72f, 52f);
+
+            sr.color =
+                new Color(
+                    0.018f,
+                    0.021f,
+                    0.034f,
+                    1f);
+
+            sr.sortingOrder = -2000;
         }
 
         private static void ConfigurePostFX()
