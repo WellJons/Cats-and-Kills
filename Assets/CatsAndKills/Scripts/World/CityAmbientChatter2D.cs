@@ -11,6 +11,9 @@ namespace CatsAndKills.World
         MonoBehaviour
     {
         [SerializeField] private string[] lines;
+        [SerializeField] private string[] aftermathLines;
+        [SerializeField] private string aftermathFlag =
+            "slice_ambush_cleared";
         [SerializeField] private float minInterval = 8f;
         [SerializeField] private float maxInterval = 18f;
         [SerializeField] private float hearingDistance = 8f;
@@ -22,10 +25,12 @@ namespace CatsAndKills.World
 
         public void Configure(
             string[] ambientLines,
+            string[] postEventLines,
             float minimum = 8f,
             float maximum = 18f)
         {
             lines = ambientLines;
+            aftermathLines = postEventLines;
             minInterval = minimum;
             maxInterval = maximum;
 
@@ -83,11 +88,20 @@ namespace CatsAndKills.World
                 return;
             }
 
+            string[] activeLines =
+                NarrativeWorldState.Instance != null &&
+                NarrativeWorldState.Instance.HasFlag(
+                    aftermathFlag) &&
+                aftermathLines != null &&
+                aftermathLines.Length > 0
+                    ? aftermathLines
+                    : lines;
+
             string line =
-                lines[
+                activeLines[
                     Random.Range(
                         0,
-                        lines.Length)];
+                        activeLines.Length)];
 
             WorldCalloutSystem.Instance?.Show(
                 transform,
