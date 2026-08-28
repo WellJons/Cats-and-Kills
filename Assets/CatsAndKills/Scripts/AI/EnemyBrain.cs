@@ -287,6 +287,26 @@ namespace CatsAndKills.AI
             motor?.MoveTo(position);
         }
 
+        public void ReceiveAreaAlert(Vector2 approximatePosition)
+        {
+            if (_hadVisual) return;
+
+            _knownPlayerPos = approximatePosition;
+            _hasKnowledge = true;
+            _lastKnowledgeAt = Time.time;
+
+            if (_cover == null)
+                TryTakeCover();
+            else
+            {
+                _state = State.HoldCover;
+                motor?.Stop();
+            }
+
+            if (Time.time - _lastCommand > 1.8f)
+                Callout("ТРЕВОГА. ДЕРЖИМ СЕКТОР.");
+        }
+
         private void Decide(bool seesPlayer)
         {
             if (!_hasKnowledge && squad != null && squad.HasContact)
