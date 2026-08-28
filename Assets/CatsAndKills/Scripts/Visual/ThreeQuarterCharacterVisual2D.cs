@@ -151,7 +151,10 @@ namespace CatsAndKills.Visual
                 return;
 
             if (vitals != null)
+            {
                 vitals.Damaged += OnDamaged;
+                vitals.Died += OnDied;
+            }
 
             if (playerWeapon != null)
                 playerWeapon.Fired += OnWeaponFired;
@@ -168,7 +171,10 @@ namespace CatsAndKills.Visual
                 return;
 
             if (vitals != null)
+            {
                 vitals.Damaged -= OnDamaged;
+                vitals.Died -= OnDied;
+            }
 
             if (playerWeapon != null)
                 playerWeapon.Fired -= OnWeaponFired;
@@ -198,7 +204,13 @@ namespace CatsAndKills.Visual
                 0f,
                 Time.deltaTime * 12f);
 
-            UpdateFacing();
+            bool dead =
+                vitals != null &&
+                vitals.IsDead;
+
+            if (!dead)
+                UpdateFacing();
+
             UpdateSprite();
             UpdateFrameBlend();
             AnimatePresentation();
@@ -379,16 +391,20 @@ namespace CatsAndKills.Visual
                      body.linearVelocity.sqrMagnitude >
                      moveThreshold * moveThreshold)
             {
-                bool alternate =
+                int phase =
                     Mathf.FloorToInt(
                         Time.time *
-                        Mathf.Max(1f, moveFrameRate)) %
-                    2 == 1;
+                        Mathf.Max(
+                            1f,
+                            moveFrameRate)) %
+                    4;
 
                 next =
-                    alternate
-                        ? sprites.GetMoveAlt(_direction)
-                        : sprites.GetMove(_direction);
+                    phase == 0
+                        ? sprites.GetMove(_direction)
+                        : phase == 2
+                            ? sprites.GetMoveAlt(_direction)
+                            : sprites.GetIdle(_direction);
             }
             else
             {
@@ -598,6 +614,17 @@ namespace CatsAndKills.Visual
         {
             _hurtUntil = Time.time + 0.18f;
             _hurtImpulse = 1f;
+        }
+
+        private void OnDied()
+        {
+            _fireUntil = 0f;
+            _hurtUntil = 0f;
+            _recoil = 0f;
+            _hurtImpulse = 0f;
+
+            UpdateSprite();
+            RefreshCombatAnchor();
         }
 
         private void OnWeaponFired()
