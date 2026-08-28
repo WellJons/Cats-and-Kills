@@ -26,9 +26,9 @@ namespace CatsAndKills.Core
                 ElapsedSeconds += Time.deltaTime;
         }
 
-        public void RecordShot()
+        public void RecordShot(int projectiles = 1)
         {
-            ShotsFired++;
+            ShotsFired += Mathf.Max(1, projectiles);
         }
 
         public void RecordHit()
