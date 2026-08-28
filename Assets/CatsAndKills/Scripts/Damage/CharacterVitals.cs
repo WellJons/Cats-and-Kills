@@ -80,7 +80,14 @@ namespace CatsAndKills.Damage
         public void Heal(float amount)
         {
             if (IsDead || amount <= 0f) return;
+
             Health = Mathf.Min(maxHealth, Health + amount);
+
+            float limbHeal = amount * 0.38f;
+            LeftArm = Mathf.Min(armCapacity, LeftArm + limbHeal);
+            RightArm = Mathf.Min(armCapacity, RightArm + limbHeal);
+            LeftLeg = Mathf.Min(legCapacity, LeftLeg + limbHeal);
+            RightLeg = Mathf.Min(legCapacity, RightLeg + limbHeal);
         }
 
         public void ApplyDamage(BodyPart part, DamageInfo info, float multiplier)
