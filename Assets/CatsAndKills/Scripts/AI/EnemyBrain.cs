@@ -326,6 +326,25 @@ namespace CatsAndKills.AI
                 transform.position,
                 _knownPlayerPos);
 
+            if (vitals != null && !vitals.CanUsePrimaryWeapon)
+            {
+                weapon?.SetTrigger(false);
+
+                if (vitals.LeftLegDisabled && vitals.RightLegDisabled)
+                {
+                    _state = State.Retreat;
+                    motor?.Stop();
+
+                    if (Time.time - _lastCommand > 2.5f)
+                        Callout("НЕ МОГУ СРАЖАТЬСЯ!");
+
+                    return;
+                }
+
+                BeginRetreat();
+                return;
+            }
+
             if (archetype == EnemyArchetype.Demolitionist &&
                 seesPlayer &&
                 distance <= 5.2f)
