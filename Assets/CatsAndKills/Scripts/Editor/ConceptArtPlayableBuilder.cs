@@ -5,6 +5,8 @@ using CatsAndKills.Visual;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace CatsAndKills.EditorTools
 {
@@ -29,6 +31,7 @@ namespace CatsAndKills.EditorTools
 
             AddAtmosphere();
             ImproveCamera();
+            ConfigurePostFX();
             ApplyConceptFX(pack);
 
             EditorSceneManager.MarkSceneDirty(
@@ -64,6 +67,104 @@ namespace CatsAndKills.EditorTools
                     new Vector2(23f, 14f),
                     camera);
             }
+        }
+
+        private static void ConfigurePostFX()
+        {
+            Camera camera = Camera.main;
+
+            if (camera != null)
+            {
+                camera.allowHDR = true;
+
+                UniversalAdditionalCameraData cameraData =
+                    camera.GetComponent<UniversalAdditionalCameraData>();
+
+                if (cameraData == null)
+                {
+                    cameraData =
+                        camera.gameObject.AddComponent<
+                            UniversalAdditionalCameraData>();
+                }
+
+                cameraData.renderPostProcessing = true;
+            }
+
+            GameObject old =
+                GameObject.Find("Concept Post FX");
+
+            if (old != null)
+                Object.DestroyImmediate(old);
+
+            string profilePath =
+                ConceptArtIntegrator.GeneratedRoot +
+                "/Data/ConceptPostFX.asset";
+
+            VolumeProfile profile =
+                AssetDatabase.LoadAssetAtPath<VolumeProfile>(
+                    profilePath);
+
+            if (profile == null)
+            {
+                profile =
+                    ScriptableObject.CreateInstance<VolumeProfile>();
+
+                AssetDatabase.CreateAsset(
+                    profile,
+                    profilePath);
+            }
+
+            if (!profile.TryGet(out Bloom bloom))
+                bloom = profile.Add<Bloom>(true);
+
+            bloom.active = true;
+            bloom.intensity.Override(0.72f);
+            bloom.threshold.Override(0.82f);
+            bloom.scatter.Override(0.72f);
+
+            if (!profile.TryGet(out Vignette vignette))
+                vignette = profile.Add<Vignette>(true);
+
+            vignette.active = true;
+            vignette.intensity.Override(0.34f);
+            vignette.smoothness.Override(0.58f);
+            vignette.rounded.Override(false);
+
+            if (!profile.TryGet(
+                    out ColorAdjustments color))
+            {
+                color =
+                    profile.Add<ColorAdjustments>(true);
+            }
+
+            color.active = true;
+            color.postExposure.Override(-0.08f);
+            color.contrast.Override(20f);
+            color.saturation.Override(-4f);
+            color.colorFilter.Override(
+                new Color(0.90f, 0.93f, 1f));
+
+            if (!profile.TryGet(
+                    out ChromaticAberration chromatic))
+            {
+                chromatic =
+                    profile.Add<ChromaticAberration>(true);
+            }
+
+            chromatic.active = true;
+            chromatic.intensity.Override(0.035f);
+
+            EditorUtility.SetDirty(profile);
+
+            GameObject go =
+                new GameObject("Concept Post FX");
+
+            Volume volume =
+                go.AddComponent<Volume>();
+
+            volume.isGlobal = true;
+            volume.priority = 100f;
+            volume.sharedProfile = profile;
         }
 
         private static void ApplyLitSpriteMaterial()
