@@ -2,6 +2,7 @@ using CatsAndKills.AI;
 using CatsAndKills.Narrative;
 using CatsAndKills.Player;
 using CatsAndKills.Tactical;
+using CatsAndKills.UI;
 using UnityEngine;
 
 namespace CatsAndKills.World
@@ -71,7 +72,7 @@ namespace CatsAndKills.World
 
                     if (Random.value < 0.55f)
                     {
-                        UI.WorldCalloutSystem.Instance?.Show(
+                        WorldCalloutSystem.Instance?.Show(
                             transform,
                             Random.value < 0.5f
                                 ? "СТРЕЛЯЮТ!"
