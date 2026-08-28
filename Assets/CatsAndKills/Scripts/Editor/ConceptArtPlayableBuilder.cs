@@ -7,6 +7,7 @@ using CatsAndKills.Player;
 using CatsAndKills.UI;
 using CatsAndKills.Visual;
 using CatsAndKills.World;
+using CatsAndKills.Tactical;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -145,10 +146,29 @@ namespace CatsAndKills.EditorTools
                 Object.FindAnyObjectByType<
                     RuntimeCharacterVisualBootstrap>() != null;
 
+            TacticalCombatDirector tactical =
+                Object.FindAnyObjectByType<
+                    TacticalCombatDirector>();
+
+            TacticalPlayerController tacticalPlayer =
+                Object.FindAnyObjectByType<
+                    TacticalPlayerController>();
+
+            TacticalEnemyAgent[] tacticalEnemies =
+                Object.FindObjectsByType<
+                    TacticalEnemyAgent>(
+                    FindObjectsSortMode.None);
+
+            bool tacticalReady =
+                tactical != null &&
+                tacticalPlayer != null &&
+                tacticalEnemies.Length >= 12;
+
             bool valid =
                 polish != null &&
                 buildings.Length >= 8 &&
                 solidColliders >= 28 &&
+                tacticalReady &&
                 !legacyFloorPresent &&
                 !legacyPanelPresent &&
                 !legacyHazardPresent &&
@@ -168,7 +188,11 @@ namespace CatsAndKills.EditorTools
                     ", legacyHazard=" +
                     legacyHazardPresent +
                     ", runtimeBootstrap=" +
-                    legacyBootstrapPresent);
+                    legacyBootstrapPresent +
+                    ", tacticalReady=" +
+                    tacticalReady +
+                    ", tacticalEnemies=" +
+                    tacticalEnemies.Length);
 
                 return false;
             }
