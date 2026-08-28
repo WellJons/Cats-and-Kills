@@ -76,6 +76,13 @@ namespace CatsAndKills.AI
             if (Vector2.Angle(_facing, delta) > viewAngle * 0.5f)
                 return false;
 
+            if (TacticalSmokeField2D.IsLineObscured(
+                    origin,
+                    targetPoint))
+            {
+                return false;
+            }
+
             Vector2 direction = delta / distance;
             Vector2 rayOrigin = origin + direction * 0.12f;
 
