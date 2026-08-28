@@ -48,6 +48,26 @@ namespace CatsAndKills.AI
             EnemyMotor2D motor = GetComponent<EnemyMotor2D>();
             if (motor != null) motor.Stop();
 
+            EnemyPerception2D perception =
+                GetComponent<EnemyPerception2D>();
+            if (perception != null)
+                perception.enabled = false;
+
+            EnemyPatrol2D patrol =
+                GetComponent<EnemyPatrol2D>();
+            if (patrol != null)
+                patrol.enabled = false;
+
+            GrenadeAwareness2D grenadeAwareness =
+                GetComponent<GrenadeAwareness2D>();
+            if (grenadeAwareness != null)
+                grenadeAwareness.enabled = false;
+
+            DemolitionistCharge2D charge =
+                GetComponent<DemolitionistCharge2D>();
+            if (charge != null)
+                charge.enabled = false;
+
             foreach (SpriteRenderer sr in _renderers)
             {
                 if (sr == null) continue;
