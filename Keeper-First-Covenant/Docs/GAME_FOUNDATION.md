@@ -78,7 +78,7 @@ The first vertical slice should eventually contain:
 1. a road/forest scene;
 2. Edward and Lucian;
 3. White (unnamed at first);
-4. Borgh and the purchase encounter;
+4. Borg and the purchase encounter;
 5. one optional roadside encounter;
 6. one tactical battle;
 7. searchable enemies and a hidden cache;
