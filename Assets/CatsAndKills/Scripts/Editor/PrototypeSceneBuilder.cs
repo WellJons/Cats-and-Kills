@@ -52,6 +52,16 @@ namespace CatsAndKills.EditorTools
             CreatePickup("Field Medkit", new Vector2(7f, -7f), PickupType.Medkit, 38, new Color(0.25f, 0.9f, 0.45f));
             CreatePickup("Grenade Box", new Vector2(15f, 7f), PickupType.Grenades, 2, new Color(0.95f, 0.65f, 0.15f));
 
+            CreateCheckpoint(
+                "WAREHOUSE",
+                new Vector2(-6.0f, -7.5f),
+                new Vector2(-6.0f, -7.0f));
+
+            CreateCheckpoint(
+                "ADMIN",
+                new Vector2(9.0f, -5.5f),
+                new Vector2(9.0f, -5.0f));
+
             var navGo = new GameObject("Navigation Grid");
             var nav = navGo.AddComponent<NavigationGrid2D>();
             nav.Configure(new Vector2(46f, 28f), 0.65f, 0.27f, 1 << _obstacleLayer);
@@ -113,6 +123,7 @@ namespace CatsAndKills.EditorTools
             new GameObject("Haptics").AddComponent<HapticsManager>();
             new GameObject("Radio Dialogue").AddComponent<RadioDialogueSystem>();
             new GameObject("World Callouts").AddComponent<WorldCalloutSystem>();
+            new GameObject("Runtime Game Menu").AddComponent<RuntimeGameMenu>();
 
             var fxGo = new GameObject("FX Service");
             var fx = fxGo.AddComponent<FXService>();
@@ -595,6 +606,22 @@ namespace CatsAndKills.EditorTools
 
             go.AddComponent<BoxCollider2D>();
             go.AddComponent<DestructibleCover>().Configure(80f, true);
+        }
+
+        private static void CreateCheckpoint(
+            string label,
+            Vector2 position,
+            Vector2 respawn)
+        {
+            var go = new GameObject("Checkpoint // " + label);
+            go.transform.position = position;
+
+            var col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            col.size = new Vector2(2.2f, 2.2f);
+
+            var trigger = go.AddComponent<CheckpointTrigger>();
+            trigger.Configure(label, respawn);
         }
 
         private static void CreatePickup(
