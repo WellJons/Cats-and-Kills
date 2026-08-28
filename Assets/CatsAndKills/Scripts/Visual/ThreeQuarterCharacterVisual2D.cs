@@ -16,6 +16,7 @@ namespace CatsAndKills.Visual
         [SerializeField] private Rigidbody2D body;
         [SerializeField] private HitscanWeapon2D playerWeapon;
         [SerializeField] private EnemyWeapon2D enemyWeapon;
+        [SerializeField] private EnemyBrain enemyBrain;
         [SerializeField] private Transform lookTarget;
         [SerializeField] private float moveThreshold = 0.12f;
         [SerializeField] private float moveFrameRate = 6.0f;
@@ -96,6 +97,9 @@ namespace CatsAndKills.Visual
 
             if (enemyWeapon == null)
                 enemyWeapon = GetComponentInParent<EnemyWeapon2D>();
+
+            if (enemyBrain == null)
+                enemyBrain = GetComponentInParent<EnemyBrain>();
 
             _baseScale = transform.localScale;
             _visualScale = _baseScale;
@@ -287,7 +291,9 @@ namespace CatsAndKills.Visual
             {
                 desired = playerAim.AimDirection;
             }
-            else if (lookTarget != null)
+            else if (lookTarget != null &&
+                     (enemyBrain == null ||
+                      enemyBrain.IsAlerted))
             {
                 Transform root =
                     transform.parent != null
@@ -300,7 +306,8 @@ namespace CatsAndKills.Visual
                     CharacterCombatGeometry2D.AimPoint(
                         root);
             }
-            else if (body != null && body.linearVelocity.sqrMagnitude > 0.02f)
+            else if (body != null &&
+                     body.linearVelocity.sqrMagnitude > 0.02f)
             {
                 desired = body.linearVelocity;
             }
