@@ -18,6 +18,7 @@ namespace CatsAndKills.UI
         [SerializeField] private PlayerSuppression2D suppression;
 
         private float _glitch;
+        private float _damageFlash;
         private GUIStyle _large;
         private GUIStyle _small;
         private GUIStyle _objective;
@@ -44,6 +45,21 @@ namespace CatsAndKills.UI
         public void SetGlitch(float amount)
         {
             _glitch = Mathf.Clamp01(amount);
+        }
+
+        public void FlashDamage(float strength)
+        {
+            _damageFlash = Mathf.Max(
+                _damageFlash,
+                Mathf.Clamp01(strength));
+        }
+
+        private void Update()
+        {
+            _damageFlash = Mathf.MoveTowards(
+                _damageFlash,
+                0f,
+                Time.unscaledDeltaTime * 1.8f);
         }
 
         public void BindMission(MissionDirector missionDirector)
@@ -212,6 +228,22 @@ namespace CatsAndKills.UI
                 new Rect(22, Screen.height - 24, 800, 22),
                 "WASD move  •  LMB fire  •  R reload  •  G grenade  •  E return/interact  •  SPACE dash  •  Q collar  •  1/2/3 weapons",
                 _small);
+
+            if (_damageFlash > 0.01f)
+            {
+                Color oldDamage = GUI.color;
+                GUI.color = new Color(
+                    0.72f,
+                    0.01f,
+                    0.025f,
+                    _damageFlash * 0.22f);
+
+                GUI.DrawTexture(
+                    new Rect(0, 0, Screen.width, Screen.height),
+                    Texture2D.whiteTexture);
+
+                GUI.color = oldDamage;
+            }
 
             if (_glitch > 0.01f)
             {
