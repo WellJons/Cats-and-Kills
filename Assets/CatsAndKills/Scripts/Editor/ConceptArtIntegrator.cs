@@ -741,16 +741,13 @@ namespace CatsAndKills.EditorTools
                             pivotPixelY);
                     }
 
-                    if (id == "player")
-                    {
-                        StripPlayerBakedWeaponExtension(
-                            output,
-                            canvasW,
-                            canvasH,
-                            pivotPixelX,
-                            pivotPixelY,
-                            col);
-                    }
+                    StripBakedWeaponExtension(
+                        output,
+                        canvasW,
+                        canvasH,
+                        pivotPixelX,
+                        pivotPixelY,
+                        col);
 
                     sourceRows[row][col] =
                         SaveGeneratedSprite(
@@ -854,7 +851,7 @@ namespace CatsAndKills.EditorTools
             return set;
         }
 
-        private static void StripPlayerBakedWeaponExtension(
+        private static void StripBakedWeaponExtension(
             Color32[] pixels,
             int width,
             int height,
@@ -979,10 +976,11 @@ namespace CatsAndKills.EditorTools
                         continue;
                     }
 
-                    // The generated concept character already contains a rifle.
-                    // Remove only the protruding weapon/muzzle corridor outside
-                    // the protected body core. The separate weapon renderer can
-                    // then show CK74/pistol/shotgun without drawing two guns.
+                    // Concept character sheets contain the held weapon baked
+                    // into the body pose. Remove only the protruding weapon/
+                    // muzzle corridor outside the protected body core. Player
+                    // and enemies now render their held weapon separately so
+                    // switching, low-ready and shoulder poses are possible.
                     pixels[index] =
                         new Color32(
                             0,
