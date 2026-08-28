@@ -117,10 +117,21 @@ namespace CatsAndKills.Damage
 
             switch (part)
             {
-                case BodyPart.LeftArm: UpdateLimb(part, ref LeftArm, damage, info); break;
-                case BodyPart.RightArm: UpdateLimb(part, ref RightArm, damage, info); break;
-                case BodyPart.LeftLeg: UpdateLimb(part, ref LeftLeg, damage, info); break;
-                case BodyPart.RightLeg: UpdateLimb(part, ref RightLeg, damage, info); break;
+                case BodyPart.LeftArm:
+                    LeftArm = UpdateLimb(part, LeftArm, damage, info);
+                    break;
+
+                case BodyPart.RightArm:
+                    RightArm = UpdateLimb(part, RightArm, damage, info);
+                    break;
+
+                case BodyPart.LeftLeg:
+                    LeftLeg = UpdateLimb(part, LeftLeg, damage, info);
+                    break;
+
+                case BodyPart.RightLeg:
+                    RightLeg = UpdateLimb(part, RightLeg, damage, info);
+                    break;
             }
 
             Damaged?.Invoke(info);
@@ -158,13 +169,19 @@ namespace CatsAndKills.Damage
                 Die();
         }
 
-        private void UpdateLimb(BodyPart part, ref float limb, float damage, DamageInfo info)
+        private float UpdateLimb(
+            BodyPart part,
+            float limb,
+            float damage,
+            DamageInfo info)
         {
             bool wasFunctional = limb > 0f;
-            limb = Mathf.Max(0f, limb - damage);
+            float updated = Mathf.Max(0f, limb - damage);
 
-            if (wasFunctional && limb <= 0f)
+            if (wasFunctional && updated <= 0f)
                 LimbDisabled?.Invoke(part, info);
+
+            return updated;
         }
 
         private void Die()
