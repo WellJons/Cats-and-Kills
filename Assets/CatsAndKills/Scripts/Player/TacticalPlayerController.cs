@@ -6,6 +6,7 @@ using CatsAndKills.Core;
 using CatsAndKills.Damage;
 using CatsAndKills.Narrative;
 using CatsAndKills.Tactical;
+using CatsAndKills.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -417,7 +418,7 @@ namespace CatsAndKills.Player
                         waypoint,
                         7f))
                 {
-                    UI.WorldCalloutSystem.Instance?.Show(
+                    WorldCalloutSystem.Instance?.Show(
                         transform,
                         "ГОРЮ!",
                         0.7f);
