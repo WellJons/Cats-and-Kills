@@ -42,9 +42,9 @@ namespace CatsAndKills.Visual
 
         private IEnumerator Start()
         {
-            yield return null;
-            RebuildAll();
-
+            // The editor builder already creates the canonical visual with all
+            // animation/idle presentation components. Do not destroy it on the
+            // first Play frame. Runtime install is now a fallback only.
             yield return null;
             EnsureAllVisible();
         }
@@ -157,7 +157,16 @@ namespace CatsAndKills.Visual
 
             Transform visual =
                 root.transform.Find(
-                    "Runtime Character Visual");
+                    isPlayer
+                        ? "Player 3-4 Visual"
+                        : "Enemy 3-4 Visual");
+
+            if (visual == null)
+            {
+                visual =
+                    root.transform.Find(
+                        "Runtime Character Visual");
+            }
 
             SpriteRenderer sr =
                 visual != null
