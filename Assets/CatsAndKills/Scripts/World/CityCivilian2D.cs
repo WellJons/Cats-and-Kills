@@ -66,7 +66,19 @@ namespace CatsAndKills.World
             if (tacticalActive)
             {
                 if (!_wasTactical)
+                {
                     FleeFromCombat();
+
+                    if (Random.value < 0.55f)
+                    {
+                        UI.WorldCalloutSystem.Instance?.Show(
+                            transform,
+                            Random.value < 0.5f
+                                ? "СТРЕЛЯЮТ!"
+                                : "В УКРЫТИЕ!",
+                            1.0f);
+                    }
+                }
 
                 _wasTactical = true;
                 return;
