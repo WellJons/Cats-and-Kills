@@ -44,12 +44,12 @@ namespace CatsAndKills.EditorTools
 
             ConceptVisualPolishBuilder.Apply(pack);
 
-            // The source-atlas renderer is the path that actually renders the
-            // generated characters correctly. Install it AFTER the lighting
-            // polish so no lit-material pass can make the cats disappear.
-            InstallDirectAtlasCharacterVisuals();
+            // Use one character presentation pipeline only.
+            // BuildWithPack already installs the stable DirectionalSpriteSet
+            // visuals. The runtime bootstrap only verifies/recreates that path.
+            // Installing the direct-atlas visual here caused a second visual
+            // implementation to be destroyed and replaced on the first Play frame.
             InstallRuntimeCharacterBootstrap();
-            ValidateConceptCharacterVisuals();
 
             ConfigureConceptDoors();
             InstallConceptHUD(pack);
