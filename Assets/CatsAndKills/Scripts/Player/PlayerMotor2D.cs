@@ -20,6 +20,7 @@ namespace CatsAndKills.Player
         [SerializeField] private float dashCooldown = 0.8f;
 
         [SerializeField] private CharacterVitals vitals;
+        [SerializeField] private CollarAbility collar;
 
         private Rigidbody2D _rb;
         private Vector2 _desiredVelocity;
@@ -37,10 +38,12 @@ namespace CatsAndKills.Player
             _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
             if (vitals == null) vitals = GetComponent<CharacterVitals>();
+            if (collar == null) collar = GetComponent<CollarAbility>();
         }
 
         private void Update()
         {
+            if (Time.timeScale <= 0f) return;
             if (vitals != null && vitals.IsDead) return;
 
             if (CKInput.DashPressed && Time.time >= _nextDash && CKInput.Move.sqrMagnitude > 0.05f)
@@ -50,6 +53,14 @@ namespace CatsAndKills.Player
 
             float limbFactor = vitals != null ? vitals.MovementMultiplier : 1f;
             float speed = CKInput.SprintHeld ? sprintSpeed : moveSpeed;
+
+            if (collar != null &&
+                collar.IsActive &&
+                Time.timeScale > 0.01f)
+            {
+                speed /= Time.timeScale;
+            }
+
             _desiredVelocity = CKInput.Move * speed * limbFactor;
         }
 
@@ -67,7 +78,17 @@ namespace CatsAndKills.Player
 
             if (_dashing)
             {
-                _rb.linearVelocity = _dashDirection * dashSpeed;
+                float compensatedDash = dashSpeed;
+
+                if (collar != null &&
+                    collar.IsActive &&
+                    Time.timeScale > 0.01f)
+                {
+                    compensatedDash /= Time.timeScale;
+                }
+
+                _rb.linearVelocity =
+                    _dashDirection * compensatedDash;
                 return;
             }
 
