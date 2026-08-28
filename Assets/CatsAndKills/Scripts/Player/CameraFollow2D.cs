@@ -22,8 +22,9 @@ namespace CatsAndKills.Player
         public void AddImpulse(Vector2 direction, float strength, float decay = 18f)
         {
             if (direction.sqrMagnitude < 0.001f) direction = Random.insideUnitCircle;
-            _impulse += (Vector3)(direction.normalized * strength);
-            _impulse += (Vector3)(Random.insideUnitCircle * strength * 0.45f);
+            float shake = CatsAndKills.Core.GamePreferences.ScreenShake;
+            _impulse += (Vector3)(direction.normalized * strength * shake);
+            _impulse += (Vector3)(Random.insideUnitCircle * strength * 0.45f * shake);
             _impulseDecay = Mathf.Max(1f, decay);
         }
 
