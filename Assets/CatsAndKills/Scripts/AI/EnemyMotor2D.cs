@@ -18,7 +18,9 @@ namespace CatsAndKills.AI
         private int _pathIndex;
         private bool _hasDestination;
 
-        public bool ReachedDestination => !_hasDestination;
+        public bool LastMoveFailed { get; private set; }
+        public bool ReachedDestination => !_hasDestination && !LastMoveFailed;
+        public bool HasDestination => _hasDestination;
         public Vector2 Velocity => _rb != null ? _rb.linearVelocity : Vector2.zero;
 
         public void Configure(NavigationGrid2D nav, float speed = 3.25f)
@@ -36,12 +38,24 @@ namespace CatsAndKills.AI
             if (vitals == null) vitals = GetComponent<CharacterVitals>();
         }
 
-        public void MoveTo(Vector2 destination)
+        public bool MoveTo(Vector2 destination)
         {
-            if (navigation == null) return;
+            LastMoveFailed = false;
+
+            if (navigation == null)
+            {
+                _path.Clear();
+                _pathIndex = 0;
+                _hasDestination = false;
+                LastMoveFailed = true;
+                return false;
+            }
+
             _path = navigation.FindPath(transform.position, destination);
             _pathIndex = 0;
             _hasDestination = _path.Count > 0;
+            LastMoveFailed = !_hasDestination;
+            return _hasDestination;
         }
 
         public void Stop()
@@ -49,6 +63,7 @@ namespace CatsAndKills.AI
             _path.Clear();
             _pathIndex = 0;
             _hasDestination = false;
+            LastMoveFailed = false;
         }
 
         private void FixedUpdate()
