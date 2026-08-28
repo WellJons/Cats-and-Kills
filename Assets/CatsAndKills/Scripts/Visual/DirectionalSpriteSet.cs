@@ -11,6 +11,17 @@ namespace CatsAndKills.Visual
         [SerializeField] private Sprite[] idle = new Sprite[8];
         [SerializeField] private Sprite[] move = new Sprite[8];
         [SerializeField] private Sprite[] moveAlt = new Sprite[8];
+
+        [Header("Eight-frame walk cycle, one sprite per direction in each frame")]
+        [SerializeField] private Sprite[] walkFrame0 = new Sprite[8];
+        [SerializeField] private Sprite[] walkFrame1 = new Sprite[8];
+        [SerializeField] private Sprite[] walkFrame2 = new Sprite[8];
+        [SerializeField] private Sprite[] walkFrame3 = new Sprite[8];
+        [SerializeField] private Sprite[] walkFrame4 = new Sprite[8];
+        [SerializeField] private Sprite[] walkFrame5 = new Sprite[8];
+        [SerializeField] private Sprite[] walkFrame6 = new Sprite[8];
+        [SerializeField] private Sprite[] walkFrame7 = new Sprite[8];
+
         [SerializeField] private Sprite[] fire = new Sprite[8];
         [SerializeField] private Sprite[] reload = new Sprite[8];
         [SerializeField] private Sprite[] hurt = new Sprite[8];
@@ -71,6 +82,82 @@ namespace CatsAndKills.Visual
             hurt = Normalize(hurtSet);
             crawl = Normalize(crawlSet);
             dead = Normalize(deadSet);
+        }
+
+        public void ConfigureWalkCycle(
+            Sprite[] frame0,
+            Sprite[] frame1,
+            Sprite[] frame2,
+            Sprite[] frame3,
+            Sprite[] frame4,
+            Sprite[] frame5,
+            Sprite[] frame6,
+            Sprite[] frame7)
+        {
+            walkFrame0 = Normalize(frame0);
+            walkFrame1 = Normalize(frame1);
+            walkFrame2 = Normalize(frame2);
+            walkFrame3 = Normalize(frame3);
+            walkFrame4 = Normalize(frame4);
+            walkFrame5 = Normalize(frame5);
+            walkFrame6 = Normalize(frame6);
+            walkFrame7 = Normalize(frame7);
+        }
+
+        public Sprite GetWalkFrame(
+            CharacterDirection8 direction,
+            int frame)
+        {
+            switch ((frame % 8 + 8) % 8)
+            {
+                case 0:
+                    return Get(
+                        walkFrame0,
+                        direction,
+                        GetIdle(direction));
+
+                case 1:
+                    return Get(
+                        walkFrame1,
+                        direction,
+                        GetMove(direction));
+
+                case 2:
+                    return Get(
+                        walkFrame2,
+                        direction,
+                        GetMove(direction));
+
+                case 3:
+                    return Get(
+                        walkFrame3,
+                        direction,
+                        GetMove(direction));
+
+                case 4:
+                    return Get(
+                        walkFrame4,
+                        direction,
+                        GetIdle(direction));
+
+                case 5:
+                    return Get(
+                        walkFrame5,
+                        direction,
+                        GetMoveAlt(direction));
+
+                case 6:
+                    return Get(
+                        walkFrame6,
+                        direction,
+                        GetMoveAlt(direction));
+
+                default:
+                    return Get(
+                        walkFrame7,
+                        direction,
+                        GetMoveAlt(direction));
+            }
         }
 
         public Sprite GetIdle(CharacterDirection8 direction) =>
