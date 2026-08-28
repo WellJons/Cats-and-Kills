@@ -18,19 +18,23 @@ namespace CatsAndKills.Visual
         [SerializeField] private EnemyWeapon2D enemyWeapon;
         [SerializeField] private Transform lookTarget;
         [SerializeField] private float moveThreshold = 0.12f;
-        [SerializeField] private float moveFrameRate = 7.25f;
+        [SerializeField] private float moveFrameRate = 6.0f;
 
         [Header("Presentation")]
-        [SerializeField] private float facingSharpness = 11f;
-        [SerializeField] private float directionHysteresis = 7f;
-        [SerializeField] private float offsetSharpness = 18f;
-        [SerializeField] private float scaleSharpness = 16f;
-        [SerializeField] private float idleBreath = 0.007f;
-        [SerializeField] private float walkBob = 0.018f;
-        [SerializeField] private float walkSway = 0.006f;
+        [SerializeField] private float facingSharpness = 20f;
+        [SerializeField] private float directionHysteresis = 4f;
+        [SerializeField] private float offsetSharpness = 24f;
+        [SerializeField] private float scaleSharpness = 24f;
+
+        // The source concept atlas contains only move_a/move_b for each
+        // direction. Procedural bob/sway and cross-fading made those two poses
+        // look like a broken skeletal animation, so keep them visually stable.
+        [SerializeField] private float idleBreath = 0f;
+        [SerializeField] private float walkBob = 0f;
+        [SerializeField] private float walkSway = 0f;
         [SerializeField] private float recoilKick = 0.060f;
         [SerializeField] private float hurtKick = 0.045f;
-        [SerializeField] private float frameBlendTime = 0.018f;
+        [SerializeField] private float frameBlendTime = 0f;
 
         private SpriteRenderer _transitionRenderer;
         private CharacterCombatAnchor2D _combatAnchor;
@@ -101,25 +105,28 @@ namespace CatsAndKills.Visual
 
             EnsureCombatAnchor();
 
-            GameObject blend =
-                new GameObject("Frame Blend");
-
-            blend.transform.SetParent(
-                transform,
-                false);
-
-            _transitionRenderer =
-                blend.AddComponent<SpriteRenderer>();
-
-            _transitionRenderer.enabled = false;
-
-            if (bodyRenderer != null)
+            if (frameBlendTime > 0.001f)
             {
-                _transitionRenderer.sortingLayerID =
-                    bodyRenderer.sortingLayerID;
+                GameObject blend =
+                    new GameObject("Frame Blend");
 
-                _transitionRenderer.sortingOrder =
-                    bodyRenderer.sortingOrder + 1;
+                blend.transform.SetParent(
+                    transform,
+                    false);
+
+                _transitionRenderer =
+                    blend.AddComponent<SpriteRenderer>();
+
+                _transitionRenderer.enabled = false;
+
+                if (bodyRenderer != null)
+                {
+                    _transitionRenderer.sortingLayerID =
+                        bodyRenderer.sortingLayerID;
+
+                    _transitionRenderer.sortingOrder =
+                        bodyRenderer.sortingOrder + 1;
+                }
             }
         }
 
