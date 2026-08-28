@@ -6,6 +6,7 @@ using CatsAndKills.FX;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
 using CatsAndKills.Visual;
+using CatsAndKills.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace CatsAndKills.EditorTools
 
             InstallDirectAtlasCharacterVisuals();
             ConceptVisualPolishBuilder.Apply(pack);
+            ConfigureConceptDoors();
             InstallConceptHUD(pack);
 
             AddAtmosphere();
@@ -75,6 +77,23 @@ namespace CatsAndKills.EditorTools
             }
 
             CreateWorldBackdrop();
+        }
+
+        private static void ConfigureConceptDoors()
+        {
+            foreach (Door2D door in
+                     Object.FindObjectsByType<Door2D>(
+                         FindObjectsSortMode.None))
+            {
+                if (door == null)
+                    continue;
+
+                door.ConfigureSlide(
+                    new Vector2(
+                        0f,
+                        1.05f),
+                    4.8f);
+            }
         }
 
         private static void InstallConceptHUD(
