@@ -68,6 +68,9 @@ namespace CatsAndKills.EditorTools
             CreateStoryTrigger(
                 root.transform);
 
+            CreateDistrictZones(
+                root.transform);
+
             CreatePopulation(
                 root.transform,
                 pack,
@@ -258,6 +261,92 @@ namespace CatsAndKills.EditorTools
                 go.GetComponent<
                     EnemyMotor2D>(),
                 points);
+        }
+
+        private static void CreateDistrictZones(
+            Transform parent)
+        {
+            CreateZone(
+                parent,
+                "Zone // West Gate",
+                new Vector2(-39f, -22f),
+                new Vector2(16f, 14f),
+                "ЗАПАДНЫЕ ВОРОТА // СЕКТОР 7",
+                "zone_west_gate");
+
+            CreateZone(
+                parent,
+                "Zone // Market Street",
+                new Vector2(-16f, -10f),
+                new Vector2(18f, 12f),
+                "РЫНОЧНАЯ УЛИЦА",
+                "zone_market");
+
+            CreateZone(
+                parent,
+                "Zone // Central Plaza",
+                new Vector2(0f, 0f),
+                new Vector2(18f, 18f),
+                "ЦЕНТРАЛЬНАЯ ПЛОЩАДЬ",
+                "zone_plaza");
+
+            CreateZone(
+                parent,
+                "Zone // Warehouse",
+                new Vector2(-23f, 12f),
+                new Vector2(20f, 18f),
+                "СКЛАДСКОЙ КВАРТАЛ",
+                "zone_warehouse");
+
+            CreateZone(
+                parent,
+                "Zone // Administration",
+                new Vector2(25f, 10f),
+                new Vector2(22f, 20f),
+                "АДМИНИСТРАТИВНЫЙ СЕКТОР",
+                "zone_admin");
+
+            CreateZone(
+                parent,
+                "Zone // South Nightlife",
+                new Vector2(10f, -16f),
+                new Vector2(16f, 12f),
+                "ЮЖНАЯ НОЧНАЯ УЛИЦА",
+                "zone_nightlife");
+        }
+
+        private static void CreateZone(
+            Transform parent,
+            string name,
+            Vector2 position,
+            Vector2 size,
+            string displayName,
+            string flag)
+        {
+            GameObject go =
+                new GameObject(name);
+
+            go.transform.SetParent(
+                parent,
+                false);
+
+            go.transform.position =
+                position;
+
+            BoxCollider2D collider =
+                go.AddComponent<
+                    BoxCollider2D>();
+
+            collider.isTrigger = true;
+            collider.size = size;
+
+            DistrictZoneTrigger2D zone =
+                go.AddComponent<
+                    DistrictZoneTrigger2D>();
+
+            zone.Configure(
+                displayName,
+                flag);
         }
 
         private static void CreateStoryTrigger(
@@ -578,6 +667,7 @@ namespace CatsAndKills.EditorTools
 
                     chatter.Configure(
                         AmbientCivilianLines(),
+                        AftermathCivilianLines(),
                         9f,
                         22f);
                 }
@@ -956,6 +1046,23 @@ namespace CatsAndKills.EditorTools
                 "Я домой. Хватит на сегодня.",
                 "Не стой под камерой.",
                 "Городская сеть опять врёт."
+            };
+        }
+
+        private static string[] AftermathCivilianLines()
+        {
+            return new[]
+            {
+                "Ты слышал? У склада стреляли.",
+                "Патрули сейчас перекроют улицу.",
+                "Не смотри туда. Идём.",
+                "Говорят, там несколько трупов.",
+                "Городская сеть уже врёт про диверсанта.",
+                "Домой. Быстро.",
+                "Закрывай лавку, пока не начали проверять всех.",
+                "Я ничего не видел.",
+                "Опять зачистка...",
+                "Комендантский час сегодня начнётся раньше, спорим?"
             };
         }
 
