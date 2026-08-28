@@ -910,6 +910,11 @@ namespace CatsAndKills.EditorTools
                     pivotY +
                     bodyHeight * 0.48f);
 
+            bool aggressiveWeaponStrip =
+                Mathf.Abs(
+                    forward.x) >
+                0.35f;
+
             float bodyHalfWidth =
                 width * 0.18f;
 
@@ -924,16 +929,25 @@ namespace CatsAndKills.EditorTools
             float corridorHalfWidth =
                 Mathf.Max(
                     5f,
-                    height * 0.075f);
+                    height *
+                    (aggressiveWeaponStrip
+                        ? 0.115f
+                        : 0.075f));
 
             float minimumForward =
-                Mathf.Max(
-                    4f,
-                    width * 0.055f);
+                aggressiveWeaponStrip
+                    ? -width * 0.035f
+                    : Mathf.Max(
+                        4f,
+                        width * 0.055f);
 
             float protectLowY =
                 pivotY +
                 bodyHeight * 0.18f;
+
+            float protectHighY =
+                pivotY +
+                bodyHeight * 0.80f;
 
             for (int y = 0;
                  y < height;
@@ -941,6 +955,12 @@ namespace CatsAndKills.EditorTools
             {
                 if (y < protectLowY)
                     continue;
+
+                if (aggressiveWeaponStrip &&
+                    y > protectHighY)
+                {
+                    continue;
+                }
 
                 for (int x = 0;
                      x < width;
@@ -961,8 +981,11 @@ namespace CatsAndKills.EditorTools
                         y >= bodyMinY &&
                         y <= bodyMaxY;
 
-                    if (bodyCore)
+                    if (bodyCore &&
+                        !aggressiveWeaponStrip)
+                    {
                         continue;
+                    }
 
                     Vector2 relative =
                         new Vector2(
