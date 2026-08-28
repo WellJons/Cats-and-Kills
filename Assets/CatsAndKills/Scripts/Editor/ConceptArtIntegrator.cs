@@ -399,7 +399,7 @@ namespace CatsAndKills.EditorTools
                             (float)rowsCount);
 
                     sourceRows[row][col] =
-                        Crop(
+                        CropCharacterCell(
                             atlas,
                             "Characters/" +
                             id + "/source_" +
@@ -409,8 +409,7 @@ namespace CatsAndKills.EditorTools
                             top0,
                             x1 - x0,
                             top1 - top0,
-                            128f,
-                            new Vector2(0.5f, 0.075f));
+                            128f);
                 }
             }
 
@@ -483,6 +482,114 @@ namespace CatsAndKills.EditorTools
                 case 3: return "fire";
                 default: return "hurt";
             }
+        }
+
+        private static Sprite CropCharacterCell(
+            Texture2D source,
+            string relativePath,
+            int nominalX,
+            int nominalTop,
+            int nominalWidth,
+            int nominalHeight,
+            float ppu)
+        {
+            if (source == null)
+                return null;
+
+            int padX =
+                Mathf.RoundToInt(
+                    nominalWidth * 0.10f);
+
+            int padY =
+                Mathf.RoundToInt(
+                    nominalHeight * 0.08f);
+
+            int cropWidth =
+                Mathf.Min(
+                    source.width,
+                    nominalWidth +
+                    padX * 2);
+
+            int cropHeight =
+                Mathf.Min(
+                    source.height,
+                    nominalHeight +
+                    padY * 2);
+
+            float centerX =
+                nominalX +
+                nominalWidth * 0.5f;
+
+            float centerTop =
+                nominalTop +
+                nominalHeight * 0.5f;
+
+            int cropX =
+                Mathf.RoundToInt(
+                    centerX -
+                    cropWidth * 0.5f);
+
+            int cropTop =
+                Mathf.RoundToInt(
+                    centerTop -
+                    cropHeight * 0.5f);
+
+            cropX =
+                Mathf.Clamp(
+                    cropX,
+                    0,
+                    source.width -
+                    cropWidth);
+
+            cropTop =
+                Mathf.Clamp(
+                    cropTop,
+                    0,
+                    source.height -
+                    cropHeight);
+
+            float nominalPivotX =
+                nominalX +
+                nominalWidth * 0.5f;
+
+            float nominalBottom =
+                source.height -
+                nominalTop -
+                nominalHeight;
+
+            float nominalPivotY =
+                nominalBottom +
+                nominalHeight * 0.075f;
+
+            float cropBottom =
+                source.height -
+                cropTop -
+                cropHeight;
+
+            Vector2 pivot =
+                new Vector2(
+                    Mathf.Clamp01(
+                        (nominalPivotX -
+                         cropX) /
+                        Mathf.Max(
+                            1f,
+                            cropWidth)),
+                    Mathf.Clamp01(
+                        (nominalPivotY -
+                         cropBottom) /
+                        Mathf.Max(
+                            1f,
+                            cropHeight)));
+
+            return Crop(
+                source,
+                relativePath,
+                cropX,
+                cropTop,
+                cropWidth,
+                cropHeight,
+                ppu,
+                pivot);
         }
 
         private static Sprite CreateFacilityFloorTexture(
