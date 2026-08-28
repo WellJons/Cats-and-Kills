@@ -122,6 +122,7 @@ namespace CatsAndKills.Combat
 
             _nextShotTime = Time.time + 1f / Mathf.Max(0.01f, definition.fireRate);
             Magazine--;
+            CombatStats.Instance?.RecordShot();
 
             float movement01 = motor != null ? Mathf.Clamp01(motor.Velocity.magnitude / 7f) : 0f;
             float stability = ownerVitals != null ? ownerVitals.WeaponStabilityMultiplier : 1f;
@@ -213,6 +214,9 @@ namespace CatsAndKills.Combat
                 var receiver = hit.collider.GetComponent<IDamageReceiver>();
                 if (receiver == null)
                     receiver = hit.collider.GetComponentInParent<IDamageReceiver>();
+
+                if (receiver != null)
+                    CombatStats.Instance?.RecordHit();
 
                 receiver?.ReceiveDamage(new DamageInfo(
                     definition.damage,
