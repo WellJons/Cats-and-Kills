@@ -18,14 +18,18 @@ namespace CatsAndKills.Visual
         [SerializeField] private EnemyWeapon2D enemyWeapon;
         [SerializeField] private Transform lookTarget;
         [SerializeField] private float moveThreshold = 0.12f;
-        [SerializeField] private float moveFrameRate = 8f;
+        [SerializeField] private float moveFrameRate = 5.25f;
 
         [Header("Presentation")]
-        [SerializeField] private float idleBreath = 0.012f;
-        [SerializeField] private float walkBob = 0.045f;
-        [SerializeField] private float walkSway = 0.018f;
-        [SerializeField] private float recoilKick = 0.075f;
-        [SerializeField] private float hurtKick = 0.055f;
+        [SerializeField] private float facingSharpness = 11f;
+        [SerializeField] private float directionHysteresis = 7f;
+        [SerializeField] private float offsetSharpness = 18f;
+        [SerializeField] private float scaleSharpness = 16f;
+        [SerializeField] private float idleBreath = 0.007f;
+        [SerializeField] private float walkBob = 0.026f;
+        [SerializeField] private float walkSway = 0.009f;
+        [SerializeField] private float recoilKick = 0.060f;
+        [SerializeField] private float hurtKick = 0.045f;
 
         private float _fireUntil;
         private float _recoil;
@@ -34,6 +38,9 @@ namespace CatsAndKills.Visual
         private Vector3 _baseScale = Vector3.one;
 
         private Vector2 _facing = Vector2.down;
+        private Vector2 _smoothedFacing = Vector2.down;
+        private Vector3 _visualOffset = Vector3.zero;
+        private Vector3 _visualScale = Vector3.one;
         private float _hurtUntil;
         private CharacterDirection8 _direction = CharacterDirection8.South;
 
@@ -79,6 +86,9 @@ namespace CatsAndKills.Visual
                 enemyWeapon = GetComponentInParent<EnemyWeapon2D>();
 
             _baseScale = transform.localScale;
+            _visualScale = _baseScale;
+            _visualOffset = Vector3.zero;
+            _smoothedFacing = _facing;
             _phase = Random.Range(0f, Mathf.PI * 2f);
         }
 
@@ -158,19 +168,51 @@ namespace CatsAndKills.Visual
             }
 
             if (desired.sqrMagnitude > 0.001f)
+            {
                 _facing = desired.normalized;
 
+                float t =
+                    1f -
+                    Mathf.Exp(
+                        -facingSharpness *
+                        Time.unscaledDeltaTime);
+
+                _smoothedFacing =
+                    Vector2.Lerp(
+                        _smoothedFacing,
+                        _facing,
+                        t).normalized;
+            }
+
             float angle =
-                Mathf.Atan2(_facing.y, _facing.x) *
+                Mathf.Atan2(
+                    _smoothedFacing.y,
+                    _smoothedFacing.x) *
                 Mathf.Rad2Deg;
 
             if (angle < 0f)
                 angle += 360f;
 
-            int sector =
-                Mathf.RoundToInt(angle / 45f) % 8;
+            float currentCenter =
+                ((int)_direction) * 45f;
 
-            _direction = (CharacterDirection8)sector;
+            float distanceFromCurrent =
+                Mathf.Abs(
+                    Mathf.DeltaAngle(
+                        currentCenter,
+                        angle));
+
+            if (distanceFromCurrent >
+                22.5f + directionHysteresis)
+            {
+                int sector =
+                    Mathf.RoundToInt(
+                        angle / 45f) %
+                    8;
+
+                _direction =
+                    (CharacterDirection8)sector;
+            }
         }
 
         private void UpdateSprite()
@@ -320,8 +362,40 @@ namespace CatsAndKills.Visual
                     _hurtImpulse;
             }
 
-            transform.position = world;
-            transform.localScale = scale;
+            Vector3 targetOffset =
+                world -
+                transform.parent.position;
+
+            float positionT =
+                1f -
+                Mathf.Exp(
+                    -offsetSharpness *
+                    Time.unscaledDeltaTime);
+
+            float scaleT =
+                1f -
+                Mathf.Exp(
+                    -scaleSharpness *
+                    Time.unscaledDeltaTime);
+
+            _visualOffset =
+                Vector3.Lerp(
+                    _visualOffset,
+                    targetOffset,
+                    positionT);
+
+            _visualScale =
+                Vector3.Lerp(
+                    _visualScale,
+                    scale,
+                    scaleT);
+
+            transform.position =
+                transform.parent.position +
+                _visualOffset;
+
+            transform.localScale =
+                _visualScale;
         }
 
         private void OnDamaged(DamageInfo info)
