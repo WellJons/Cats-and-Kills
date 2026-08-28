@@ -360,6 +360,15 @@ namespace CatsAndKills.Visual
                 return;
             }
 
+            if (bodyRenderer != null)
+            {
+                _transitionRenderer.sortingLayerID =
+                    bodyRenderer.sortingLayerID;
+
+                _transitionRenderer.sortingOrder =
+                    bodyRenderer.sortingOrder + 1;
+            }
+
             float remaining =
                 _transitionUntil -
                 Time.unscaledTime;
