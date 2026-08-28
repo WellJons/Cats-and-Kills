@@ -24,6 +24,12 @@ namespace CatsAndKills.UI
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         public void Say(string speaker, string text, float duration = 3.2f)
         {
             _queue.Enqueue((speaker, text, duration));
