@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.Player;
 using CatsAndKills.Tactical;
@@ -201,9 +203,9 @@ namespace CatsAndKills.AI
                 navigation != null &&
                 motor != null)
             {
-                var path =
-                    navigation.FindPath(
-                        transform.position,
+                List<Vector2> path =
+                    FindSafeAdvancePath(
+                        navigation,
                         player.position);
 
                 int maxSteps =
@@ -264,5 +266,103 @@ namespace CatsAndKills.AI
 
             yield return new WaitForSeconds(0.12f);
         }
+        private List<Vector2> FindSafeAdvancePath(
+            NavigationGrid2D navigation,
+            Vector2 target)
+        {
+            List<Vector2> direct =
+                navigation.FindPath(
+                    transform.position,
+                    target);
+
+            if (!PathTouchesFire(direct))
+                return direct;
+
+            Vector2 toTarget =
+                target -
+                (Vector2)transform.position;
+
+            if (toTarget.sqrMagnitude <
+                0.01f)
+            {
+                return direct;
+            }
+
+            Vector2 forward =
+                toTarget.normalized;
+
+            Vector2 side =
+                new Vector2(
+                    -forward.y,
+                    forward.x);
+
+            List<Vector2> best = null;
+            float bestScore =
+                float.PositiveInfinity;
+
+            Vector2[] candidates =
+            {
+                target + side * 3.0f,
+                target - side * 3.0f,
+                target + side * 5.0f,
+                target - side * 5.0f,
+                target - forward * 2.5f
+            };
+
+            for (int i = 0;
+                 i < candidates.Length;
+                 i++)
+            {
+                List<Vector2> candidate =
+                    navigation.FindPath(
+                        transform.position,
+                        candidates[i]);
+
+                if (candidate.Count == 0 ||
+                    PathTouchesFire(candidate))
+                {
+                    continue;
+                }
+
+                float score =
+                    candidate.Count +
+                    Vector2.Distance(
+                        candidate[
+                            candidate.Count - 1],
+                        target) *
+                    0.35f;
+
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = candidate;
+                }
+            }
+
+            return best ??
+                   direct;
+        }
+
+        private static bool PathTouchesFire(
+            List<Vector2> path)
+        {
+            if (path == null)
+                return false;
+
+            for (int i = 0;
+                 i < path.Count;
+                 i++)
+            {
+                if (TacticalFireField2D
+                    .IsDangerousPoint(
+                        path[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
     }
 }
