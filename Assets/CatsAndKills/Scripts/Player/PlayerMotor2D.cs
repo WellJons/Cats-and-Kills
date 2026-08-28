@@ -41,6 +41,12 @@ namespace CatsAndKills.Player
             if (collar == null) collar = GetComponent<CollarAbility>();
         }
 
+        private void Start()
+        {
+            if (collar == null)
+                collar = GetComponent<CollarAbility>();
+        }
+
         private void Update()
         {
             if (Time.timeScale <= 0f) return;
