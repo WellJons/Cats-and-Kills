@@ -28,6 +28,9 @@ namespace CatsAndKills.AI
         [SerializeField] private SquadController squad;
         [SerializeField] private CoverManager coverManager;
         [SerializeField] private CharacterVitals vitals;
+        [SerializeField] private SuppressionReceiver2D suppression;
+        [SerializeField] private GrenadeAwareness2D grenadeAwareness;
+        [SerializeField] private EnemyMorale2D morale;
 
         [Header("Identity")]
         [SerializeField] private EnemyArchetype archetype = EnemyArchetype.Rifleman;
@@ -132,6 +135,9 @@ namespace CatsAndKills.AI
             if (weapon == null) weapon = GetComponent<EnemyWeapon2D>();
             if (grenades == null) grenades = GetComponent<EnemyGrenadeThrower>();
             if (vitals == null) vitals = GetComponent<CharacterVitals>();
+            if (suppression == null) suppression = GetComponent<SuppressionReceiver2D>();
+            if (grenadeAwareness == null) grenadeAwareness = GetComponent<GrenadeAwareness2D>();
+            if (morale == null) morale = GetComponent<EnemyMorale2D>();
         }
 
         private void OnEnable()
@@ -165,6 +171,20 @@ namespace CatsAndKills.AI
         private void Update()
         {
             if (vitals != null && vitals.IsDead) return;
+
+            if (grenadeAwareness != null &&
+                grenadeAwareness.TryGetEvadePoint(out Vector2 evadePoint))
+            {
+                ReleaseCover();
+                _state = State.Retreat;
+                weapon?.SetTrigger(false);
+                motor?.MoveTo(evadePoint);
+
+                if (Time.time - _lastCommand > 1.1f)
+                    Callout("ГРАНАТА! ВРОССЫПНУЮ!");
+
+                return;
+            }
 
             bool sees = player != null && perception != null && perception.CanSee(player);
 
@@ -274,6 +294,23 @@ namespace CatsAndKills.AI
             float distance = Vector2.Distance(
                 transform.position,
                 _knownPlayerPos);
+
+            if (morale != null && morale.Broken)
+            {
+                BeginRetreat();
+                return;
+            }
+
+            if (suppression != null && suppression.IsPinned)
+            {
+                if (_cover == null || _state != State.HoldCover)
+                    TryTakeCover();
+
+                if (Time.time - _lastCommand > 1.2f)
+                    Callout("ПРИЖАЛ! НУЖНО УКРЫТИЕ!");
+
+                return;
+            }
 
             if (!seesPlayer)
             {
