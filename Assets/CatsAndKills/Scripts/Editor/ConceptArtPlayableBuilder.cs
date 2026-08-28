@@ -44,6 +44,7 @@ namespace CatsAndKills.EditorTools
 
             ApplyConceptWeaponSprites(pack);
             ConceptVisualPolishBuilder.Apply(pack);
+            RebuildConceptCoverPoints();
             RebuildConceptNavigation();
 
             // Use one character presentation pipeline only.
@@ -201,6 +202,104 @@ namespace CatsAndKills.EditorTools
 
             EditorUtility.SetDirty(
                 definition);
+        }
+
+        private static void RebuildConceptCoverPoints()
+        {
+            foreach (CoverPoint point in
+                     Object.FindObjectsByType<CoverPoint>(
+                         FindObjectsSortMode.None))
+            {
+                if (point != null)
+                    Object.DestroyImmediate(
+                        point.gameObject);
+            }
+
+            GameObject polishRoot =
+                GameObject.Find(
+                    "Concept Visual Polish");
+
+            if (polishRoot == null)
+                return;
+
+            Physics2D.SyncTransforms();
+
+            int obstacleLayer =
+                LayerMask.NameToLayer(
+                    "Obstacles");
+
+            int obstacleMask =
+                obstacleLayer >= 0
+                    ? 1 << obstacleLayer
+                    : 0;
+
+            foreach (BoxCollider2D obstacle in
+                     polishRoot.GetComponentsInChildren<BoxCollider2D>(
+                         true))
+            {
+                if (obstacle == null ||
+                    !obstacle.enabled)
+                {
+                    continue;
+                }
+
+                Bounds bounds =
+                    obstacle.bounds;
+
+                float clearance =
+                    0.44f;
+
+                Vector2 center =
+                    bounds.center;
+
+                Vector2[] candidates =
+                {
+                    new Vector2(
+                        bounds.min.x - clearance,
+                        center.y),
+                    new Vector2(
+                        bounds.max.x + clearance,
+                        center.y),
+                    new Vector2(
+                        center.x,
+                        bounds.min.y - clearance),
+                    new Vector2(
+                        center.x,
+                        bounds.max.y + clearance)
+                };
+
+                foreach (Vector2 raw in candidates)
+                {
+                    Vector2 position =
+                        new Vector2(
+                            Mathf.Clamp(
+                                raw.x,
+                                -21.7f,
+                                21.7f),
+                            Mathf.Clamp(
+                                raw.y,
+                                -12.7f,
+                                12.7f));
+
+                    if (obstacleMask != 0 &&
+                        Physics2D.OverlapCircle(
+                            position,
+                            0.22f,
+                            obstacleMask) != null)
+                    {
+                        continue;
+                    }
+
+                    GameObject go =
+                        new GameObject(
+                            "Concept Cover Point");
+
+                    go.transform.position =
+                        position;
+
+                    go.AddComponent<CoverPoint>();
+                }
+            }
         }
 
         private static void RebuildConceptNavigation()
