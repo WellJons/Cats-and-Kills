@@ -216,6 +216,10 @@ namespace CatsAndKills.UI
                 w,
                 h);
 
+            DrawCollarGlitch(
+                w,
+                h);
+
             DrawDamageOverlay(
                 w,
                 h);
@@ -504,6 +508,73 @@ namespace CatsAndKills.UI
                     w,
                     h),
                 Texture2D.whiteTexture);
+
+            GUI.color = old;
+        }
+
+        private void DrawCollarGlitch(
+            float w,
+            float h)
+        {
+            if (_collar == null ||
+                !_collar.IsActive)
+            {
+                return;
+            }
+
+            float t =
+                Time.unscaledTime;
+
+            Color old =
+                GUI.color;
+
+            GUI.color =
+                new Color(
+                    0.45f,
+                    0.08f,
+                    0.55f,
+                    0.045f);
+
+            GUI.DrawTexture(
+                new Rect(
+                    0f,
+                    0f,
+                    w,
+                    h),
+                Texture2D.whiteTexture);
+
+            for (int i = 0; i < 7; i++)
+            {
+                float y =
+                    Mathf.Repeat(
+                        t * (80f + i * 13f) +
+                        i * 117f,
+                        h);
+
+                float height =
+                    2f + (i % 3) * 2f;
+
+                GUI.color =
+                    i % 2 == 0
+                        ? new Color(
+                            0.90f,
+                            0.06f,
+                            0.48f,
+                            0.10f)
+                        : new Color(
+                            0.08f,
+                            0.70f,
+                            0.94f,
+                            0.08f);
+
+                GUI.DrawTexture(
+                    new Rect(
+                        -8f,
+                        y,
+                        w + 16f,
+                        height),
+                    Texture2D.whiteTexture);
+            }
 
             GUI.color = old;
         }
