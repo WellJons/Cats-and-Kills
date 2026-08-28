@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CatsAndKills.AI;
 using CatsAndKills.Combat;
 using CatsAndKills.Damage;
@@ -36,6 +37,10 @@ namespace CatsAndKills.Visual
         [SerializeField] private float recoilKick = 0.060f;
         [SerializeField] private float hurtKick = 0.045f;
         [SerializeField] private float frameBlendTime = 0f;
+
+        private static readonly Dictionary<string, Sprite>
+            DismemberedSpriteCache =
+                new Dictionary<string, Sprite>();
 
         private SpriteRenderer _transitionRenderer;
         private CharacterCombatAnchor2D _combatAnchor;
@@ -428,6 +433,14 @@ namespace CatsAndKills.Visual
                 next = sprites.GetIdle(_direction);
             }
 
+            if (next != null)
+            {
+                next =
+                    ResolveDismemberedSprite(
+                        next,
+                        _direction);
+            }
+
             bool nextFlip =
                 sprites.ShouldFlipX(_direction);
 
@@ -464,6 +477,363 @@ namespace CatsAndKills.Visual
             }
 
             bodyRenderer.flipX = nextFlip;
+        }
+
+        private Sprite ResolveDismemberedSprite(
+            Sprite source,
+            CharacterDirection8 direction)
+        {
+            if (source == null ||
+                vitals == null)
+            {
+                return source;
+            }
+
+            int mask = 0;
+
+            if (vitals.IsDismembered(
+                    BodyPart.LeftArm))
+            {
+                mask |= 1;
+            }
+
+            if (vitals.IsDismembered(
+                    BodyPart.RightArm))
+            {
+                mask |= 2;
+            }
+
+            if (vitals.IsDismembered(
+                    BodyPart.LeftLeg))
+            {
+                mask |= 4;
+            }
+
+            if (vitals.IsDismembered(
+                    BodyPart.RightLeg))
+            {
+                mask |= 8;
+            }
+
+            if (mask == 0)
+                return source;
+
+            string key =
+                source.GetInstanceID() +
+                ":" +
+                mask +
+                ":" +
+                (int)direction;
+
+            if (DismemberedSpriteCache.TryGetValue(
+                    key,
+                    out Sprite cached) &&
+                cached != null)
+            {
+                return cached;
+            }
+
+            Texture2D texture =
+                source.texture;
+
+            if (texture == null)
+                return source;
+
+            Color32[] pixels;
+
+            try
+            {
+                pixels =
+                    texture.GetPixels32(0);
+            }
+            catch
+            {
+                return source;
+            }
+
+            int width =
+                texture.width;
+
+            int height =
+                texture.height;
+
+            if (pixels == null ||
+                pixels.Length !=
+                width * height)
+            {
+                return source;
+            }
+
+            Color32[] output =
+                new Color32[
+                    pixels.Length];
+
+            System.Array.Copy(
+                pixels,
+                output,
+                pixels.Length);
+
+            if ((mask & 1) != 0)
+            {
+                EraseLimbRegion(
+                    output,
+                    width,
+                    height,
+                    BodyPart.LeftArm,
+                    direction);
+            }
+
+            if ((mask & 2) != 0)
+            {
+                EraseLimbRegion(
+                    output,
+                    width,
+                    height,
+                    BodyPart.RightArm,
+                    direction);
+            }
+
+            if ((mask & 4) != 0)
+            {
+                EraseLimbRegion(
+                    output,
+                    width,
+                    height,
+                    BodyPart.LeftLeg,
+                    direction);
+            }
+
+            if ((mask & 8) != 0)
+            {
+                EraseLimbRegion(
+                    output,
+                    width,
+                    height,
+                    BodyPart.RightLeg,
+                    direction);
+            }
+
+            Texture2D generated =
+                new Texture2D(
+                    width,
+                    height,
+                    TextureFormat.RGBA32,
+                    false);
+
+            generated.name =
+                source.name +
+                "_dismembered_" +
+                mask;
+
+            generated.filterMode =
+                texture.filterMode;
+
+            generated.wrapMode =
+                TextureWrapMode.Clamp;
+
+            generated.SetPixels32(
+                output);
+
+            generated.Apply();
+
+            Rect rect =
+                new Rect(
+                    0f,
+                    0f,
+                    width,
+                    height);
+
+            Vector2 pivot =
+                new Vector2(
+                    source.pivot.x /
+                    Mathf.Max(
+                        1f,
+                        source.rect.width),
+                    source.pivot.y /
+                    Mathf.Max(
+                        1f,
+                        source.rect.height));
+
+            Sprite generatedSprite =
+                Sprite.Create(
+                    generated,
+                    rect,
+                    pivot,
+                    source.pixelsPerUnit,
+                    0,
+                    SpriteMeshType.FullRect);
+
+            generatedSprite.name =
+                generated.name;
+
+            DismemberedSpriteCache[key] =
+                generatedSprite;
+
+            return generatedSprite;
+        }
+
+        private static void EraseLimbRegion(
+            Color32[] pixels,
+            int width,
+            int height,
+            BodyPart part,
+            CharacterDirection8 direction)
+        {
+            Vector2 center;
+            Vector2 radius;
+
+            switch (part)
+            {
+                case BodyPart.LeftArm:
+                    center =
+                        new Vector2(
+                            0.34f,
+                            0.53f);
+
+                    radius =
+                        new Vector2(
+                            0.13f,
+                            0.20f);
+                    break;
+
+                case BodyPart.RightArm:
+                    center =
+                        new Vector2(
+                            0.66f,
+                            0.53f);
+
+                    radius =
+                        new Vector2(
+                            0.13f,
+                            0.20f);
+                    break;
+
+                case BodyPart.LeftLeg:
+                    center =
+                        new Vector2(
+                            0.42f,
+                            0.20f);
+
+                    radius =
+                        new Vector2(
+                            0.12f,
+                            0.22f);
+                    break;
+
+                default:
+                    center =
+                        new Vector2(
+                            0.58f,
+                            0.20f);
+
+                    radius =
+                        new Vector2(
+                            0.12f,
+                            0.22f);
+                    break;
+            }
+
+            bool westFacing =
+                direction ==
+                    CharacterDirection8.West ||
+                direction ==
+                    CharacterDirection8.NorthWest ||
+                direction ==
+                    CharacterDirection8.SouthWest;
+
+            if (westFacing)
+                center.x = 1f - center.x;
+
+            if (direction ==
+                CharacterDirection8.North)
+            {
+                center.y +=
+                    part == BodyPart.LeftArm ||
+                    part == BodyPart.RightArm
+                        ? 0.03f
+                        : 0f;
+            }
+
+            float cx =
+                center.x *
+                (width - 1);
+
+            float cy =
+                center.y *
+                (height - 1);
+
+            float rx =
+                Mathf.Max(
+                    1f,
+                    radius.x *
+                    width);
+
+            float ry =
+                Mathf.Max(
+                    1f,
+                    radius.y *
+                    height);
+
+            int minX =
+                Mathf.Max(
+                    0,
+                    Mathf.FloorToInt(
+                        cx - rx));
+
+            int maxX =
+                Mathf.Min(
+                    width - 1,
+                    Mathf.CeilToInt(
+                        cx + rx));
+
+            int minY =
+                Mathf.Max(
+                    0,
+                    Mathf.FloorToInt(
+                        cy - ry));
+
+            int maxY =
+                Mathf.Min(
+                    height - 1,
+                    Mathf.CeilToInt(
+                        cy + ry));
+
+            for (int y = minY;
+                 y <= maxY;
+                 y++)
+            {
+                for (int x = minX;
+                     x <= maxX;
+                     x++)
+                {
+                    float nx =
+                        (x - cx) /
+                        rx;
+
+                    float ny =
+                        (y - cy) /
+                        ry;
+
+                    if (nx * nx +
+                        ny * ny >
+                        1f)
+                    {
+                        continue;
+                    }
+
+                    int index =
+                        y *
+                        width +
+                        x;
+
+                    pixels[index] =
+                        new Color32(
+                            0,
+                            0,
+                            0,
+                            0);
+                }
+            }
         }
 
         private void UpdateFrameBlend()
