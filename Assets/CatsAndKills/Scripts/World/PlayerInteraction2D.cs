@@ -12,6 +12,7 @@ namespace CatsAndKills.World
         {
             if (Time.timeScale <= 0f) return;
             if (!CKInput.InteractPressed) return;
+            if (InputConsumption.InteractConsumed) return;
 
             Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
             IInteractable closest = null;
