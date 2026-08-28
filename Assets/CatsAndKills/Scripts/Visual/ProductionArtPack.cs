@@ -43,6 +43,7 @@ namespace CatsAndKills.Visual
         public Sprite bloodDrop;
         public Sprite bulletHole;
         public Sprite spark;
+        public Sprite casing;
         public Sprite smoke;
         public Sprite explosion;
         public Sprite softShadow;
