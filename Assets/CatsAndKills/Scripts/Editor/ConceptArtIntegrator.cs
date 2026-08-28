@@ -813,6 +813,13 @@ namespace CatsAndKills.EditorTools
                 mapped[row] = dst;
             }
 
+            Sprite[][] walkCycle =
+                BuildWalkCycle(
+                    id,
+                    mapped[0],
+                    mapped[1],
+                    mapped[2]);
+
             string dataPath =
                 GeneratedRoot +
                 "/Data/" +
@@ -845,6 +852,16 @@ namespace CatsAndKills.EditorTools
                 mapped[1],
                 mapped[4],
                 true);
+
+            set.ConfigureWalkCycle(
+                walkCycle[0],
+                walkCycle[1],
+                walkCycle[2],
+                walkCycle[3],
+                walkCycle[4],
+                walkCycle[5],
+                walkCycle[6],
+                walkCycle[7]);
 
             EditorUtility.SetDirty(set);
 
@@ -1029,6 +1046,238 @@ namespace CatsAndKills.EditorTools
                 default:
                     return Vector2.zero;
             }
+        }
+
+        private static Sprite[][] BuildWalkCycle(
+            string id,
+            Sprite[] idle,
+            Sprite[] moveA,
+            Sprite[] moveB)
+        {
+            var frames =
+                new Sprite[8][];
+
+            frames[0] =
+                idle;
+
+            frames[1] =
+                CreateWalkCompositeSet(
+                    id,
+                    "walk_01",
+                    idle,
+                    moveA,
+                    0.36f);
+
+            frames[2] =
+                moveA;
+
+            frames[3] =
+                CreateWalkCompositeSet(
+                    id,
+                    "walk_03",
+                    idle,
+                    moveA,
+                    0.54f);
+
+            frames[4] =
+                idle;
+
+            frames[5] =
+                CreateWalkCompositeSet(
+                    id,
+                    "walk_05",
+                    idle,
+                    moveB,
+                    0.36f);
+
+            frames[6] =
+                moveB;
+
+            frames[7] =
+                CreateWalkCompositeSet(
+                    id,
+                    "walk_07",
+                    idle,
+                    moveB,
+                    0.54f);
+
+            return frames;
+        }
+
+        private static Sprite[] CreateWalkCompositeSet(
+            string id,
+            string frameId,
+            Sprite[] upperSet,
+            Sprite[] lowerSet,
+            float lowerCutoff01)
+        {
+            var result =
+                new Sprite[8];
+
+            for (int i = 0;
+                 i < result.Length;
+                 i++)
+            {
+                Sprite upper =
+                    upperSet != null &&
+                    i < upperSet.Length
+                        ? upperSet[i]
+                        : null;
+
+                Sprite lower =
+                    lowerSet != null &&
+                    i < lowerSet.Length
+                        ? lowerSet[i]
+                        : null;
+
+                result[i] =
+                    CreateLowerBodyComposite(
+                        upper,
+                        lower,
+                        "Characters/" +
+                        id +
+                        "/" +
+                        frameId +
+                        "_" +
+                        i,
+                        lowerCutoff01);
+            }
+
+            return result;
+        }
+
+        private static Sprite CreateLowerBodyComposite(
+            Sprite upper,
+            Sprite lower,
+            string relativePath,
+            float lowerCutoff01)
+        {
+            if (upper == null)
+                return lower;
+
+            if (lower == null)
+                return upper;
+
+            Texture2D upperTexture =
+                upper.texture;
+
+            Texture2D lowerTexture =
+                lower.texture;
+
+            if (upperTexture == null ||
+                lowerTexture == null ||
+                upperTexture.width != lowerTexture.width ||
+                upperTexture.height != lowerTexture.height)
+            {
+                return lower;
+            }
+
+            Color32[] upperPixels =
+                upperTexture.GetPixels32(0);
+
+            Color32[] lowerPixels =
+                lowerTexture.GetPixels32(0);
+
+            if (upperPixels.Length !=
+                lowerPixels.Length)
+            {
+                return lower;
+            }
+
+            int width =
+                upperTexture.width;
+
+            int height =
+                upperTexture.height;
+
+            Color32[] output =
+                new Color32[
+                    upperPixels.Length];
+
+            float cutoff =
+                Mathf.Clamp01(
+                    lowerCutoff01) *
+                Mathf.Max(
+                    1,
+                    height - 1);
+
+            float blendBand =
+                Mathf.Max(
+                    2f,
+                    height *
+                    0.035f);
+
+            for (int y = 0;
+                 y < height;
+                 y++)
+            {
+                float lowerWeight =
+                    1f -
+                    Mathf.InverseLerp(
+                        cutoff -
+                        blendBand,
+                        cutoff +
+                        blendBand,
+                        y);
+
+                for (int x = 0;
+                     x < width;
+                     x++)
+                {
+                    int index =
+                        y *
+                        width +
+                        x;
+
+                    Color32 a =
+                        upperPixels[index];
+
+                    Color32 b =
+                        lowerPixels[index];
+
+                    output[index] =
+                        new Color32(
+                            (byte)Mathf.RoundToInt(
+                                Mathf.Lerp(
+                                    a.r,
+                                    b.r,
+                                    lowerWeight)),
+                            (byte)Mathf.RoundToInt(
+                                Mathf.Lerp(
+                                    a.g,
+                                    b.g,
+                                    lowerWeight)),
+                            (byte)Mathf.RoundToInt(
+                                Mathf.Lerp(
+                                    a.b,
+                                    b.b,
+                                    lowerWeight)),
+                            (byte)Mathf.RoundToInt(
+                                Mathf.Lerp(
+                                    a.a,
+                                    b.a,
+                                    lowerWeight)));
+                }
+            }
+
+            Vector2 pivot =
+                new Vector2(
+                    upper.pivot.x /
+                    Mathf.Max(
+                        1f,
+                        upper.rect.width),
+                    upper.pivot.y /
+                    Mathf.Max(
+                        1f,
+                        upper.rect.height));
+
+            return SaveGeneratedSprite(
+                output,
+                width,
+                height,
+                relativePath,
+                upper.pixelsPerUnit,
+                pivot);
         }
 
         private static List<AlphaComponentInfo>
@@ -3072,6 +3321,7 @@ namespace CatsAndKills.EditorTools
                 SpriteImportMode.Single;
 
             importer.spritePixelsPerUnit = ppu;
+            importer.isReadable = true;
             importer.filterMode = FilterMode.Bilinear;
             importer.alphaIsTransparency = true;
             importer.mipmapEnabled = false;
