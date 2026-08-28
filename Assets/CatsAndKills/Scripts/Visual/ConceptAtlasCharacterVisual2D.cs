@@ -116,6 +116,11 @@ namespace CatsAndKills.Visual
 
         private void LateUpdate()
         {
+            // EnemyBrain rotates the gameplay root toward its target.
+            // Directional 3/4 art must stay upright on screen instead of
+            // inheriting that transform rotation.
+            transform.rotation = Quaternion.identity;
+
             if (!_built)
                 BuildSprites();
 
