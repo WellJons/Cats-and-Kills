@@ -22,6 +22,7 @@ namespace CatsAndKills.Combat
         [SerializeField] private MuzzleFlash2D muzzleFlash;
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private CharacterVitals ownerVitals;
+        [SerializeField] private CollarAbility collar;
 
         private float _nextShotTime;
         private float _recoilAngle;
@@ -56,6 +57,7 @@ namespace CatsAndKills.Combat
             muzzleFlash = newMuzzleFlash;
             audioSource = newAudio;
             ownerVitals = GetComponentInParent<CharacterVitals>();
+            collar = GetComponentInParent<CollarAbility>();
             SetDefinition(newDefinition, true);
         }
 
@@ -86,6 +88,7 @@ namespace CatsAndKills.Combat
 
         private void Update()
         {
+            if (Time.timeScale <= 0f) return;
             if (definition == null || aim == null) return;
 
             RecoverRecoil();
@@ -122,7 +125,17 @@ namespace CatsAndKills.Combat
                 return;
             }
 
-            _nextShotTime = Time.time + 1f / Mathf.Max(0.01f, definition.fireRate);
+            float cadenceScale =
+                collar != null &&
+                collar.IsActive
+                    ? Mathf.Max(0.01f, Time.timeScale)
+                    : 1f;
+
+            _nextShotTime =
+                Time.time +
+                (1f / Mathf.Max(0.01f, definition.fireRate)) *
+                cadenceScale;
+
             Magazine--;
             CombatStats.Instance?.RecordShot(
                 Mathf.Max(1, definition.pellets));
@@ -300,7 +313,14 @@ namespace CatsAndKills.Combat
             if (reloadClip != null && audioSource != null)
                 audioSource.PlayOneShot(reloadClip, 0.5f);
 
-            yield return new WaitForSeconds(definition.reloadTime);
+            float reloadScale =
+                collar != null &&
+                collar.IsActive
+                    ? Mathf.Max(0.01f, Time.timeScale)
+                    : 1f;
+
+            yield return new WaitForSeconds(
+                definition.reloadTime * reloadScale);
 
             int needed = definition.magazineSize - Magazine;
             int moved = Mathf.Min(needed, Reserve);
