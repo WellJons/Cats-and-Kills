@@ -23,6 +23,10 @@ namespace CatsAndKills.Audio
 
         private void Start()
         {
+            if (ambient == null) ambient = ProceduralAudioFactory.AmbientMusic;
+            if (alert == null) alert = ProceduralAudioFactory.AlertMusic;
+            if (combat == null) combat = ProceduralAudioFactory.CombatMusic;
+
             _ambientSource = CreateSource("Music Ambient", ambient);
             _alertSource = CreateSource("Music Alert", alert);
             _combatSource = CreateSource("Music Combat", combat);
