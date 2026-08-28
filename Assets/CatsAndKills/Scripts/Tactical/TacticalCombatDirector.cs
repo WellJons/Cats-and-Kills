@@ -78,6 +78,20 @@ namespace CatsAndKills.Tactical
                 !_enemies.Contains(enemy))
             {
                 _enemies.Add(enemy);
+
+                if (IsTacticalCombat)
+                {
+                    enemy.SetRealtimeSuspended(true);
+
+                    if (player != null &&
+                        Vector2.Distance(
+                            player.transform.position,
+                            enemy.transform.position) <=
+                        encounterRadius)
+                    {
+                        AddParticipant(enemy);
+                    }
+                }
             }
         }
 
