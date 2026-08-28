@@ -72,6 +72,24 @@ namespace CatsAndKills.Audio
         public static AudioClip CombatMusic =>
             _combat ??= CreateMusic("Combat Layer", 2);
 
+        public static AudioClip GetWeaponClip(string weaponName)
+        {
+            string lower = string.IsNullOrEmpty(weaponName)
+                ? string.Empty
+                : weaponName.ToLowerInvariant();
+
+            if (lower.Contains("shot") || lower.Contains("ks-12"))
+                return ShotgunShot;
+
+            if (lower.Contains("pistol") || lower.Contains("m9"))
+                return PistolShot;
+
+            if (lower.Contains("machine") || lower.Contains("mg"))
+                return MachineGunShot;
+
+            return RifleShot;
+        }
+
         private static AudioClip CreateGunshot(
             string name,
             float duration,
