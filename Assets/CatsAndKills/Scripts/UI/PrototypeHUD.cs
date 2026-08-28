@@ -79,6 +79,39 @@ namespace CatsAndKills.UI
             _objective.normal.textColor = new Color(0.9f, 0.92f, 0.97f);
         }
 
+        private void DrawObjectiveMarker()
+        {
+            if (mission == null ||
+                mission.CurrentObjectiveTarget == null ||
+                Camera.main == null ||
+                playerVitals == null)
+                return;
+
+            Vector3 screen =
+                Camera.main.WorldToScreenPoint(
+                    mission.CurrentObjectiveTarget.position);
+
+            if (screen.z < 0f)
+            {
+                screen.x = Screen.width - screen.x;
+                screen.y = Screen.height - screen.y;
+            }
+
+            float x = Mathf.Clamp(screen.x, 42f, Screen.width - 42f);
+            float y = Mathf.Clamp(
+                Screen.height - screen.y,
+                72f,
+                Screen.height - 72f);
+
+            float distance = Vector2.Distance(
+                playerVitals.transform.position,
+                mission.CurrentObjectiveTarget.position);
+
+            GUI.Box(
+                new Rect(x - 38f, y - 15f, 76f, 30f),
+                $"{distance:0}m");
+        }
+
         private void OnGUI()
         {
             Ensure();
@@ -152,10 +185,14 @@ namespace CatsAndKills.UI
             }
 
             if (mission != null && !string.IsNullOrEmpty(mission.CurrentObjective))
+            {
                 GUI.Label(
                     new Rect(Screen.width - 520, 24, 490, 60),
                     mission.CurrentObjective,
                     _objective);
+
+                DrawObjectiveMarker();
+            }
 
             GUI.Label(
                 new Rect(22, Screen.height - 24, 800, 22),
