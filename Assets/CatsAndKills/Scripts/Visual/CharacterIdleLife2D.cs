@@ -74,6 +74,12 @@ namespace CatsAndKills.Visual
             smokeSprite = smoke;
         }
 
+        public void SetEnemyWeaponVisual(
+            EnemyWeaponVisual2D visual)
+        {
+            enemyWeaponVisual = visual;
+        }
+
         private void Awake()
         {
             if (characterVisual == null)
