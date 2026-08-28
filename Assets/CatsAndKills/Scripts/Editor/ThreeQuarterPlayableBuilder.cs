@@ -56,9 +56,10 @@ namespace CatsAndKills.EditorTools
             foreach (EnemyBrain enemy in enemies)
                 ConvertEnemy(enemy, player.transform, pack);
 
-            ConvertEnvironment(pack);
-            AddDecor(pack);
-
+            // Environment presentation has exactly one owner:
+            // ConceptVisualPolishBuilder. Keeping the old conversion/decor
+            // pass here created two floors, duplicate props and unrelated
+            // textures on top of the semantic level.
             Camera camera = Camera.main;
             if (camera != null)
             {
