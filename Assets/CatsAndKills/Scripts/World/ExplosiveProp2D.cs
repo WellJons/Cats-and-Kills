@@ -12,6 +12,7 @@ namespace CatsAndKills.World
         [SerializeField] private AudioClip explosionClip;
 
         private bool _triggered;
+        private GameObject _triggerSource;
 
         public void Configure(
             float hitPoints,
@@ -28,6 +29,7 @@ namespace CatsAndKills.World
             if (_triggered) return;
 
             health -= info.Amount;
+            _triggerSource = info.Source;
 
             if (health <= 0f ||
                 (info.Type == DamageType.Explosion && info.DismemberPower > 0.65f))
@@ -61,7 +63,7 @@ namespace CatsAndKills.World
             grenade.Configure(
                 explosionSprite,
                 explosionClip,
-                gameObject,
+                _triggerSource != null ? _triggerSource : gameObject,
                 detonationDelay);
 
             Destroy(gameObject, detonationDelay + 0.25f);
