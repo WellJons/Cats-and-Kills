@@ -2145,6 +2145,8 @@ namespace CatsAndKills.EditorTools
                     bounds.min.y +
                     inset +
                     height * 0.5f);
+
+            Physics2D.SyncTransforms();
         }
 
         private static void ApplyMaterialToConceptSprites(
