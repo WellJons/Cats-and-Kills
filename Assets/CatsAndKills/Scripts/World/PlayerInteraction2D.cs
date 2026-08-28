@@ -10,6 +10,7 @@ namespace CatsAndKills.World
 
         private void Update()
         {
+            if (Time.timeScale <= 0f) return;
             if (!CKInput.InteractPressed) return;
 
             Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
