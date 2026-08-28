@@ -107,11 +107,23 @@ namespace CatsAndKills.AI
         {
             if (_target == null) return false;
 
-            Vector2 origin = muzzle != null
-                ? (Vector2)muzzle.position
-                : (Vector2)transform.position;
+            Vector2 toTarget =
+                CharacterCombatGeometry2D.AimPoint(
+                    _target);
 
-            Vector2 delta = (Vector2)_target.position - origin;
+            Vector2 directionToTarget =
+                toTarget -
+                CharacterCombatGeometry2D.AimPoint(
+                    transform);
+
+            Vector2 origin =
+                CharacterCombatGeometry2D.MuzzlePoint(
+                    transform,
+                    directionToTarget);
+
+            Vector2 delta =
+                toTarget -
+                origin;
             float distance = delta.magnitude;
             if (distance < 0.01f) return false;
 
@@ -145,12 +157,26 @@ namespace CatsAndKills.AI
         {
             Fired?.Invoke();
 
-            Vector2 origin = muzzle != null
-                ? (Vector2)muzzle.position
-                : (Vector2)transform.position;
+            Vector2 targetPoint =
+                CharacterCombatGeometry2D.AimPoint(
+                    _target);
 
-            Vector2 toTarget = (Vector2)_target.position - origin;
-            if (toTarget.sqrMagnitude < 0.001f) return;
+            Vector2 provisionalDirection =
+                targetPoint -
+                CharacterCombatGeometry2D.AimPoint(
+                    transform);
+
+            Vector2 origin =
+                CharacterCombatGeometry2D.MuzzlePoint(
+                    transform,
+                    provisionalDirection);
+
+            Vector2 toTarget =
+                targetPoint -
+                origin;
+
+            if (toTarget.sqrMagnitude < 0.001f)
+                return;
 
             float extra = _suppressing ? 1.35f : 1f;
             float stability = _ownerVitals != null ? _ownerVitals.WeaponStabilityMultiplier : 1f;
@@ -165,11 +191,18 @@ namespace CatsAndKills.AI
             Vector2 direction =
                 Quaternion.Euler(0f, 0f, error) * toTarget.normalized;
 
-            RaycastHit2D hit = Physics2D.Raycast(
-                origin,
-                direction,
-                _range,
-                _hitMask);
+            CharacterCombatGeometry2D.PlaceMuzzleTransform(
+                muzzle,
+                transform,
+                direction);
+
+            RaycastHit2D hit =
+                CharacterCombatGeometry2D.FirstMeaningfulHit(
+                    origin,
+                    direction,
+                    _range,
+                    _hitMask,
+                    transform.root);
 
             Vector2 endPoint = origin + direction * _range;
 
