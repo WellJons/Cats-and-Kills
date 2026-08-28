@@ -99,6 +99,113 @@ namespace CatsAndKills.AI
             return true;
         }
 
+        public bool TryThrowTactical()
+        {
+            if (target == null ||
+                grenadeCount <= 0)
+            {
+                return false;
+            }
+
+            float distance =
+                Vector2.Distance(
+                    transform.position,
+                    target.position);
+
+            if (distance < minDistance ||
+                distance > maxDistance)
+            {
+                return false;
+            }
+
+            Collider2D[] nearby =
+                Physics2D.OverlapCircleAll(
+                    target.position,
+                    2.5f);
+
+            foreach (Collider2D col in nearby)
+            {
+                if (col == null ||
+                    col.transform.root ==
+                    transform.root)
+                {
+                    continue;
+                }
+
+                if (col.GetComponentInParent<
+                        EnemyBrain>() != null)
+                {
+                    return false;
+                }
+            }
+
+            grenadeCount--;
+
+            Vector2 origin =
+                transform.position;
+
+            Vector2 targetPos =
+                target.position;
+
+            Vector2 direction =
+                (targetPos - origin).normalized;
+
+            float force =
+                Mathf.Clamp(
+                    Vector2.Distance(
+                        origin,
+                        targetPos) *
+                    0.88f,
+                    5.4f,
+                    8.8f);
+
+            GameObject go =
+                new GameObject(
+                    "Enemy Tactical Grenade");
+
+            go.transform.position =
+                origin +
+                direction *
+                0.65f;
+
+            var renderer =
+                go.AddComponent<SpriteRenderer>();
+
+            renderer.sprite =
+                grenadeSprite;
+
+            var rb =
+                go.AddComponent<Rigidbody2D>();
+
+            go.AddComponent<CircleCollider2D>();
+
+            var grenade =
+                go.AddComponent<Grenade2D>();
+
+            grenade.Configure(
+                grenadeSprite,
+                explosionClip,
+                gameObject,
+                0.82f);
+
+            rb.AddForce(
+                direction *
+                force,
+                ForceMode2D.Impulse);
+
+            rb.AddTorque(
+                Random.Range(
+                    -220f,
+                    220f));
+
+            WorldCalloutSystem.Instance?.Show(
+                transform,
+                "ГРАНАТА!",
+                0.9f);
+
+            return true;
+        }
+
         private void Throw()
         {
             grenadeCount--;
