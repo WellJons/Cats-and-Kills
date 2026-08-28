@@ -27,6 +27,12 @@ namespace CatsAndKills.AI
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         public void Register(SquadController squad)
         {
             if (squad != null && !_squads.Contains(squad))
