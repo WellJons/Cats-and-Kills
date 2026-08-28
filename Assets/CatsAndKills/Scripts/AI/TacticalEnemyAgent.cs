@@ -4,6 +4,7 @@ using CatsAndKills.Combat;
 using CatsAndKills.Damage;
 using CatsAndKills.Player;
 using CatsAndKills.Tactical;
+using CatsAndKills.UI;
 using CatsAndKills.World;
 using UnityEngine;
 
@@ -21,11 +22,15 @@ namespace CatsAndKills.AI
         [SerializeField] private EnemyPatrol2D patrol;
         [SerializeField] private GrenadeAwareness2D grenadeAwareness;
         [SerializeField] private DemolitionistCharge2D demolitionCharge;
+        [SerializeField] private SuppressionReceiver2D suppression;
+        [SerializeField] private CoverManager coverManager;
         [SerializeField] private Transform player;
         [SerializeField] private WorldFactionMember2D factionMember;
 
         private bool _participating;
         private bool _realtimeSuspended;
+        private bool _hasLastKnown;
+        private Vector2 _lastKnownPlayerPosition;
 
         public bool IsAlive =>
             vitals == null ||
@@ -41,6 +46,11 @@ namespace CatsAndKills.AI
             brain.IsAlerted;
 
         private void Awake()
+        {
+            CacheReferences();
+        }
+
+        private void CacheReferences()
         {
             if (brain == null)
                 brain = GetComponent<EnemyBrain>();
@@ -69,6 +79,12 @@ namespace CatsAndKills.AI
             if (demolitionCharge == null)
                 demolitionCharge = GetComponent<DemolitionistCharge2D>();
 
+            if (suppression == null)
+                suppression = GetComponent<SuppressionReceiver2D>();
+
+            if (coverManager == null)
+                coverManager = FindAnyObjectByType<CoverManager>();
+
             if (factionMember == null)
                 factionMember = GetComponent<WorldFactionMember2D>();
 
@@ -89,6 +105,7 @@ namespace CatsAndKills.AI
 
         private void Start()
         {
+            CacheReferences();
             TacticalCombatDirector.Instance?.RegisterEnemy(this);
         }
 
@@ -101,6 +118,7 @@ namespace CatsAndKills.AI
             bool participating)
         {
             _participating = participating;
+
             SetRealtimeSuspended(
                 participating ||
                 _realtimeSuspended);
@@ -143,122 +161,286 @@ namespace CatsAndKills.AI
             int actionPoints,
             NavigationGrid2D navigation)
         {
+            CacheReferences();
+
             if (!_participating ||
                 !IsAlive ||
                 !IsHostileToPlayer ||
-                player == null)
+                player == null ||
+                navigation == null)
             {
                 yield break;
             }
 
             weapon?.SetTrigger(false);
+            motor?.Stop();
 
             int ap = actionPoints;
 
             bool seesPlayer =
-                perception != null &&
-                perception.CanSee(player);
+                CanSeePlayer();
+
+            if (seesPlayer)
+            {
+                RememberPlayer();
+            }
+
+            // Fire is a hard tactical constraint. Units already standing in it
+            // spend their first available movement escaping it.
+            if (ap > 0 &&
+                TacticalFireField2D.IsDangerousPoint(
+                    transform.position))
+            {
+                List<Vector2> escape =
+                    FindNearestSafePath(
+                        navigation);
+
+                int steps =
+                    Mathf.Min(
+                        ap,
+                        Mathf.Min(
+                            3,
+                            escape.Count));
+
+                if (steps > 0)
+                {
+                    Callout("ОГОНЬ! ОТХОЖУ!");
+
+                    yield return MoveAlongPath(
+                        escape,
+                        steps);
+
+                    ap -= steps;
+                    seesPlayer = CanSeePlayer();
+
+                    if (seesPlayer)
+                        RememberPlayer();
+                }
+            }
+
+            bool badlyHurt =
+                vitals != null &&
+                vitals.Health <=
+                vitals.MaxHealth * 0.34f;
+
+            bool pinned =
+                suppression != null &&
+                suppression.IsPinned;
+
+            // Hurt or pinned soldiers value survival over damage.
+            if (ap > 0 &&
+                (badlyHurt || pinned))
+            {
+                List<Vector2> coverPath =
+                    FindCoverPath(
+                        navigation);
+
+                int steps =
+                    Mathf.Min(
+                        ap,
+                        Mathf.Min(
+                            3,
+                            coverPath.Count));
+
+                if (steps > 0)
+                {
+                    Callout(
+                        badlyHurt
+                            ? "РАНЕН! В УКРЫТИЕ!"
+                            : "ПРИЖАЛИ! В УКРЫТИЕ!");
+
+                    yield return MoveAlongPath(
+                        coverPath,
+                        steps);
+
+                    ap -= steps;
+                    seesPlayer = CanSeePlayer();
+
+                    if (seesPlayer)
+                        RememberPlayer();
+                }
+            }
 
             float distance =
                 Vector2.Distance(
                     transform.position,
                     player.position);
 
+            EnemyArchetype archetype =
+                brain != null
+                    ? brain.Archetype
+                    : EnemyArchetype.Rifleman;
+
+            SquadRole role =
+                brain != null
+                    ? brain.Role
+                    : SquadRole.Assault;
+
+            // Demolitionists use grenades to deny positions, not randomly every
+            // turn. They prefer medium range and do not throw into friendlies.
             if (seesPlayer &&
-                distance >= 4.0f &&
-                distance <= 8.0f &&
                 grenades != null &&
                 ap >= 4 &&
-                Random.value < 0.16f)
+                distance >= 4f &&
+                distance <= 8.2f &&
+                (archetype == EnemyArchetype.Demolitionist ||
+                 role == SquadRole.Suppress) &&
+                Random.value <
+                (archetype == EnemyArchetype.Demolitionist
+                    ? 0.55f
+                    : 0.20f))
             {
                 if (grenades.TryThrowTactical())
                 {
                     ap -= 4;
                     yield return new WaitForSeconds(0.92f);
+                    seesPlayer = CanSeePlayer();
+
+                    if (seesPlayer)
+                        RememberPlayer();
                 }
             }
 
-            seesPlayer =
-                perception != null &&
-                perception.CanSee(player);
-
-            distance =
-                Vector2.Distance(
-                    transform.position,
-                    player.position);
-
-            if (seesPlayer &&
-                distance <= 9.5f &&
-                ap >= 3)
+            // Suppression roles and machine gunners prefer to fire before
+            // moving so another unit can exploit the pressure.
+            if (ap >= 3 &&
+                seesPlayer &&
+                distance <= FireRange(archetype) &&
+                (role == SquadRole.Suppress ||
+                 archetype == EnemyArchetype.MachineGunner))
             {
-                if (weapon != null &&
-                    weapon.TryTacticalFire())
+                if (TryShoot())
                 {
                     ap -= 3;
-                    yield return new WaitForSeconds(0.32f);
+                    yield return new WaitForSeconds(0.34f);
                 }
             }
 
+            // Flankers intentionally move sideways instead of walking directly
+            // down the player's firing line.
             if (ap > 0 &&
-                navigation != null &&
-                motor != null)
+                role == SquadRole.Flank &&
+                _hasLastKnown)
             {
-                List<Vector2> path =
-                    FindSafeAdvancePath(
+                List<Vector2> flank =
+                    FindFlankPath(
                         navigation,
-                        player.position);
+                        _lastKnownPlayerPosition);
 
-                int maxSteps =
+                int steps =
                     Mathf.Min(
                         ap,
-                        3);
-
-                if (path.Count > 0 &&
-                    maxSteps > 0)
-                {
-                    int stepIndex =
                         Mathf.Min(
-                            maxSteps - 1,
-                            path.Count - 1);
+                            3,
+                            flank.Count));
 
-                    Vector2 destination =
-                        path[stepIndex];
+                if (steps > 0)
+                {
+                    Callout(
+                        FlankSideSign() > 0f
+                            ? "ОБХОЖУ СЛЕВА!"
+                            : "ОБХОЖУ СПРАВА!");
 
-                    if (motor.MoveTo(destination))
-                    {
-                        float timeout =
-                            Time.time + 2.5f;
+                    yield return MoveAlongPath(
+                        flank,
+                        steps);
 
-                        while (motor.HasDestination &&
-                               Time.time < timeout &&
-                               IsAlive)
-                        {
-                            yield return null;
-                        }
+                    ap -= steps;
+                    seesPlayer = CanSeePlayer();
 
-                        ap -= stepIndex + 1;
-                    }
+                    if (seesPlayer)
+                        RememberPlayer();
                 }
             }
-
-            seesPlayer =
-                perception != null &&
-                perception.CanSee(player);
 
             distance =
                 Vector2.Distance(
                     transform.position,
                     player.position);
 
-            if (seesPlayer &&
-                distance <= 9.5f &&
-                ap >= 3)
+            // Regular riflemen and pistol users fire when they actually have a
+            // clear line of sight. Smoke therefore naturally prevents this.
+            if (ap >= 3 &&
+                seesPlayer &&
+                distance <= FireRange(archetype))
             {
-                if (weapon != null &&
-                    weapon.TryTacticalFire())
+                if (TryShoot())
                 {
                     ap -= 3;
-                    yield return new WaitForSeconds(0.32f);
+                    yield return new WaitForSeconds(0.34f);
+                }
+            }
+
+            // If there is AP left, reposition according to role. Hold/suppress
+            // units seek cover; assault units advance; units blinded by smoke
+            // move toward the last observed position rather than cheating.
+            if (ap > 0 &&
+                motor != null)
+            {
+                List<Vector2> movePath = null;
+
+                if ((role == SquadRole.Hold ||
+                     role == SquadRole.Suppress) &&
+                    coverManager != null)
+                {
+                    movePath =
+                        FindCoverPath(
+                            navigation);
+                }
+
+                if (movePath == null ||
+                    movePath.Count == 0)
+                {
+                    Vector2 target =
+                        _hasLastKnown
+                            ? _lastKnownPlayerPosition
+                            : (Vector2)transform.position;
+
+                    movePath =
+                        FindSafeAdvancePath(
+                            navigation,
+                            target);
+                }
+
+                int maxMove =
+                    role == SquadRole.Assault
+                        ? 3
+                        : 2;
+
+                int steps =
+                    Mathf.Min(
+                        ap,
+                        Mathf.Min(
+                            maxMove,
+                            movePath.Count));
+
+                if (steps > 0)
+                {
+                    yield return MoveAlongPath(
+                        movePath,
+                        steps);
+
+                    ap -= steps;
+                    seesPlayer = CanSeePlayer();
+
+                    if (seesPlayer)
+                        RememberPlayer();
+                }
+            }
+
+            distance =
+                Vector2.Distance(
+                    transform.position,
+                    player.position);
+
+            if (ap >= 3 &&
+                CanSeePlayer() &&
+                distance <= FireRange(archetype))
+            {
+                if (TryShoot())
+                {
+                    ap -= 3;
+                    yield return new WaitForSeconds(0.34f);
                 }
             }
 
@@ -266,6 +448,214 @@ namespace CatsAndKills.AI
 
             yield return new WaitForSeconds(0.12f);
         }
+
+        private bool CanSeePlayer()
+        {
+            return
+                player != null &&
+                perception != null &&
+                perception.CanSee(player);
+        }
+
+        private void RememberPlayer()
+        {
+            if (player == null)
+                return;
+
+            _lastKnownPlayerPosition =
+                player.position;
+
+            _hasLastKnown = true;
+        }
+
+        private bool TryShoot()
+        {
+            if (weapon == null)
+                return false;
+
+            bool fired =
+                weapon.TryTacticalFire();
+
+            if (fired)
+            {
+                RememberPlayer();
+            }
+
+            return fired;
+        }
+
+        private float FireRange(
+            EnemyArchetype archetype)
+        {
+            switch (archetype)
+            {
+                case EnemyArchetype.Pistolier:
+                    return 7.4f;
+
+                case EnemyArchetype.MachineGunner:
+                    return 10.5f;
+
+                case EnemyArchetype.Demolitionist:
+                    return 8.2f;
+
+                default:
+                    return 9.2f;
+            }
+        }
+
+        private List<Vector2> FindCoverPath(
+            NavigationGrid2D navigation)
+        {
+            if (coverManager == null ||
+                brain == null ||
+                player == null)
+            {
+                return new List<Vector2>();
+            }
+
+            CoverPoint cover =
+                coverManager.FindBestCover(
+                    transform.position,
+                    player.position,
+                    brain,
+                    9f);
+
+            if (cover == null ||
+                TacticalFireField2D.IsDangerousPoint(
+                    cover.transform.position))
+            {
+                return new List<Vector2>();
+            }
+
+            List<Vector2> path =
+                navigation.FindPath(
+                    transform.position,
+                    cover.transform.position);
+
+            return PathTouchesFire(path)
+                ? new List<Vector2>()
+                : path;
+        }
+
+        private List<Vector2> FindFlankPath(
+            NavigationGrid2D navigation,
+            Vector2 threat)
+        {
+            Vector2 toThreat =
+                threat -
+                (Vector2)transform.position;
+
+            if (toThreat.sqrMagnitude <
+                0.01f)
+            {
+                return new List<Vector2>();
+            }
+
+            Vector2 forward =
+                toThreat.normalized;
+
+            Vector2 side =
+                new Vector2(
+                    -forward.y,
+                    forward.x) *
+                FlankSideSign();
+
+            Vector2 flankTarget =
+                threat +
+                side * 4.2f -
+                forward * 1.4f;
+
+            List<Vector2> path =
+                navigation.FindPath(
+                    transform.position,
+                    flankTarget);
+
+            if (PathTouchesFire(path))
+            {
+                flankTarget =
+                    threat -
+                    side * 4.2f -
+                    forward * 1.4f;
+
+                path =
+                    navigation.FindPath(
+                        transform.position,
+                        flankTarget);
+            }
+
+            return PathTouchesFire(path)
+                ? new List<Vector2>()
+                : path;
+        }
+
+        private float FlankSideSign()
+        {
+            int id =
+                GetEntityId();
+
+            return (id & 1) == 0
+                ? 1f
+                : -1f;
+        }
+
+        private List<Vector2> FindNearestSafePath(
+            NavigationGrid2D navigation)
+        {
+            float cell =
+                navigation.CellSize;
+
+            Vector2 origin =
+                transform.position;
+
+            Vector2[] candidates =
+            {
+                origin + Vector2.right * cell * 2f,
+                origin + Vector2.left * cell * 2f,
+                origin + Vector2.up * cell * 2f,
+                origin + Vector2.down * cell * 2f,
+                origin + new Vector2(1f, 1f).normalized * cell * 2.8f,
+                origin + new Vector2(-1f, 1f).normalized * cell * 2.8f,
+                origin + new Vector2(1f, -1f).normalized * cell * 2.8f,
+                origin + new Vector2(-1f, -1f).normalized * cell * 2.8f
+            };
+
+            List<Vector2> best =
+                new List<Vector2>();
+
+            int bestCount =
+                int.MaxValue;
+
+            for (int i = 0;
+                 i < candidates.Length;
+                 i++)
+            {
+                if (TacticalFireField2D.IsDangerousPoint(
+                        candidates[i]))
+                {
+                    continue;
+                }
+
+                List<Vector2> path =
+                    navigation.FindPath(
+                        transform.position,
+                        candidates[i]);
+
+                if (path.Count == 0 ||
+                    PathTouchesFire(path))
+                {
+                    continue;
+                }
+
+                if (path.Count < bestCount)
+                {
+                    best = path;
+                    bestCount = path.Count;
+                }
+            }
+
+            return best;
+        }
+
         private List<Vector2> FindSafeAdvancePath(
             NavigationGrid2D navigation,
             Vector2 target)
@@ -285,7 +675,7 @@ namespace CatsAndKills.AI
             if (toTarget.sqrMagnitude <
                 0.01f)
             {
-                return direct;
+                return new List<Vector2>();
             }
 
             Vector2 forward =
@@ -340,7 +730,45 @@ namespace CatsAndKills.AI
             }
 
             return best ??
-                   direct;
+                   new List<Vector2>();
+        }
+
+        private IEnumerator MoveAlongPath(
+            List<Vector2> path,
+            int steps)
+        {
+            if (motor == null ||
+                path == null ||
+                path.Count == 0 ||
+                steps <= 0)
+            {
+                yield break;
+            }
+
+            int index =
+                Mathf.Clamp(
+                    steps - 1,
+                    0,
+                    path.Count - 1);
+
+            Vector2 destination =
+                path[index];
+
+            if (!motor.MoveTo(destination))
+                yield break;
+
+            float timeout =
+                Time.time +
+                2.6f;
+
+            while (motor.HasDestination &&
+                   Time.time < timeout &&
+                   IsAlive)
+            {
+                yield return null;
+            }
+
+            motor.Stop();
         }
 
         private static bool PathTouchesFire(
@@ -364,5 +792,13 @@ namespace CatsAndKills.AI
             return false;
         }
 
+        private void Callout(
+            string text)
+        {
+            WorldCalloutSystem.Instance?.Show(
+                transform,
+                text,
+                1.0f);
+        }
     }
 }
