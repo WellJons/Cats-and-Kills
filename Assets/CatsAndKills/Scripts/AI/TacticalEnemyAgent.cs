@@ -21,6 +21,7 @@ namespace CatsAndKills.AI
         [SerializeField] private Transform player;
 
         private bool _participating;
+        private bool _realtimeSuspended;
 
         public bool IsAlive =>
             vitals == null ||
@@ -88,8 +89,17 @@ namespace CatsAndKills.AI
             bool participating)
         {
             _participating = participating;
+            SetRealtimeSuspended(
+                participating ||
+                _realtimeSuspended);
+        }
 
-            if (participating)
+        public void SetRealtimeSuspended(
+            bool suspended)
+        {
+            _realtimeSuspended = suspended;
+
+            if (suspended)
             {
                 motor?.Stop();
                 weapon?.SetTrigger(false);
@@ -103,7 +113,8 @@ namespace CatsAndKills.AI
                 if (demolitionCharge != null)
                     demolitionCharge.enabled = false;
             }
-            else if (IsAlive)
+            else if (IsAlive &&
+                     !_participating)
             {
                 if (patrol != null)
                     patrol.enabled = true;
