@@ -2195,7 +2195,10 @@ namespace CatsAndKills.EditorTools
                     sr.gameObject.name.Contains("3-4 Visual");
 
                 bool stableFloor =
-                    sr.gameObject.name == "Concept Floor";
+                    sr.gameObject.name.StartsWith(
+                        "Ground //") ||
+                    sr.gameObject.name ==
+                        "Interior Floor";
 
                 if (stableCharacter || stableFloor)
                     continue;
