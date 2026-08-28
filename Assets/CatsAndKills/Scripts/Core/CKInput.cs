@@ -93,6 +93,26 @@ namespace CatsAndKills.Core
             (Keyboard.current != null && Keyboard.current.digit3Key.wasPressedThisFrame) ||
             (Gamepad.current != null && Gamepad.current.dpad.right.wasPressedThisFrame);
 
+        public static int WeaponCycleDelta
+        {
+            get
+            {
+                if (Mouse.current == null)
+                    return 0;
+
+                float y =
+                    Mouse.current.scroll.ReadValue().y;
+
+                if (y > 0.01f)
+                    return -1;
+
+                if (y < -0.01f)
+                    return 1;
+
+                return 0;
+            }
+        }
+
         public static Vector2 MouseScreenPosition =>
             Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
     }
