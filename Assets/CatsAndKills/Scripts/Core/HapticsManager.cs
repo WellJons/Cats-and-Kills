@@ -17,7 +17,7 @@ namespace CatsAndKills.Core
 
         public void Pulse(float low, float high, float duration)
         {
-            if (Gamepad.current == null) return;
+            if (Gamepad.current == null || !GamePreferences.Haptics) return;
 
             if (_rumble != null) StopCoroutine(_rumble);
             _rumble = StartCoroutine(RumbleRoutine(low, high, duration));
