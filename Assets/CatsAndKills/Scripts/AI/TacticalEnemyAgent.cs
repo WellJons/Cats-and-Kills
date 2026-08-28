@@ -770,6 +770,17 @@ namespace CatsAndKills.AI
             }
 
             motor.Stop();
+
+            TacticalOverwatchController reaction =
+                FindAnyObjectByType<
+                    TacticalOverwatchController>();
+
+            if (reaction != null &&
+                reaction.TryReact(this))
+            {
+                yield return new WaitForSeconds(
+                    0.28f);
+            }
         }
 
         private static bool PathTouchesFire(
