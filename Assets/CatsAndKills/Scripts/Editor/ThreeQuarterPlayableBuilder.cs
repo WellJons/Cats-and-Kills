@@ -158,8 +158,16 @@ namespace CatsAndKills.EditorTools
                     pack.smoke);
 
             if (visual != null)
+            {
                 visual.transform.localPosition =
                     Vector3.zero;
+
+                ConfigureEnemyWeaponVisual(
+                    root,
+                    brain,
+                    visual,
+                    pack);
+            }
 
             ReplaceShadow(
                 root.transform,
@@ -264,6 +272,7 @@ namespace CatsAndKills.EditorTools
                 body,
                 vitals,
                 weaponVisual,
+                null,
                 root.GetComponent<EnemyBrain>(),
                 GeneratedArtFactory.Get("ui_square"),
                 grenadeSprite,
@@ -285,7 +294,8 @@ namespace CatsAndKills.EditorTools
 
                 if (n.Contains("Muzzle Flash") ||
                     n.Contains("Actor Shadow") ||
-                    n == "Weapon")
+                    n == "Weapon" ||
+                    n == "Gun")
                 {
                     // Weapon is a gameplay renderer and must remain visible so
                     // switching slots can actually change the held gun.
@@ -296,6 +306,95 @@ namespace CatsAndKills.EditorTools
 
                 sr.enabled = false;
             }
+        }
+
+        private static void ConfigureEnemyWeaponVisual(
+            GameObject root,
+            EnemyBrain brain,
+            GameObject characterVisual,
+            ProductionArtPack pack)
+        {
+            if (root == null ||
+                brain == null ||
+                characterVisual == null ||
+                pack == null)
+            {
+                return;
+            }
+
+            Transform gun =
+                root.transform.Find("Gun");
+
+            if (gun == null)
+                return;
+
+            SpriteRenderer renderer =
+                gun.GetComponent<SpriteRenderer>();
+
+            if (renderer == null)
+                return;
+
+            renderer.sprite =
+                brain.Archetype switch
+                {
+                    EnemyArchetype.Pistolier =>
+                        pack.pistol,
+
+                    EnemyArchetype.MachineGunner =>
+                        pack.machineGun,
+
+                    _ =>
+                        pack.rifle
+                };
+
+            renderer.enabled = true;
+            renderer.forceRenderingOff = false;
+            renderer.color = Color.white;
+
+            EnemyWeapon2D enemyWeapon =
+                root.GetComponent<EnemyWeapon2D>();
+
+            ThreeQuarterCharacterVisual2D visual =
+                characterVisual.GetComponent<
+                    ThreeQuarterCharacterVisual2D>();
+
+            EnemyWeaponVisual2D weaponVisual =
+                gun.GetComponent<EnemyWeaponVisual2D>();
+
+            if (weaponVisual == null)
+            {
+                weaponVisual =
+                    gun.gameObject.AddComponent<
+                        EnemyWeaponVisual2D>();
+            }
+
+            weaponVisual.Configure(
+                root.transform,
+                renderer,
+                enemyWeapon,
+                visual);
+
+            DepthSortedSprite2D depth =
+                gun.GetComponent<DepthSortedSprite2D>();
+
+            if (depth == null)
+            {
+                depth =
+                    gun.gameObject.AddComponent<
+                        DepthSortedSprite2D>();
+            }
+
+            depth.Configure(
+                new[] { renderer },
+                5000,
+                0f);
+
+            CharacterIdleLife2D idleLife =
+                characterVisual.GetComponent<
+                    CharacterIdleLife2D>();
+
+            idleLife?.SetEnemyWeaponVisual(
+                weaponVisual);
         }
 
         private static void ReplaceShadow(
