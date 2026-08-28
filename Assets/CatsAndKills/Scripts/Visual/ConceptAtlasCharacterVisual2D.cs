@@ -20,6 +20,12 @@ namespace CatsAndKills.Visual
         [SerializeField] private float pixelsPerUnit = 128f;
         [SerializeField] private float moveThreshold = 0.12f;
         [SerializeField] private float moveFrameRate = 8f;
+        [Header("Procedural Animation")]
+        [SerializeField] private float idleBreathAmount = 0.012f;
+        [SerializeField] private float moveBobAmount = 0.045f;
+        [SerializeField] private float moveSwayAmount = 0.018f;
+        [SerializeField] private float fireKickAmount = 0.075f;
+        [SerializeField] private float hurtKickAmount = 0.060f;
 
         private const int SourceColumns = 7;
         private const int SourceRows = 5;
@@ -30,7 +36,11 @@ namespace CatsAndKills.Visual
         private Vector2 _facing = Vector2.down;
         private float _hurtUntil;
         private float _fireUntil;
+        private float _fireKick;
+        private float _hurtKick;
+        private float _phase;
         private bool _built;
+        private Vector3 _baseLocalScale = Vector3.one;
 
         public void Configure(
             Texture2D sourceAtlas,
@@ -73,6 +83,9 @@ namespace CatsAndKills.Visual
 
             if (enemyWeapon == null)
                 enemyWeapon = GetComponentInParent<EnemyWeapon2D>();
+
+            _baseLocalScale = transform.localScale;
+            _phase = Random.Range(0f, Mathf.PI * 2f);
 
             BuildSprites();
             RefreshImmediate();
@@ -126,6 +139,16 @@ namespace CatsAndKills.Visual
 
             if (!_built || bodyRenderer == null)
                 return;
+
+            _fireKick = Mathf.MoveTowards(
+                _fireKick,
+                0f,
+                Time.unscaledDeltaTime * 10f);
+
+            _hurtKick = Mathf.MoveTowards(
+                _hurtKick,
+                0f,
+                Time.unscaledDeltaTime * 12f);
 
             RefreshImmediate();
         }
@@ -209,8 +232,147 @@ namespace CatsAndKills.Visual
                 bodyRenderer.sprite = next;
                 bodyRenderer.flipX = flipX;
                 bodyRenderer.enabled = true;
-                bodyRenderer.color = Color.white;
+
+                bool dead =
+                    vitals != null &&
+                    vitals.IsDead;
+
+                bool hurt =
+                    Time.unscaledTime <
+                    _hurtUntil;
+
+                bodyRenderer.color =
+                    dead
+                        ? new Color(
+                            0.58f,
+                            0.60f,
+                            0.66f,
+                            0.96f)
+                        : hurt
+                            ? new Color(
+                                1f,
+                                0.58f,
+                                0.62f,
+                                1f)
+                            : Color.white;
+
+                ApplyProceduralAnimation(
+                    row,
+                    dead);
             }
+        }
+
+        private void ApplyProceduralAnimation(
+            int row,
+            bool dead)
+        {
+            if (transform.parent == null)
+                return;
+
+            float t =
+                Time.unscaledTime;
+
+            Vector3 world =
+                transform.parent.position;
+
+            Vector3 scale =
+                _baseLocalScale;
+
+            if (dead)
+            {
+                world +=
+                    Vector3.down * 0.10f;
+
+                scale = new Vector3(
+                    _baseLocalScale.x * 1.04f,
+                    _baseLocalScale.y * 0.78f,
+                    _baseLocalScale.z);
+            }
+            else if (row == 1 || row == 2)
+            {
+                float step =
+                    t *
+                    moveFrameRate *
+                    Mathf.PI +
+                    _phase;
+
+                world +=
+                    Vector3.up *
+                    Mathf.Abs(
+                        Mathf.Sin(step)) *
+                    moveBobAmount;
+
+                world +=
+                    Vector3.right *
+                    Mathf.Sin(step) *
+                    moveSwayAmount;
+
+                float squash =
+                    Mathf.Sin(step * 2f) *
+                    0.012f;
+
+                scale = new Vector3(
+                    _baseLocalScale.x *
+                    (1f + squash),
+                    _baseLocalScale.y *
+                    (1f - squash),
+                    _baseLocalScale.z);
+            }
+            else
+            {
+                float breath =
+                    Mathf.Sin(
+                        t * 2.2f +
+                        _phase) *
+                    idleBreathAmount;
+
+                world +=
+                    Vector3.up *
+                    breath;
+
+                scale = new Vector3(
+                    _baseLocalScale.x *
+                    (1f - breath * 0.20f),
+                    _baseLocalScale.y *
+                    (1f + breath),
+                    _baseLocalScale.z);
+            }
+
+            if (_fireKick > 0f)
+            {
+                world +=
+                    (Vector3)(
+                        -_facing *
+                        fireKickAmount *
+                        _fireKick);
+
+                scale.x *=
+                    1f + 0.018f *
+                    _fireKick;
+
+                scale.y *=
+                    1f - 0.012f *
+                    _fireKick;
+            }
+
+            if (_hurtKick > 0f)
+            {
+                world +=
+                    (Vector3)(
+                        -_facing *
+                        hurtKickAmount *
+                        _hurtKick);
+
+                world +=
+                    Vector3.up *
+                    Mathf.Sin(
+                        t * 52f) *
+                    0.018f *
+                    _hurtKick;
+            }
+
+            transform.position = world;
+            transform.localScale = scale;
         }
 
         private CharacterDirection8 ResolveDirection()
@@ -318,13 +480,17 @@ namespace CatsAndKills.Visual
         private void OnDamaged(DamageInfo info)
         {
             _hurtUntil =
-                Time.unscaledTime + 0.16f;
+                Time.unscaledTime + 0.18f;
+
+            _hurtKick = 1f;
         }
 
         private void OnWeaponFired()
         {
             _fireUntil =
-                Time.unscaledTime + 0.09f;
+                Time.unscaledTime + 0.10f;
+
+            _fireKick = 1f;
         }
     }
 }
