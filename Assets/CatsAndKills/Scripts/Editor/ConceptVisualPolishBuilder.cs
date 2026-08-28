@@ -71,6 +71,10 @@ namespace CatsAndKills.EditorTools
                 pack,
                 lit);
 
+            AddFloorDetailPass(
+                root.transform,
+                pack);
+
             AddLightingPass(
                 root.transform,
                 lit);
@@ -311,6 +315,38 @@ namespace CatsAndKills.EditorTools
 
             CreateProp(
                 parent,
+                "Start Lamp Cyan",
+                pack.lamp,
+                new Vector2(-16.2f, -2.65f),
+                0.55f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Start Lamp Red",
+                pack.lamp,
+                new Vector2(-9.2f, -2.65f),
+                0.55f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Warehouse Lamp",
+                pack.lamp,
+                new Vector2(0.8f, 4.45f),
+                0.55f,
+                lit);
+
+            CreateProp(
+                parent,
+                "Admin Lamp",
+                pack.lamp,
+                new Vector2(12.8f, 7.25f),
+                0.55f,
+                lit);
+
+            CreateProp(
+                parent,
                 "Terminal Warehouse",
                 pack.terminal,
                 new Vector2(5.4f, 3.7f),
@@ -447,6 +483,106 @@ namespace CatsAndKills.EditorTools
                 drift,
                 0.12f,
                 0.025f);
+        }
+
+        private static void AddFloorDetailPass(
+            Transform parent,
+            ProductionArtPack pack)
+        {
+            if (pack.bloodDrop != null)
+            {
+                CreateFloorDecal(
+                    parent,
+                    "Blood A",
+                    pack.bloodDrop,
+                    new Vector2(-12.8f, -5.9f),
+                    new Vector2(0.85f, 0.46f),
+                    -18f,
+                    new Color(0.46f, 0.02f, 0.05f, 0.84f));
+
+                CreateFloorDecal(
+                    parent,
+                    "Blood B",
+                    pack.bloodDrop,
+                    new Vector2(-4.4f, -1.5f),
+                    new Vector2(0.72f, 0.38f),
+                    31f,
+                    new Color(0.42f, 0.015f, 0.04f, 0.78f));
+
+                CreateFloorDecal(
+                    parent,
+                    "Blood C",
+                    pack.bloodDrop,
+                    new Vector2(6.4f, 0.4f),
+                    new Vector2(0.95f, 0.48f),
+                    -42f,
+                    new Color(0.50f, 0.02f, 0.06f, 0.78f));
+
+                CreateFloorDecal(
+                    parent,
+                    "Blood D",
+                    pack.bloodDrop,
+                    new Vector2(15.2f, 3.5f),
+                    new Vector2(0.70f, 0.36f),
+                    12f,
+                    new Color(0.44f, 0.018f, 0.05f, 0.78f));
+            }
+
+            if (pack.bulletHole != null)
+            {
+                for (int i = 0; i < 7; i++)
+                {
+                    CreateFloorDecal(
+                        parent,
+                        "Impact Mark " + i,
+                        pack.bulletHole,
+                        new Vector2(
+                            -16.5f + i * 5.2f,
+                            -7.6f + Mathf.Sin(i * 2.1f) * 2.0f),
+                        new Vector2(0.18f, 0.18f),
+                        i * 29f,
+                        new Color(0.20f, 0.18f, 0.22f, 0.66f));
+                }
+            }
+        }
+
+        private static void CreateFloorDecal(
+            Transform parent,
+            string name,
+            Sprite sprite,
+            Vector2 position,
+            Vector2 scale,
+            float rotation,
+            Color color)
+        {
+            GameObject go =
+                new GameObject(name);
+
+            go.transform.SetParent(
+                parent,
+                false);
+
+            go.transform.position =
+                position;
+
+            go.transform.rotation =
+                Quaternion.Euler(
+                    0f,
+                    0f,
+                    rotation);
+
+            go.transform.localScale =
+                new Vector3(
+                    scale.x,
+                    scale.y,
+                    1f);
+
+            SpriteRenderer sr =
+                go.AddComponent<SpriteRenderer>();
+
+            sr.sprite = sprite;
+            sr.color = color;
+            sr.sortingOrder = 1160;
         }
 
         private static void AddLightingPass(
