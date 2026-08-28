@@ -1,3 +1,4 @@
+using CatsAndKills.Combat;
 using CatsAndKills.Player;
 using CatsAndKills.Tactical;
 using UnityEngine;
@@ -171,11 +172,46 @@ namespace CatsAndKills.UI
                         oldColor;
                 }
 
-                string mode =
-                    playerController != null &&
-                    playerController.GrenadeTargeting
-                        ? "GRENADE TARGET // ЛКМ бросить"
-                        : "ЛКМ движение  |  ПКМ огонь  |  G граната  |  R перезарядка  |  Enter конец хода";
+                string mode;
+
+                if (playerController != null &&
+                    playerController.GrenadeTargeting)
+                {
+                    mode =
+                        "GRENADE TARGET // ЛКМ бросить";
+                }
+                else if (playerController != null &&
+                         playerController.MolotovTargeting)
+                {
+                    mode =
+                        "MOLOTOV // ЛКМ поджечь область";
+                }
+                else if (playerController != null &&
+                         playerController.SmokeTargeting)
+                {
+                    mode =
+                        "SMOKE // ЛКМ закрыть линию обзора";
+                }
+                else
+                {
+                    TacticalUtilityBelt belt =
+                        playerController != null
+                            ? playerController.UtilityBelt
+                            : null;
+
+                    string utility =
+                        belt != null
+                            ? "  |  M молотов " +
+                              belt.MolotovCount +
+                              "  |  X дым " +
+                              belt.SmokeCount
+                            : string.Empty;
+
+                    mode =
+                        "ЛКМ движение  |  ПКМ огонь  |  G граната  |  R перезарядка" +
+                        utility +
+                        "  |  Enter конец хода";
+                }
 
                 GUI.Label(
                     new Rect(
