@@ -1,5 +1,6 @@
 using System.Linq;
 using CatsAndKills.AI;
+using CatsAndKills.Damage;
 using CatsAndKills.Narrative;
 using CatsAndKills.UI;
 using UnityEngine;
@@ -128,8 +129,8 @@ namespace CatsAndKills.World
                         member.Faction ==
                         WorldFaction.Gang &&
                         member.GetComponent<
-                            Damage.CharacterVitals>() is
-                            Damage.CharacterVitals vitals &&
+                            CharacterVitals>() is
+                            CharacterVitals vitals &&
                         !vitals.IsDead);
         }
 
