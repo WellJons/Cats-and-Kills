@@ -194,6 +194,18 @@ namespace CatsAndKills.Visual
             if (root == null || set == null)
                 return;
 
+            Transform bodyRig =
+                root.transform.Find("Body Rig");
+
+            if (bodyRig != null)
+            {
+                bodyRig.localScale =
+                    Vector3.one * scale;
+
+                if (bodyRig.GetComponent<WorldUpright2D>() == null)
+                    bodyRig.gameObject.AddComponent<WorldUpright2D>();
+            }
+
             RemoveOldVisual(
                 root.transform,
                 "Runtime Character Visual");
