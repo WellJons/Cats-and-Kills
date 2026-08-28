@@ -954,10 +954,19 @@ namespace CatsAndKills.EditorTools
                      spriteWidth);
 
                 capRenderer.sortingOrder =
-                    1;
+                    0;
 
                 if (material != null)
                     capRenderer.sharedMaterial = material;
+
+                DepthSortedSprite2D capDepth =
+                    cap.AddComponent<
+                        DepthSortedSprite2D>();
+
+                capDepth.Configure(
+                    new[] { capRenderer },
+                    5000,
+                    0f);
             }
         }
 
