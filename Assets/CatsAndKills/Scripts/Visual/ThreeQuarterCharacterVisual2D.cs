@@ -398,20 +398,30 @@ namespace CatsAndKills.Visual
                      body.linearVelocity.sqrMagnitude >
                      moveThreshold * moveThreshold)
             {
+                float speed =
+                    body.linearVelocity.magnitude;
+
+                float cadence =
+                    Mathf.Lerp(
+                        moveFrameRate,
+                        moveFrameRate * 1.45f,
+                        Mathf.InverseLerp(
+                            2.5f,
+                            7.5f,
+                            speed));
+
                 int phase =
                     Mathf.FloorToInt(
                         Time.time *
                         Mathf.Max(
                             1f,
-                            moveFrameRate)) %
-                    4;
+                            cadence)) %
+                    8;
 
                 next =
-                    phase == 0
-                        ? sprites.GetMove(_direction)
-                        : phase == 2
-                            ? sprites.GetMoveAlt(_direction)
-                            : sprites.GetIdle(_direction);
+                    sprites.GetWalkFrame(
+                        _direction,
+                        phase);
             }
             else
             {
