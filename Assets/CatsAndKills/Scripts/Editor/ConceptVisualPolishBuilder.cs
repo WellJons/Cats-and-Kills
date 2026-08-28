@@ -74,6 +74,8 @@ namespace CatsAndKills.EditorTools
                 pack,
                 lit);
 
+            Physics2D.SyncTransforms();
+
             AddPropPass(
                 root.transform,
                 pack,
@@ -1937,6 +1939,19 @@ namespace CatsAndKills.EditorTools
             if (sprite == null)
                 return;
 
+            bool solid =
+                IsSolidProp(name);
+
+            if (solid &&
+                HasSolidPlacementConflict(
+                    parent,
+                    sprite,
+                    position,
+                    scale))
+            {
+                return;
+            }
+
             GameObject go =
                 new GameObject(name);
 
@@ -1969,7 +1984,7 @@ namespace CatsAndKills.EditorTools
                 5000,
                 0f);
 
-            if (IsSolidProp(name))
+            if (solid)
             {
                 AddFootprintCollider(
                     go,
@@ -1978,6 +1993,79 @@ namespace CatsAndKills.EditorTools
                     0.46f,
                     0.005f);
             }
+        }
+
+        private static bool HasSolidPlacementConflict(
+            Transform parent,
+            Sprite sprite,
+            Vector2 position,
+            float scale)
+        {
+            if (parent == null ||
+                sprite == null)
+            {
+                return false;
+            }
+
+            Bounds bounds =
+                sprite.bounds;
+
+            float localWidth =
+                Mathf.Max(
+                    0.28f,
+                    bounds.size.x *
+                    0.88f);
+
+            float localHeight =
+                Mathf.Clamp(
+                    bounds.size.y *
+                    0.46f,
+                    0.22f,
+                    0.90f);
+
+            Vector2 center =
+                position +
+                new Vector2(
+                    bounds.center.x *
+                    scale,
+                    (bounds.min.y +
+                     localHeight * 0.5f) *
+                    scale);
+
+            Bounds candidate =
+                new Bounds(
+                    new Vector3(
+                        center.x,
+                        center.y,
+                        0f),
+                    new Vector3(
+                        localWidth *
+                        scale *
+                        0.92f,
+                        localHeight *
+                        scale *
+                        0.92f,
+                        0.1f));
+
+            foreach (BoxCollider2D collider in
+                     parent.GetComponentsInChildren<BoxCollider2D>(
+                         true))
+            {
+                if (collider == null ||
+                    !collider.enabled ||
+                    collider.isTrigger)
+                {
+                    continue;
+                }
+
+                if (collider.bounds.Intersects(
+                        candidate))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsSolidProp(
