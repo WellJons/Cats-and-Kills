@@ -27,6 +27,43 @@ namespace CatsAndKills.Player
             rotateBodyVisual = enabled;
         }
 
+        public void SetTacticalAimPoint(
+            Vector2 worldPoint)
+        {
+            AimWorldPoint =
+                worldPoint;
+
+            Vector2 origin =
+                CharacterCombatGeometry2D.AimPoint(
+                    transform);
+
+            Vector2 delta =
+                worldPoint -
+                origin;
+
+            if (delta.sqrMagnitude >
+                0.001f)
+            {
+                AimDirection =
+                    delta.normalized;
+            }
+
+            float angle =
+                Mathf.Atan2(
+                    AimDirection.y,
+                    AimDirection.x) *
+                Mathf.Rad2Deg;
+
+            if (aimPivot != null)
+            {
+                aimPivot.rotation =
+                    Quaternion.Euler(
+                        0f,
+                        0f,
+                        angle);
+            }
+        }
+
         private void Awake()
         {
             if (worldCamera == null) worldCamera = Camera.main;
