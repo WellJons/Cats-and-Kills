@@ -311,11 +311,13 @@ namespace CatsAndKills.UI
             string collar =
                 _collar == null
                     ? "COLLAR // ---"
-                    : _collar.IsActive
-                        ? "COLLAR // OVERCLOCK"
-                        : _collar.Cooldown01 > 0f
-                            ? "COLLAR // RECOVERING"
-                            : "COLLAR // READY [Q]";
+                    : !_collar.IsUnlocked
+                        ? "COLLAR // DAMAGED // SIGNAL UNKNOWN"
+                        : _collar.IsActive
+                            ? "COLLAR // UNSTABLE PROTOCOL"
+                            : _collar.Cooldown01 > 0f
+                                ? "COLLAR // RECOVERING"
+                                : "COLLAR // PROTOCOL AVAILABLE [Q]";
 
             GUI.Label(
                 new Rect(
@@ -326,7 +328,8 @@ namespace CatsAndKills.UI
                 collar,
                 _small);
 
-            if (_collar != null)
+            if (_collar != null &&
+                _collar.IsUnlocked)
             {
                 float ready =
                     _collar.IsActive
