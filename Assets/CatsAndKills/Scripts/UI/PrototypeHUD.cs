@@ -15,6 +15,7 @@ namespace CatsAndKills.UI
         [SerializeField] private PlayerGrenadeController grenades;
         [SerializeField] private CollarAbility collar;
         [SerializeField] private MissionDirector mission;
+        [SerializeField] private PlayerSuppression2D suppression;
 
         private float _glitch;
         private GUIStyle _large;
@@ -48,6 +49,11 @@ namespace CatsAndKills.UI
         public void BindMission(MissionDirector missionDirector)
         {
             mission = missionDirector;
+        }
+
+        public void BindSuppression(PlayerSuppression2D playerSuppression)
+        {
+            suppression = playerSuppression;
         }
 
         private void Ensure()
@@ -111,6 +117,22 @@ namespace CatsAndKills.UI
                     new Rect(Screen.width - 250, Screen.height - 30, 220, 22),
                     $"GRENADES  {grenades.GrenadeCount}",
                     _small);
+
+            if (suppression != null && suppression.IsSuppressed)
+            {
+                float s = suppression.Suppression;
+                Color oldSuppression = GUI.color;
+                GUI.color = new Color(0.9f, 0.18f, 0.18f, Mathf.Lerp(0.55f, 1f, s));
+                GUI.Label(
+                    new Rect(
+                        (Screen.width - 260f) * 0.5f,
+                        28f,
+                        260f,
+                        26f),
+                    s > 0.72f ? "ПОДАВЛЕН" : "ПОД ОГНЁМ",
+                    _objective);
+                GUI.color = oldSuppression;
+            }
 
             if (collar != null)
             {
