@@ -880,6 +880,10 @@ namespace CatsAndKills.EditorTools
 
         private static void CreateFloor()
         {
+            // Keep the prototype base deliberately plain. The concept builder
+            // owns all district roads, plaza surfaces and interior floors.
+            // Creating Floor Zone/floor_panel/hazard objects here caused them
+            // to survive above the final level and cover the new environment.
             var floor =
                 new GameObject("Floor");
 
@@ -890,109 +894,25 @@ namespace CatsAndKills.EditorTools
                 floor.AddComponent<SpriteRenderer>();
 
             sr.sprite =
-                _floorSprite;
+                _square;
 
             sr.drawMode =
                 SpriteDrawMode.Tiled;
 
             sr.size =
-                new Vector2(96f, 64f);
+                new Vector2(
+                    96f,
+                    64f);
 
             sr.color =
-                Color.white;
+                new Color(
+                    0.075f,
+                    0.085f,
+                    0.115f,
+                    1f);
 
             sr.sortingOrder =
                 -100;
-
-            CreateFloorZone(
-                "West Approach",
-                new Vector2(-34f, -11f),
-                new Vector2(26f, 40f),
-                new Color(0.68f, 0.73f, 0.86f));
-
-            CreateFloorZone(
-                "Central Plaza",
-                new Vector2(0f, -2f),
-                new Vector2(30f, 26f),
-                new Color(0.74f, 0.72f, 0.82f));
-
-            CreateFloorZone(
-                "Warehouse",
-                new Vector2(-23f, 12f),
-                new Vector2(30f, 23f),
-                new Color(0.64f, 0.73f, 0.80f));
-
-            CreateFloorZone(
-                "North Service Lane",
-                new Vector2(0f, 23f),
-                new Vector2(32f, 12f),
-                new Color(0.65f, 0.70f, 0.82f));
-
-            CreateFloorZone(
-                "Administration",
-                new Vector2(25f, 11f),
-                new Vector2(29f, 24f),
-                new Color(0.76f, 0.69f, 0.79f));
-
-            CreateFloorZone(
-                "Barracks",
-                new Vector2(25f, -18f),
-                new Vector2(28f, 21f),
-                new Color(0.67f, 0.72f, 0.78f));
-
-            CreateFloorZone(
-                "Workshop",
-                new Vector2(-22f, -18f),
-                new Vector2(28f, 20f),
-                new Color(0.64f, 0.69f, 0.76f));
-
-            CreateHazardStrip(
-                "West Gate",
-                new Vector2(-39f, -22f),
-                new Vector2(5.0f, 0.75f),
-                0f);
-
-            CreateHazardStrip(
-                "Plaza Crossing",
-                new Vector2(-1f, -9f),
-                new Vector2(8f, 0.75f),
-                0f);
-
-            CreateHazardStrip(
-                "Admin Entry",
-                new Vector2(15f, 2f),
-                new Vector2(5f, 0.75f),
-                0f);
-
-            CreateHazardStrip(
-                "South Exit",
-                new Vector2(39f, -27f),
-                new Vector2(6f, 0.75f),
-                0f);
-
-            CreateLightPool(
-                "West Gate Lamp",
-                new Vector2(-36f, -18f),
-                new Vector2(8f, 8f),
-                new Color(0.24f, 0.46f, 0.92f, 0.23f));
-
-            CreateLightPool(
-                "Plaza Lamp",
-                new Vector2(1f, 1f),
-                new Vector2(10f, 10f),
-                new Color(0.30f, 0.60f, 0.88f, 0.20f));
-
-            CreateLightPool(
-                "Warehouse Lamp",
-                new Vector2(-22f, 12f),
-                new Vector2(9f, 9f),
-                new Color(0.22f, 0.68f, 0.72f, 0.20f));
-
-            CreateLightPool(
-                "Admin Emergency Lamp",
-                new Vector2(25f, 11f),
-                new Vector2(8f, 8f),
-                new Color(0.88f, 0.20f, 0.25f, 0.18f));
         }
 
         private static void CreateGeometry()
