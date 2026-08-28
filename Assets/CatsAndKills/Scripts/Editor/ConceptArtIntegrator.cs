@@ -242,20 +242,14 @@ namespace CatsAndKills.EditorTools
 
         public static ProductionArtPack EnsureIntegratedPack()
         {
-            ProductionArtPack pack =
-                AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
-                    PackPath);
+            // Rebuild the generated integration every time the concept build
+            // is requested. The source atlases are small enough for editor-time
+            // processing, and this guarantees fixes to slicing/cropping are
+            // reflected immediately instead of reusing stale generated assets.
+            IntegrateAll();
 
-            if (pack == null || !pack.HasMinimumPlayableArt)
-            {
-                IntegrateAll();
-
-                pack =
-                    AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
-                        PackPath);
-            }
-
-            return pack;
+            return AssetDatabase.LoadAssetAtPath<ProductionArtPack>(
+                PackPath);
         }
 
         public static Sprite GetAmbienceSprite(
