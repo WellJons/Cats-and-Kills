@@ -16,13 +16,16 @@ namespace CatsAndKills.Player
         private enum TargetMode
         {
             Move,
-            Grenade
+            Grenade,
+            Molotov,
+            Smoke
         }
 
         [SerializeField] private NavigationGrid2D navigation;
         [SerializeField] private TacticalCombatDirector tactical;
         [SerializeField] private HitscanWeapon2D weapon;
         [SerializeField] private PlayerGrenadeController grenades;
+        [SerializeField] private TacticalUtilityBelt utilityBelt;
         [SerializeField] private PlayerAim2D aim;
         [SerializeField] private Camera worldCamera;
         [SerializeField] private Rigidbody2D body;
@@ -33,12 +36,16 @@ namespace CatsAndKills.Player
 
         public bool IsMoving => _moving;
         public bool GrenadeTargeting => _targetMode == TargetMode.Grenade;
+        public bool MolotovTargeting => _targetMode == TargetMode.Molotov;
+        public bool SmokeTargeting => _targetMode == TargetMode.Smoke;
+        public TacticalUtilityBelt UtilityBelt => utilityBelt;
 
         public void Configure(
             NavigationGrid2D nav,
             TacticalCombatDirector director,
             HitscanWeapon2D playerWeapon,
             PlayerGrenadeController grenadeController,
+            TacticalUtilityBelt belt,
             PlayerAim2D playerAim,
             Camera cameraRef)
         {
@@ -46,6 +53,7 @@ namespace CatsAndKills.Player
             tactical = director;
             weapon = playerWeapon;
             grenades = grenadeController;
+            utilityBelt = belt;
             aim = playerAim;
             worldCamera = cameraRef;
         }
@@ -69,6 +77,9 @@ namespace CatsAndKills.Player
 
             if (grenades == null)
                 grenades = GetComponent<PlayerGrenadeController>();
+
+            if (utilityBelt == null)
+                utilityBelt = GetComponent<TacticalUtilityBelt>();
 
             if (aim == null)
                 aim = GetComponent<PlayerAim2D>();
@@ -100,6 +111,26 @@ namespace CatsAndKills.Player
                     _targetMode == TargetMode.Grenade
                         ? TargetMode.Move
                         : TargetMode.Grenade;
+
+                return;
+            }
+
+            if (CKInput.MolotovPressed)
+            {
+                _targetMode =
+                    _targetMode == TargetMode.Molotov
+                        ? TargetMode.Move
+                        : TargetMode.Molotov;
+
+                return;
+            }
+
+            if (CKInput.SmokePressed)
+            {
+                _targetMode =
+                    _targetMode == TargetMode.Smoke
+                        ? TargetMode.Move
+                        : TargetMode.Smoke;
 
                 return;
             }
@@ -173,7 +204,56 @@ namespace CatsAndKills.Player
                                 TargetMode.Move;
 
                             StartCoroutine(
-                                ResolveGrenadeAction());
+                                ResolveUtilityAction(
+                                    0.88f));
+                        }
+                    }
+
+                    return;
+                }
+
+                if (_targetMode ==
+                    TargetMode.Molotov)
+                {
+                    if (tactical.TrySpendAP(4))
+                    {
+                        if (utilityBelt == null ||
+                            !utilityBelt.ThrowMolotovAt(target))
+                        {
+                            tactical.RefundAP(4);
+                        }
+                        else
+                        {
+                            _targetMode =
+                                TargetMode.Move;
+
+                            StartCoroutine(
+                                ResolveUtilityAction(
+                                    0.58f));
+                        }
+                    }
+
+                    return;
+                }
+
+                if (_targetMode ==
+                    TargetMode.Smoke)
+                {
+                    if (tactical.TrySpendAP(3))
+                    {
+                        if (utilityBelt == null ||
+                            !utilityBelt.ThrowSmokeAt(target))
+                        {
+                            tactical.RefundAP(3);
+                        }
+                        else
+                        {
+                            _targetMode =
+                                TargetMode.Move;
+
+                            StartCoroutine(
+                                ResolveUtilityAction(
+                                    0.58f));
                         }
                     }
 
@@ -307,12 +387,15 @@ namespace CatsAndKills.Player
             MaybeEndTurn();
         }
 
-        private IEnumerator ResolveGrenadeAction()
+        private IEnumerator ResolveUtilityAction(
+            float duration)
         {
             _moving = true;
 
             yield return new WaitForSeconds(
-                0.88f);
+                Mathf.Max(
+                    0.1f,
+                    duration));
 
             _moving = false;
             MaybeEndTurn();
