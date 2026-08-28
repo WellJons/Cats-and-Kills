@@ -73,6 +73,9 @@ namespace CatsAndKills.Damage
 
         private void ResetVitals()
         {
+            IsDead = false;
+            _lastDamageSource = null;
+
             Health = maxHealth;
             LeftArm = RightArm = armCapacity;
             LeftLeg = RightLeg = legCapacity;
