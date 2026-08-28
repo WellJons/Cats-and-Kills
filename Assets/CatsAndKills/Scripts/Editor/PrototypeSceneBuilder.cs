@@ -293,6 +293,11 @@ namespace CatsAndKills.EditorTools
 
             var weapon = weaponGo.AddComponent<HitscanWeapon2D>();
             weapon.Configure(rifle, aim, motor, muzzle.transform, casing.transform, cameraFollow, weaponRenderer, visualRecoil, flash, audio);
+            visualRecoil.ConfigureAnchor(
+                root.transform,
+                aim,
+                weaponRenderer,
+                weapon);
 
             var arsenal = root.AddComponent<PlayerArsenal>();
             arsenal.Configure(weapon, new[] { rifle, pistol, shotgun });
