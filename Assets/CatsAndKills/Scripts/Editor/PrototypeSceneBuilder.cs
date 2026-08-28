@@ -299,6 +299,7 @@ namespace CatsAndKills.EditorTools
             collider.radius = 0.46f;
 
             var vitals = root.AddComponent<CharacterVitals>();
+            root.AddComponent<EnemyDeathPresentation2D>();
             var suppression = root.AddComponent<SuppressionReceiver2D>();
             var grenadeAwareness = root.AddComponent<GrenadeAwareness2D>();
             var morale = root.AddComponent<EnemyMorale2D>();
