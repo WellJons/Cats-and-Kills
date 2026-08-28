@@ -1,5 +1,6 @@
 using CatsAndKills.Audio;
 using CatsAndKills.Core;
+using CatsAndKills.Narrative;
 using CatsAndKills.Player;
 using CatsAndKills.UI;
 using CatsAndKills.Tactical;
@@ -49,6 +50,12 @@ namespace CatsAndKills.Combat
         private void Update()
         {
             if (Time.timeScale <= 0f) return;
+
+            if (NarrativeDialogueSystem.IsDialogueOpen)
+            {
+                _cooking = false;
+                return;
+            }
 
             TacticalCombatDirector tactical =
                 TacticalCombatDirector.Instance;
