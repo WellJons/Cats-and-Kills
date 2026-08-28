@@ -224,59 +224,67 @@ namespace CatsAndKills.UI
 
                 if (collar != null)
                 {
+                    string collarText =
+                        collar.IsUnlocked
+                            ? "Q // " +
+                              collar.TacticalAbilityName +
+                              "   INSTABILITY " +
+                              collar.Instability.ToString("0") +
+                              "%"
+                            : "COLLAR // DAMAGED SIGNAL // ПРОТОКОЛ НЕИЗВЕСТЕН";
+
                     GUI.Label(
                         new Rect(
                             515f,
                             40f,
                             470f,
                             25f),
-                        "Q // " +
-                        collar.TacticalAbilityName +
-                        "   INSTABILITY " +
-                        collar.Instability.ToString("0") +
-                        "%",
+                        collarText,
                         _hint);
 
-                    float instability =
-                        collar.Instability01;
+                    if (collar.IsUnlocked)
+                    {
+                        float instability =
+                            collar.Instability01;
 
-                    Rect bg =
-                        new Rect(
-                            515f,
-                            72f,
-                            240f,
-                            10f);
+                        Rect bg =
+                            new Rect(
+                                515f,
+                                72f,
+                                240f,
+                                10f);
 
-                    GUI.Box(
-                        bg,
-                        GUIContent.none);
+                        GUI.Box(
+                            bg,
+                            GUIContent.none);
 
-                    Color oldColor =
-                        GUI.color;
+                        Color oldColor =
+                            GUI.color;
 
-                    GUI.color =
-                        Color.Lerp(
-                            new Color(
-                                0.18f,
-                                0.72f,
-                                0.92f),
-                            new Color(
-                                1f,
-                                0.16f,
-                                0.18f),
-                            instability);
+                        GUI.color =
+                            Color.Lerp(
+                                new Color(
+                                    0.18f,
+                                    0.72f,
+                                    0.92f),
+                                new Color(
+                                    1f,
+                                    0.16f,
+                                    0.18f),
+                                instability);
 
-                    GUI.Box(
-                        new Rect(
-                            bg.x,
-                            bg.y,
-                            bg.width *
-                            instability,
-                            bg.height),
-                        GUIContent.none);
+                        GUI.Box(
+                            new Rect(
+                                bg.x,
+                                bg.y,
+                                bg.width *
+                                instability,
+                                bg.height),
+                            GUIContent.none);
 
-                    GUI.color =
-                        oldColor;
+                        GUI.color =
+                            oldColor;
+                    }
                 }
             }
 
