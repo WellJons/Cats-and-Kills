@@ -12,6 +12,8 @@ namespace CatsAndKills.Narrative
         public string nextNodeId;
         public string requiredFlag;
         public string forbiddenFlag;
+        public string requiredValueKey;
+        public int minimumValue;
         public string setFlag;
         public string valueKey;
         public int valueDelta;
@@ -28,6 +30,10 @@ namespace CatsAndKills.Narrative
         public string text;
 
         public string nextNodeId;
+        public string requiredFlag;
+        public string forbiddenFlag;
+        public string requiredValueKey;
+        public int minimumValue;
         public DialogueChoiceData[] choices;
     }
 
@@ -65,6 +71,7 @@ namespace CatsAndKills.Narrative
                 return;
 
             _active = source;
+            _active.NotifyDialogueOpened();
             _node = source.ResolveStartNode();
 
             if (_node == null)
@@ -153,6 +160,8 @@ namespace CatsAndKills.Narrative
                 Close();
                 return;
             }
+
+            _active.NotifyNodeAdvanced();
 
             _node =
                 _active.ResolveNode(
