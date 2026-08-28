@@ -240,6 +240,12 @@ namespace CatsAndKills.Combat
                 }
             }
 
+            SuppressionSystem.ReportShot(
+                origin,
+                endPoint,
+                definition.pellets > 1 ? 0.18f : 0.30f,
+                gameObject);
+
             Debug.DrawLine(origin, endPoint, Color.red, 0.1f);
         }
 
