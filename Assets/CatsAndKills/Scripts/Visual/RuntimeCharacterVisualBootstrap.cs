@@ -11,44 +11,40 @@ namespace CatsAndKills.Visual
     [DisallowMultipleComponent]
     public sealed class RuntimeCharacterVisualBootstrap : MonoBehaviour
     {
-        [Header("Source atlases")]
-        [SerializeField] private Texture2D playerAtlas;
-        [SerializeField] private Texture2D pistolierAtlas;
-        [SerializeField] private Texture2D riflemanAtlas;
-        [SerializeField] private Texture2D machineGunnerAtlas;
-        [SerializeField] private Texture2D demolitionistAtlas;
+        [Header("Persistent sprite assets")]
+        [SerializeField] private DirectionalSpriteSet playerSet;
+        [SerializeField] private DirectionalSpriteSet pistolierSet;
+        [SerializeField] private DirectionalSpriteSet riflemanSet;
+        [SerializeField] private DirectionalSpriteSet machineGunnerSet;
+        [SerializeField] private DirectionalSpriteSet demolitionistSet;
 
         [Header("Presentation")]
         [SerializeField] private float playerScale = 1.28f;
         [SerializeField] private float enemyScale = 1.22f;
         [SerializeField] private float machineGunnerScale = 1.40f;
-        [SerializeField] private float verifyInterval = 0.40f;
+        [SerializeField] private float verifyInterval = 0.35f;
 
         private float _nextVerify;
 
         public void Configure(
-            Texture2D player,
-            Texture2D pistolier,
-            Texture2D rifleman,
-            Texture2D machineGunner,
-            Texture2D demolitionist)
+            DirectionalSpriteSet player,
+            DirectionalSpriteSet pistolier,
+            DirectionalSpriteSet rifleman,
+            DirectionalSpriteSet machineGunner,
+            DirectionalSpriteSet demolitionist)
         {
-            playerAtlas = player;
-            pistolierAtlas = pistolier;
-            riflemanAtlas = rifleman;
-            machineGunnerAtlas = machineGunner;
-            demolitionistAtlas = demolitionist;
+            playerSet = player;
+            pistolierSet = pistolier;
+            riflemanSet = rifleman;
+            machineGunnerSet = machineGunner;
+            demolitionistSet = demolitionist;
         }
 
         private IEnumerator Start()
         {
-            // Let every gameplay Awake/Start finish first, then install visuals.
             yield return null;
             RebuildAll();
 
-            // Run once more after the first rendered frame. This makes the
-            // setup deterministic even if another component altered renderers
-            // during its first Start/LateUpdate.
             yield return null;
             EnsureAllVisible();
         }
@@ -68,29 +64,26 @@ namespace CatsAndKills.Visual
         public void RebuildAll()
         {
             PlayerMotor2D player =
-                FindAnyObjectByType<PlayerMotor2D>();
+                Object.FindAnyObjectByType<PlayerMotor2D>();
 
             if (player != null)
             {
                 Install(
                     player.gameObject,
-                    playerAtlas,
+                    playerSet,
                     player.transform,
                     true,
                     playerScale);
             }
 
             EnemyBrain[] enemies =
-                FindObjectsByType<EnemyBrain>(
+                Object.FindObjectsByType<EnemyBrain>(
                     FindObjectsSortMode.None);
 
             foreach (EnemyBrain enemy in enemies)
             {
                 if (enemy == null)
                     continue;
-
-                Texture2D atlas =
-                    AtlasFor(enemy.Archetype);
 
                 float scale =
                     enemy.Archetype ==
@@ -100,7 +93,7 @@ namespace CatsAndKills.Visual
 
                 Install(
                     enemy.gameObject,
-                    atlas,
+                    SetFor(enemy.Archetype),
                     player != null
                         ? player.transform
                         : null,
@@ -112,20 +105,20 @@ namespace CatsAndKills.Visual
         private void EnsureAllVisible()
         {
             PlayerMotor2D player =
-                FindAnyObjectByType<PlayerMotor2D>();
+                Object.FindAnyObjectByType<PlayerMotor2D>();
 
             if (player != null)
             {
                 EnsureOne(
                     player.gameObject,
-                    playerAtlas,
+                    playerSet,
                     player.transform,
                     true,
                     playerScale);
             }
 
             EnemyBrain[] enemies =
-                FindObjectsByType<EnemyBrain>(
+                Object.FindObjectsByType<EnemyBrain>(
                     FindObjectsSortMode.None);
 
             foreach (EnemyBrain enemy in enemies)
@@ -141,7 +134,7 @@ namespace CatsAndKills.Visual
 
                 EnsureOne(
                     enemy.gameObject,
-                    AtlasFor(enemy.Archetype),
+                    SetFor(enemy.Archetype),
                     player != null
                         ? player.transform
                         : null,
@@ -152,12 +145,12 @@ namespace CatsAndKills.Visual
 
         private void EnsureOne(
             GameObject root,
-            Texture2D atlas,
+            DirectionalSpriteSet set,
             Transform lookTarget,
             bool isPlayer,
             float scale)
         {
-            if (root == null || atlas == null)
+            if (root == null || set == null)
                 return;
 
             Transform visual =
@@ -182,7 +175,7 @@ namespace CatsAndKills.Visual
             {
                 Install(
                     root,
-                    atlas,
+                    set,
                     lookTarget,
                     isPlayer,
                     scale);
@@ -191,12 +184,12 @@ namespace CatsAndKills.Visual
 
         private void Install(
             GameObject root,
-            Texture2D atlas,
+            DirectionalSpriteSet set,
             Transform lookTarget,
             bool isPlayer,
             float scale)
         {
-            if (root == null || atlas == null)
+            if (root == null || set == null)
                 return;
 
             RemoveOldVisual(
@@ -233,6 +226,10 @@ namespace CatsAndKills.Visual
             SpriteRenderer sr =
                 go.AddComponent<SpriteRenderer>();
 
+            sr.sprite =
+                set.GetIdle(
+                    CharacterDirection8.South);
+
             sr.enabled = true;
             sr.forceRenderingOff = false;
             sr.color = Color.white;
@@ -252,30 +249,24 @@ namespace CatsAndKills.Visual
 
             HitscanWeapon2D playerGun =
                 isPlayer
-                    ? root.GetComponentInChildren<HitscanWeapon2D>()
+                    ? root.GetComponentInChildren<
+                        HitscanWeapon2D>()
                     : null;
 
-            EnemyWeapon2D enemyGun =
-                isPlayer
-                    ? null
-                    : root.GetComponent<EnemyWeapon2D>();
-
-            ConceptAtlasCharacterVisual2D visual =
+            ThreeQuarterCharacterVisual2D visual =
                 go.AddComponent<
-                    ConceptAtlasCharacterVisual2D>();
+                    ThreeQuarterCharacterVisual2D>();
 
             visual.Configure(
-                atlas,
+                set,
                 sr,
                 vitals,
                 body,
                 aim,
                 playerGun,
-                enemyGun,
                 isPlayer
                     ? null
-                    : lookTarget,
-                128f);
+                    : lookTarget);
 
             DepthSortedSprite2D depth =
                 go.AddComponent<DepthSortedSprite2D>();
@@ -300,31 +291,31 @@ namespace CatsAndKills.Visual
                 return;
 
             old.gameObject.SetActive(false);
-            Destroy(old.gameObject);
+            Object.Destroy(old.gameObject);
         }
 
-        private Texture2D AtlasFor(
+        private DirectionalSpriteSet SetFor(
             EnemyArchetype type)
         {
             switch (type)
             {
                 case EnemyArchetype.Pistolier:
-                    return pistolierAtlas != null
-                        ? pistolierAtlas
-                        : riflemanAtlas;
+                    return pistolierSet != null
+                        ? pistolierSet
+                        : riflemanSet;
 
                 case EnemyArchetype.MachineGunner:
-                    return machineGunnerAtlas != null
-                        ? machineGunnerAtlas
-                        : riflemanAtlas;
+                    return machineGunnerSet != null
+                        ? machineGunnerSet
+                        : riflemanSet;
 
                 case EnemyArchetype.Demolitionist:
-                    return demolitionistAtlas != null
-                        ? demolitionistAtlas
-                        : riflemanAtlas;
+                    return demolitionistSet != null
+                        ? demolitionistSet
+                        : riflemanSet;
 
                 default:
-                    return riflemanAtlas;
+                    return riflemanSet;
             }
         }
     }
