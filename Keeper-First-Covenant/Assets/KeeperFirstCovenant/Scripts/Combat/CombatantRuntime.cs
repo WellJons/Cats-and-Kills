@@ -23,6 +23,7 @@ namespace KeeperFirstCovenant.Combat
         private int _currentActionPoints;
         private float _remainingMovement;
         private int _barrier;
+        private bool _deathRaised;
 
         public CharacterDefinition Definition => definition;
         public CombatFaction Faction => definition != null ? definition.faction : CombatFaction.Neutral;
@@ -55,6 +56,7 @@ namespace KeeperFirstCovenant.Combat
         {
             _statuses.Clear();
             _barrier = 0;
+            _deathRaised = false;
 
             if (definition == null)
             {
@@ -89,6 +91,9 @@ namespace KeeperFirstCovenant.Combat
 
             TickStatuses();
 
+            if (!IsAlive)
+                return;
+
             _currentActionPoints = Mathf.Max(0, definition.actionPoints + GetStatusActionPointModifier());
             _remainingMovement = Mathf.Max(0f, definition.movementMeters * GetStatusMovementMultiplier());
             TurnStarted?.Invoke(this);
@@ -97,12 +102,15 @@ namespace KeeperFirstCovenant.Combat
 
         public void EndTurn()
         {
+            if (!IsAlive)
+                return;
+
             TurnEnded?.Invoke(this);
         }
 
         public bool TrySpendActionPoints(int amount)
         {
-            if (amount < 0 || _currentActionPoints < amount)
+            if (!IsAlive || amount < 0 || _currentActionPoints < amount)
                 return false;
 
             _currentActionPoints -= amount;
@@ -112,7 +120,7 @@ namespace KeeperFirstCovenant.Combat
 
         public bool TrySpendMana(int amount)
         {
-            if (amount < 0 || _currentMana < amount)
+            if (!IsAlive || amount < 0 || _currentMana < amount)
                 return false;
 
             _currentMana -= amount;
@@ -122,7 +130,7 @@ namespace KeeperFirstCovenant.Combat
 
         public bool TrySpendMovement(float meters)
         {
-            if (meters < 0f || _remainingMovement + 0.001f < meters)
+            if (!IsAlive || meters < 0f || _remainingMovement + 0.001f < meters)
                 return false;
 
             _remainingMovement -= meters;
@@ -158,7 +166,7 @@ namespace KeeperFirstCovenant.Combat
             Changed?.Invoke(this);
 
             if (_currentHealth <= 0)
-                Died?.Invoke(this);
+                RaiseDeath();
         }
 
         public void Heal(int amount)
@@ -240,12 +248,26 @@ namespace KeeperFirstCovenant.Combat
                 {
                     int amount = active.definition.turnDamage.Roll() * Mathf.Max(1, active.intensity);
                     ApplyDamage(new DamagePacket(amount, active.definition.turnDamageType, gameObject));
+
+                    if (!IsAlive)
+                        return;
                 }
 
                 active.turnsRemaining--;
                 if (active.turnsRemaining <= 0)
                     _statuses.RemoveAt(i);
             }
+        }
+
+        private void RaiseDeath()
+        {
+            if (_deathRaised)
+                return;
+
+            _deathRaised = true;
+            _currentActionPoints = 0;
+            _remainingMovement = 0f;
+            Died?.Invoke(this);
         }
 
         private int GetArmor()
