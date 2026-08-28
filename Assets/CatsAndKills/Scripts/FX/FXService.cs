@@ -1,3 +1,4 @@
+using CatsAndKills.Audio;
 using UnityEngine;
 
 namespace CatsAndKills.FX
@@ -150,8 +151,13 @@ namespace CatsAndKills.FX
 
             go.AddComponent<DebrisLifetime2D>().SetLifetime(5f, true);
 
-            if (casingClip != null && Random.value < 0.55f)
-                AudioSource.PlayClipAtPoint(casingClip, position, 0.16f);
+            AudioClip resolvedCasing =
+                casingClip != null
+                    ? casingClip
+                    : ProceduralAudioFactory.Casing;
+
+            if (resolvedCasing != null && Random.value < 0.55f)
+                AudioSource.PlayClipAtPoint(resolvedCasing, position, 0.16f);
         }
     }
 }
